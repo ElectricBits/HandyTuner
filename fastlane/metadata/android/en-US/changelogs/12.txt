@@ -1,0 +1,2 @@
+• Much smaller download: 53 MB → 8.5 MB. Same app, unused code trimmed out.
+• Install with Obtainium to get updates automatically (see the README).

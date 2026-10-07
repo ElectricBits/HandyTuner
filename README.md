@@ -14,7 +14,7 @@ Made and tested on the **AYN Odin 2 Portal** first, with **support for more hand
 > rough edges. Bug reports, tips and code help are all very welcome!
 
 > [!WARNING]
-> **Beta (0.9.2). So far everything has been tested on the AYN Odin 2 Portal (Android 13) only.**
+> **Beta (0.9.3). So far everything has been tested on the AYN Odin 2 Portal (Android 13) only.**
 > Other devices aren't tested yet: on them it may not work, or may change settings it shouldn't. If you try it on
 > another device, please open an issue with the result and an exported log (Diagnostics → Export log file) — that's
 > exactly how support for more devices gets added. "Reset everything to stock" (Diagnostics) puts back what
