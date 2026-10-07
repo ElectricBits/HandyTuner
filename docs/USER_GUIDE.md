@@ -78,8 +78,17 @@ Open it in any game with **both sticks + R1**. Changes apply to the game in fron
 
 The HUD floats over your game. **Full** shows FPS, refresh rate, CPU and GPU load, CPU and GPU temperature, RAM,
 battery time left, ping (to the game's server when HandyTuner can find it, and to the internet), Wi-Fi signal, the
-time, and a one-line hint about what's slowing the game down. It says the chip is **throttling** only when the
-system is really slowing it down for heat, not just because it's warm. **Compact** shows just FPS, ping and Wi-Fi.
+time, and a one-line hint about what's slowing the game down. What the hint line can say:
+
+| Hint | Meaning |
+|---|---|
+| Running smoothly | Nothing is holding the game back. |
+| Steady at 60 fps | The game sits at a rate it chose itself (often its own frame limit). |
+| Holding your 40 fps cap / Auto is holding 30 fps | Your cap or Auto target is working. |
+| The graphics chip is the limit right now | The GPU is fully busy; a lighter setting or Saver may help battery. |
+| One CPU core is the limit right now | The game's main thread is fully busy (common in emulators). |
+| Memory is running low *(amber)* | Close background apps (Tweaks → Speed Up). |
+| The chip is slowing down to cool off *(amber)* | Real heat throttling, read from the system, not guessed from the temperature. | **Compact** shows just FPS, ping and Wi-Fi.
 
 On the HUD page you can also change the **hotkeys**, the HUD's **position** (any corner), **size** and **accent
 color**. Changes apply live.

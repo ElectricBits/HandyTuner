@@ -602,7 +602,7 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
             if (gen != hudGeneration || hud == null) return
             // Settings changed in the app: rebuild the HUD with the new look (show() reposts the tick).
             if (HudStyle.file(this@OverlayService).lastModified() != styleStamp) { main.post { hide(); show() }; return }
-            val r = stats.sample()
+            val r = stats.sample().let { held(it) }
             val t = ticks++
             val want = style.shown
             // Hidden items cost nothing: no detection, no pings.
@@ -766,12 +766,9 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
         if (HudStyle.Item.CLOCK in want) part("", java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault()).format(java.util.Date()), 0xFFFFFFFF.toInt())
         lineSys.text = group("SYS  ", R.drawable.ic_memory, 0xFFFF2BD6.toInt(), s)         // magenta
 
-        // "Warm — holding cap" is a warning that is also good news, so it gets amber, not the alarm magenta
-        // the real problems get. It fires whenever the smoothed chip temp passes the line, which is
-        // often enough that painting it red every time trains you to ignore the red ones.
-        val fine = verdict == Bottleneck.Verdict.NONE || verdict == Bottleneck.Verdict.CAP
-        line3.text = (if (fine) "▸ " else "⚠ ") + verdict.text
-        line3.setTextColor(if (fine) DIM else if (verdict == Bottleneck.Verdict.HOT_OK) WARN else MAGENTA)
+        // Calm on purpose (owner, 2026-10-07): gray for information, amber only for low memory and real heat.
+        line3.text = "▸ " + verdict.text(f.r)
+        line3.setTextColor(if (verdict.warn) WARN else DIM)
         for (l in listOf(linePerf, lineNet, lineTemp, lineSys)) {
             l.visibility = if (l.text.isEmpty()) android.view.View.GONE else android.view.View.VISIBLE
         }
@@ -811,6 +808,19 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
         bg.post { endSession(); runner.clear() }
         worker.quitSafely()
         super.onDestroy()
+    }
+
+    private var heldCache: Triple<String?, Long, Pair<Int?, Boolean>>? = null
+
+    /** The cap or Auto target the game in front really has, from its saved settings (cached until games.json changes). */
+    private fun held(r: Bottleneck.Reading): Bottleneck.Reading {
+        val id = front0
+        val stamp = GameStore.file(this).lastModified()
+        val h = heldCache?.takeIf { it.first == id && it.second == stamp }?.third ?: run {
+            val p = id?.let { GameStore.get(this, it) }?.pulse
+            (p?.autoFps?.let { it to true } ?: (p?.cap?.takeIf { it > 0 } to false)).also { heldCache = Triple(id, stamp, it) }
+        }
+        return r.copy(heldFps = h.first, heldAuto = h.second)
     }
 
     /** PULSE's mode label in HandyTuner's words (the Quick Menu's: Auto, Max, Balanced, Saver). */
