@@ -45,7 +45,8 @@ Made and tested on the **AYN Odin 2 Portal** first, with **support for more hand
 |---|---|
 | **AYN Odin 2 Portal** | ✅ Tested: everything in this README works. |
 | **AYN Odin 3** | 🔜 Planned. The built-in PULSE engine already has a profile for its chip; HandyTuner itself is untested. |
-| **AYN Thor, Retroid Pocket 6** | 🔜 Planned. The PULSE engine already has a profile for their chip; HandyTuner itself is untested. |
+| **AYN Thor** | ⚠️ Untested. The PULSE engine already has a profile for its chip, but HandyTuner hasn't been tried on it. |
+| **Retroid Pocket 6** | ⚠️ Untested. The PULSE engine already has a profile for its chip, but HandyTuner hasn't been tried on it. |
 | **Other AYN and Retroid handhelds** | 🔜 Planned. HandyTuner checks what each device supports, but each one needs testing. |
 
 Want your device supported sooner? Try it and [open an issue](https://github.com/ElectricBits/HandyTuner/issues/new/choose)
