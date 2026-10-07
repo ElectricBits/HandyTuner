@@ -31,6 +31,11 @@ android {
     buildTypes {
         release {
             signingConfig = signingConfigs.findByName("release")
+            // R8 drops unused code (mostly material-icons-extended): 53 MB -> a few MB. Framework reflection
+            // (ServiceManager) and manifest components are safe; add keep rules to proguard-rules.pro if needed.
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
     compileOptions {
