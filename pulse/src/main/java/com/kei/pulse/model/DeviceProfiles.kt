@@ -1,3 +1,5 @@
+// Part of PULSE by keiretrogaming and contributors (GPL-2.0), built on ClusterTune and O2P Tweaks.
+// Modified by ElectricBits for HandyTuner on 2026-10-07; changes listed in pulse/NOTICE.md.
 package com.kei.pulse.model
 
 import com.kei.pulse.data.FanController
@@ -44,6 +46,20 @@ object DeviceProfiles {
         appliesOdinPowerTuning = true,
     )
 
+    /**
+     * AYN Odin 2 Portal (HandyTuner, 2026-10-07): the same SD 8 Gen 2 (`QCS8550`) as the Thor/RP6, but its panel has
+     * only 60/120 Hz modes, so a 90 target can't pace (Android floors a 90 cap to 60) — and it DOES honor the Game
+     * Mode cap (HandyTuner measured 30 → 29.9, 40 → 39.1, 60 on it). So its targets are the 120 Hz divisors.
+     */
+    val ODIN2_PORTAL = DeviceProfile(
+        name = "AYN Odin 2 Portal (SD 8 Gen 2)",
+        fanReleaseMode = FanController.SMART,
+        primeIsVendorFloored = false,
+        honorsGameModeFpsCap = true,
+        fpsTargetOptions = listOf(30, 40, 60, 120),
+        appliesOdinPowerTuning = false,
+    )
+
     /** AYN Thor + Retroid Pocket 6 — SD 8 Gen 2 (`QCS8550`), Adreno 740, panels do 90 Hz via refresh. */
     val SD8GEN2 = DeviceProfile(
         name = "SD 8 Gen 2 (AYN Thor / Retroid Pocket 6)",
@@ -65,9 +81,13 @@ object DeviceProfiles {
     )
 
     /** Resolve by `ro.soc.model` (the gating key everywhere in PULSE); null/unknown ⇒ [UNKNOWN]. */
-    fun forSoc(socModel: String?): DeviceProfile = when (socModel?.trim()?.uppercase()) {
+    fun forSoc(socModel: String?, deviceModel: String? = currentModel()): DeviceProfile = when (socModel?.trim()?.uppercase()) {
         "CQ8725S" -> ODIN3
-        "QCS8550" -> SD8GEN2
+        // Same chip, different panel: the Odin 2 Portal is told apart by its model name.
+        "QCS8550" -> if (deviceModel?.trim().equals("Odin2 Portal", ignoreCase = true)) ODIN2_PORTAL else SD8GEN2
         else -> UNKNOWN
     }
+
+    /** Build.MODEL, or null where there is none (JVM unit tests). */
+    private fun currentModel(): String? = runCatching { android.os.Build.MODEL }.getOrNull()
 }

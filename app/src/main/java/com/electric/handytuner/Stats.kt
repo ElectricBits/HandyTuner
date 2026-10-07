@@ -21,7 +21,25 @@ class Stats {
     /** Call about once a second, off the main thread. */
     fun sample(): Bottleneck.Reading = Bottleneck.Reading(
         fps = fps(), gpuBusy = gpuBusy(), busiestCore = busiestCore(), cpuTempC = cpuTempSmoothed(), memPressure = memPressure(),
+        throttling = throttling(),
     )
+
+    /**
+     * Whether the kernel is limiting the chip for heat right now, from its thermal cooling devices: each one's
+     * `cur_state` is 0 until it starts slowing a CPU cluster, the GPU, or parking cores. (PULSE's own power caps
+     * use `scaling_max_freq`, not these, so a power limit is never taken for heat.) null when none can be read.
+     */
+    fun throttling(): Boolean? {
+        val paths = coolingPaths ?: File("/sys/class/thermal").listFiles { f -> f.name.startsWith("cooling_device") }.orEmpty()
+            .filter { d -> read("${d.path}/type")?.let { COOLING.matches(it) } == true }
+            .map { "${it.path}/cur_state" }.also { coolingPaths = it }
+        val states = paths.mapNotNull { read(it)?.toIntOrNull() }
+        val gpuLevel = read("/sys/class/kgsl/kgsl-3d0/thermal_pwrlevel")?.toIntOrNull()
+        if (states.isEmpty() && gpuLevel == null) return null
+        return throttled(states, gpuLevel)
+    }
+
+    private var coolingPaths: List<String>? = null
 
     private fun fps(): Int? {
         val out = PServer.run("service call SurfaceFlinger 1013") ?: return null
@@ -86,4 +104,12 @@ class Stats {
         ?.filter(Char::isDigit)?.toLongOrNull()?.let { (it / 1024).toInt() }
 
     private fun read(path: String) = runCatching { File(path).readText().trim() }.getOrNull()?.takeIf { it.isNotEmpty() }
+
+    companion object {
+        /** Cooling devices that slow the CPU or GPU or park cores for heat (named as on the Odin 2 Portal's kernel). */
+        val COOLING = Regex("cpufreq-cpu\\d+|cpu-cluster\\d+|thermal-cluster.*|gpu|devfreq-.*kgsl.*|thermal-pause-.*|pause-cpu\\d+|cpu-hotplug\\d+")
+
+        /** Throttling: any cooling device engaged, or the GPU held below its top level for heat. */
+        fun throttled(states: List<Int>, gpuLevel: Int?): Boolean = states.any { it > 0 } || (gpuLevel ?: 0) > 0
+    }
 }

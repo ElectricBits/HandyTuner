@@ -62,5 +62,10 @@ By ElectricBits, with AI assistance:
   - `appwatch/ForegroundAppMonitorService.kt`, `sleep/SleepProfileMonitorService.kt`: HandyTuner's name,
     icon and colour on notifications and toasts; notification opens HandyTuner; "Move overlay" action removed;
   - `boot/BootCompletedReceiver.kt`: no tile refresh.
+- 2026-10-07 `model/DeviceProfiles.kt`: an Odin 2 Portal profile (AutoTDP targets 30/40/60/120, Game Mode cap on);
+  `data/FrameLimiter.kt`: AutoTDP's cap falls back to the battery-mode override when Android 13 refuses mode 4.
+  `data/FpsReader.kt` + `appwatch/ForegroundAppMonitorService.kt`: a ≥50 ms slow-frame count, used as AutoTDP's jank
+  signal at a 30 fps target (33 ms frames are normal there).
+  `appwatch/ForegroundAppMonitorService.kt`: the mode label is also refreshed while HandyTuner's HUD reads it.
 
 Not the official PULSE: it ships only inside HandyTuner, under HandyTuner's name.

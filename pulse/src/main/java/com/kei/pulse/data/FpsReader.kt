@@ -1,3 +1,5 @@
+// Part of PULSE by keiretrogaming and contributors (GPL-2.0), built on ClusterTune and O2P Tweaks.
+// Modified by ElectricBits for HandyTuner on 2026-10-07; changes listed in pulse/NOTICE.md.
 package com.kei.pulse.data
 
 import android.content.Context
@@ -46,6 +48,8 @@ class FpsReader(private val context: Context) {
         val worstFrameTimeMs: Float? = null,
         /** Frames presented ≥33 ms apart in the last window (genuine hitches). */
         val jankFrames: Int = 0,
+        /** Frames presented ≥50 ms apart: the hitch count for a 30 fps target, where 33 ms is a normal frame. */
+        val jankFrames50: Int = 0,
     )
 
     /** Reduced TimeStats sample for one window: SF's averageFPS + frame-pacing summary. */
@@ -54,6 +58,7 @@ class FpsReader(private val context: Context) {
         val frames: Long,
         val worstFrameMs: Int,
         val slowFrames: Int,
+        val slowFrames50: Int = 0,
     )
 
     private val recentFps = ArrayDeque<Float>()
@@ -124,7 +129,7 @@ class FpsReader(private val context: Context) {
         // briefly rather than blanking the overlay.
         if (parsed == null || parsed.frames < MIN_FRAMES) return heldSample()
         val fps = parsed.avgFps.takeIf { it in 1f..240f } ?: return heldSample()
-        return statsFor(fps, parsed.worstFrameMs, parsed.slowFrames).also {
+        return statsFor(fps, parsed.worstFrameMs, parsed.slowFrames, parsed.slowFrames50).also {
             lastGoodSample = it
             lastGoodAtMs = System.currentTimeMillis()
         }
@@ -151,20 +156,20 @@ class FpsReader(private val context: Context) {
               g==1 && ${'$'}1=="totalFrames" { gf=${'$'}3 }
               g==1 && ${'$'}1=="displayRefreshRate" { rr=${'$'}3 }
               g==1 && /presentToPresent histogram/ { gh=1; next }
-              g==1 && gh==1 { gh=0; for(i=1;i<=NF;i++){ split(${'$'}i,a,"="); ms=a[1]+0; c=a[2]+0; if(c>0 && ms<100){ sc+=c; sm+=ms*c; if(ms>worst)worst=ms; if(ms>=33)slow+=c } } }
+              g==1 && gh==1 { gh=0; for(i=1;i<=NF;i++){ split(${'$'}i,a,"="); ms=a[1]+0; c=a[2]+0; if(c>0 && ms<100){ sc+=c; sm+=ms*c; if(ms>worst)worst=ms; if(ms>=33)slow+=c; if(ms>=50)slow50+=c } } }
               g==0 && ${'$'}1=="totalFrames" { lf=${'$'}3 }
               g==0 && ${'$'}1=="averageFPS" { laf=${'$'}3 }
               END{
                 commitLayer();
                 fps=(sm>0)?(1000.0*sc/sm):0;
                 if(rr>0 && fps>rr) fps=rr;
-                printf "FR %d AF %.2f WORST %d SLOW %d LF %d LAF %.2f\n", gf+0, fps, worst+0, slow+0, blf+0, blaf+0
+                printf "FR %d AF %.2f WORST %d SLOW %d SLOW50 %d LF %d LAF %.2f\n", gf+0, fps, worst+0, slow+0, slow50+0, blf+0, blaf+0
               }
             '
             dumpsys SurfaceFlinger --timestats -clear >/dev/null 2>&1
         """.trimIndent()
 
-    private fun statsFor(fps: Float, worstFrameMs: Int, slowFrames: Int): FpsSample {
+    private fun statsFor(fps: Float, worstFrameMs: Int, slowFrames: Int, slowFrames50: Int = 0): FpsSample {
         recentFps.addLast(fps)
         while (recentFps.size > HISTORY) recentFps.removeFirst()
         return FpsSample(
@@ -175,6 +180,7 @@ class FpsReader(private val context: Context) {
             recentFps = recentFps.toList(),
             worstFrameTimeMs = worstFrameMs.takeIf { it > 0 }?.toFloat(),
             jankFrames = slowFrames,
+            jankFrames50 = slowFrames50,
         )
     }
 
@@ -196,17 +202,18 @@ class FpsReader(private val context: Context) {
          */
         fun parseTimestats(out: String): TimeStatsSample? {
             val m = Regex(
-                """FR\s+(\d+)\s+AF\s+([0-9.]+)\s+WORST\s+(\d+)\s+SLOW\s+(\d+)\s+LF\s+(\d+)\s+LAF\s+([0-9.]+)""",
+                """FR\s+(\d+)\s+AF\s+([0-9.]+)\s+WORST\s+(\d+)\s+SLOW\s+(\d+)(?:\s+SLOW50\s+(\d+))?\s+LF\s+(\d+)\s+LAF\s+([0-9.]+)""",
             ).find(out) ?: return null
             val gFrames = m.groupValues[1].toLongOrNull() ?: 0L
             val gFps = m.groupValues[2].toFloatOrNull() ?: 0f
             val worst = m.groupValues[3].toIntOrNull() ?: 0
             val slow = m.groupValues[4].toIntOrNull() ?: 0
-            val lFrames = m.groupValues[5].toLongOrNull() ?: 0L
-            val lFps = m.groupValues[6].toFloatOrNull() ?: 0f
+            val slow50 = m.groupValues[5].toIntOrNull() ?: 0   // optional (older probe output has no SLOW50)
+            val lFrames = m.groupValues[6].toLongOrNull() ?: 0L
+            val lFps = m.groupValues[7].toFloatOrNull() ?: 0f
             return when {
-                gFrames > 0L && gFps > 0f -> TimeStatsSample(gFps, gFrames, worst, slow)
-                lFrames > 0L && lFps > 0f -> TimeStatsSample(lFps, lFrames, worst, slow)
+                gFrames > 0L && gFps > 0f -> TimeStatsSample(gFps, gFrames, worst, slow, slow50)
+                lFrames > 0L && lFps > 0f -> TimeStatsSample(lFps, lFrames, worst, slow, slow50)
                 else -> null
             }
         }

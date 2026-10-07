@@ -8,13 +8,13 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class BottleneckTest {
-    private fun r(fps: Int? = 45, gpu: Int? = 50, core: Int? = 50, temp: Int? = 70, mem: Double? = 0.0) =
-        Reading(fps, gpu, core, temp, mem)
+    private fun r(fps: Int? = 45, gpu: Int? = 50, core: Int? = 50, temp: Int? = 70, mem: Double? = 0.0, hot: Boolean? = false) =
+        Reading(fps, gpu, core, temp, mem, hot)
 
     @Test fun order() {
-        assertEquals(Verdict.MEMORY, Bottleneck.of(r(gpu = 99, temp = 95, mem = 25.0)))
-        assertEquals(Verdict.HEAT, Bottleneck.of(r(gpu = 99, temp = 90)))
-        assertEquals(Verdict.HOT_OK, Bottleneck.of(r(fps = 60, temp = 90)))
+        assertEquals(Verdict.MEMORY, Bottleneck.of(r(gpu = 99, temp = 95, mem = 25.0, hot = true)))
+        assertEquals(Verdict.HEAT, Bottleneck.of(r(gpu = 99, temp = 90, hot = true)))
+        assertEquals(Verdict.HOT_OK, Bottleneck.of(r(fps = 60, temp = 90, hot = true)))
         assertEquals(Verdict.GPU, Bottleneck.of(r(gpu = 95, core = 95)))
         assertEquals(Verdict.CPU, Bottleneck.of(r(core = 97)))
         assertEquals(Verdict.CAP, Bottleneck.of(r(fps = 59)))
@@ -42,5 +42,22 @@ class BottleneckTest {
     @Test fun anUnofferedRateIsNotACap() {
         assertEquals(Verdict.NONE, Bottleneck.of(r(fps = 45)))
         assertEquals(Verdict.NONE, Bottleneck.of(r(fps = 24)))
+    }
+
+    /** Hot is not throttling: only the kernel's cooling devices can say the chip is being slowed. */
+    @Test fun heatOnlyWhenReallyThrottling() {
+        assertEquals(Verdict.GPU, Bottleneck.of(r(gpu = 99, temp = 95, hot = false)))
+        assertEquals(Verdict.NONE, Bottleneck.of(r(temp = 95, hot = null)))
+        assertEquals(Verdict.HEAT, Bottleneck.of(r(temp = 60, hot = true)))
+    }
+
+    @Test fun anyEngagedCoolingDeviceIsThrottling() {
+        assertEquals(false, Stats.throttled(listOf(0, 0, 0), 0))
+        assertEquals(true, Stats.throttled(listOf(0, 3, 0), 0))
+        assertEquals(true, Stats.throttled(emptyList(), 2))
+        assertEquals(false, Stats.throttled(emptyList(), null))
+        assertEquals(true, Stats.COOLING.matches("cpufreq-cpu7"))
+        assertEquals(true, Stats.COOLING.matches("devfreq-3d00000.qcom,kgsl-3d0"))
+        assertEquals(false, Stats.COOLING.matches("battery"))
     }
 }

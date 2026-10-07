@@ -21,12 +21,14 @@ private val HELD = (PulsePart.CAPS + PulsePart.AUTO_FPS + 120 - 0).sorted()
 object Bottleneck {
     data class Reading(
         val fps: Int?, val gpuBusy: Int?, val busiestCore: Int?, val cpuTempC: Int?, val memPressure: Double?,
+        /** The kernel is limiting the chip for heat right now ([Stats.throttling]); null = can't tell. */
+        val throttling: Boolean? = null,
     )
 
     enum class Verdict(val text: String) {
         MEMORY("Low memory — Android is short on RAM"),
         HEAT("Heat — chip is throttling"),
-        HOT_OK("Warm — holding cap"),
+        HOT_OK("Throttling — still holding cap"),
         GPU("GPU-limited — graphics chip is maxed out"),
         CPU("CPU-limited — one core is maxed out"),
         CAP("Frame cap — running at its limit, all good"),
@@ -37,8 +39,9 @@ object Bottleneck {
         val capped = r.fps != null && HELD.any { kotlin.math.abs(r.fps - it) <= 2 }
         return when {
         (r.memPressure ?: 0.0) >= 10.0 -> Verdict.MEMORY      // /proc/pressure/memory "some avg10", %
-        // Near the 90 °C guard line. Only a bottleneck once frames drop: hot at a steady cap is a warning.
-        (r.cpuTempC ?: 0) >= 88 -> if (capped) Verdict.HOT_OK else Verdict.HEAT
+        // Only when the kernel really is slowing the chip for heat (owner, 2026-10-07): a hot chip that isn't
+        // throttled is not a bottleneck, and the TEMP row already shows the temperature. At a steady cap it's a warning.
+        r.throttling == true -> if (capped) Verdict.HOT_OK else Verdict.HEAT
         (r.gpuBusy ?: 0) >= 90 -> Verdict.GPU
         (r.busiestCore ?: 0) >= 90 -> Verdict.CPU               // games stall on one thread, not the average
         capped -> Verdict.CAP

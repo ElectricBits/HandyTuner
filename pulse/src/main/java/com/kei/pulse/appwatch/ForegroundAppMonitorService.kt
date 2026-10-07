@@ -1,5 +1,5 @@
 // Part of PULSE by keiretrogaming and contributors (GPL-2.0), built on ClusterTune and O2P Tweaks.
-// Modified by ElectricBits for HandyTuner between 2026-09-28 and 2026-10-06; changes listed in pulse/NOTICE.md.
+// Modified by ElectricBits for HandyTuner between 2026-09-28 and 2026-10-07; changes listed in pulse/NOTICE.md.
 package com.kei.pulse.appwatch
 
 import android.app.AppOpsManager
@@ -867,7 +867,9 @@ class ForegroundAppMonitorService : Service() {
             // switch, an AutoTDP stop) WITHOUT re-showing the overlay, so recompute the label every tick instead
             // of only in showOverlay — otherwise the HUD shows a stale profile (Bug 3). Cheap for AutoTDP/tier
             // bindings (resolveProfileLabel returns before any repository read).
-            if (overlayShouldShow || quickAccessShouldShow) {
+            // HandyTuner: its HUD reads this label too (PULSE's own overlay is off), so refresh it while HandyTuner
+            // watches — otherwise it stayed "AutoTDP" after switching a game to Max.
+            if (overlayShouldShow || quickAccessShouldShow || remoteWatching) {
                 overlayProfileLabel = resolveProfileLabel(settings)
             }
             // Build the overlay stats once (it advances the battery-minutes EMA), then feed both overlays.
@@ -1561,7 +1563,9 @@ class ForegroundAppMonitorService : Service() {
         val decision = autoTune.step(
             policies = policies,
             fps = fps?.fps,
-            jankFrames = fps?.jankFrames,
+            // HandyTuner: at a 30 fps target every normal frame is 33 ms, which the ≥33 ms count calls jank; that
+            // made AutoTDP RAISE nonstop at 30 (measured on the Odin 2 Portal). Use the ≥50 ms count there.
+            jankFrames = if (autoTune.targetFps in 1..30) fps?.jankFrames50 else fps?.jankFrames,
             drawW = drawW,
             cpuTempC = telemetry.cpuTempC,
             gpuTempC = telemetry.gpuTempC,

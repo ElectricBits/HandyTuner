@@ -73,4 +73,15 @@ class DeviceProfilesTest {
             )
         }
     }
+
+    /** HandyTuner: the Odin 2 Portal shares the Thor/RP6 chip but has a 60/120 Hz panel that honors the Game Mode cap. */
+    @Test fun odin2PortalGetsItsOwnProfile() {
+        assertEquals(DeviceProfiles.ODIN2_PORTAL, DeviceProfiles.forSoc("QCS8550", "Odin2 Portal"))
+        assertEquals(DeviceProfiles.SD8GEN2, DeviceProfiles.forSoc("QCS8550", "Thor"))
+        assertEquals(DeviceProfiles.SD8GEN2, DeviceProfiles.forSoc("QCS8550", null))
+        val p = DeviceProfiles.ODIN2_PORTAL
+        assertEquals(listOf(30, 40, 60, 120), p.fpsTargetOptions)
+        assertTrue(p.honorsGameModeFpsCap)
+        assertTrue("every target must divide the 120 Hz panel", p.fpsTargetOptions.all { 120 % it == 0 })
+    }
 }

@@ -1,5 +1,5 @@
 // Part of PULSE by keiretrogaming and contributors (GPL-2.0), built on ClusterTune and O2P Tweaks.
-// Modified by ElectricBits for HandyTuner between 2026-09-28 and 2026-10-06; changes listed in pulse/NOTICE.md.
+// Modified by ElectricBits for HandyTuner between 2026-09-28 and 2026-10-07; changes listed in pulse/NOTICE.md.
 package com.kei.pulse.data
 
 import com.kei.pulse.root.RootSupport
@@ -28,13 +28,21 @@ object FrameLimiter {
             clear(pkg)
             return null
         }
-        return RootSupport.runRootCommand("cmd game set --mode 4 --fps $fps ${pkg.shellSafe()}")
+        val out = RootSupport.runRootCommand("cmd game set --mode 4 --fps $fps ${pkg.shellSafe()}")
+        // HandyTuner: Android 13 refuses mode 4, which left AutoTDP's 30/40 targets uncapped on the Odin 2 Portal
+        // (measured 2026-10-07: target 30 ran at 77 fps). Fall back to the battery-mode override that works there.
+        if (out?.contains("Invalid game mode") == true) {
+            setCapOverride(pkg, fps)
+            return "fps-override (battery mode): $fps"
+        }
+        return out
     }
 
     /** Remove the cap (back to standard mode, dropping the fps override at runtime). */
     fun clear(pkg: String) {
         if (pkg.isBlank()) return
         RootSupport.runRootCommand("cmd game set --mode 1 ${pkg.shellSafe()}")
+        clearOverride(pkg)   // HandyTuner: and the Android 13 fallback, if setCap used it
     }
 
     /**

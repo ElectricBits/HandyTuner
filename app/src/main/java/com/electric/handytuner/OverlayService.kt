@@ -584,7 +584,7 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
     /** What Pulse's bar doesn't show. GPU, CPU and temperature are still read, only to pick the verdict. */
     private data class Frame(
         val r: Bottleneck.Reading, val game: Net.Latency?, val net: Net.Latency?, val band: String?, val bars: Int,
-        val ramMb: Int?, val batLeftMin: Int?,
+        val ramMb: Int?, val batLeftMin: Int?, val batPct: Int, val charging: Boolean,
         /** The Pulse fork's live stats (IPulseControl.stats); null without the fork or items. */
         val pulse: org.json.JSONObject?,
     )
@@ -613,7 +613,7 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
             val band = when (info?.frequency ?: 0) { in 2400..2500 -> "2.4G"; in 4900..5900 -> "5G"; in 5925..7125 -> "6G"; else -> null }
             val bars = if (band == null) 0 else wifi.calculateSignalLevel(info.rssi) * 4 / wifi.maxSignalLevel.coerceAtLeast(1)
             val f = Frame(
-                r, lastGame, lastNet, band, bars, stats.freeRamMb(), batteryLeftMin(),
+                r, lastGame, lastNet, band, bars, stats.freeRamMb(), batteryLeftMin(), battery(), charging(),
                 if (PULSE_ITEMS.any { it in want }) pulseStats() else null,
             )
             // Sampling above takes long enough for hide()/show() to have landed meanwhile. Re-check
@@ -726,7 +726,7 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
                 part("CPU ", num("cpuLoad")?.let { "${it.toInt()}%" }, load(num("cpuLoad")))
                 part("GPU ", num("gpuLoad")?.let { "${it.toInt()}%" }, load(num("gpuLoad")))
             }
-            if (HudStyle.Item.MODE in want) part("", p.optString("mode").ifEmpty { null }, style.accent)
+            if (HudStyle.Item.MODE in want) part("", hudMode(p.optString("mode")), style.accent)
         }
         linePerf.text = group("PERF ", R.drawable.ic_speed, 0xFF39FF14.toInt(), s)          // lime
 
@@ -757,9 +757,11 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
         if (HudStyle.Item.RAM in want) part("RAM ", ram?.let { if (it >= 1024) "%.1fG".format(it / 1024.0) else "${it}M" },
             if ((ram ?: 0) >= 1500) GOOD else if ((ram ?: 0) >= 700) WARN else BAD)
         if (HudStyle.Item.SESSION in want) {
+            // Charge, and time left on battery; a lightning bolt on the charger, where "time left" means nothing.
             val m = f.batLeftMin
-            partIcon(R.drawable.ic_battery_horiz_075, style.accent,
-                m?.let { if (it >= 60) "${it / 60}h${if (it % 60 > 0) "${it % 60}m" else ""}" else "${it}m" }, style.accent)
+            val left = m?.let { if (it >= 60) "${it / 60}h${if (it % 60 > 0) "${it % 60}m" else ""}" else "${it}m" }
+            val text = when { f.charging -> "${f.batPct}% ⚡"; left != null -> "${f.batPct}% · $left"; else -> "${f.batPct}%" }
+            partIcon(R.drawable.ic_battery_horiz_075, style.accent, text.takeIf { f.batPct > 0 }, style.accent)
         }
         if (HudStyle.Item.CLOCK in want) part("", java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault()).format(java.util.Date()), 0xFFFFFFFF.toInt())
         lineSys.text = group("SYS  ", R.drawable.ic_memory, 0xFFFF2BD6.toInt(), s)         // magenta
@@ -809,6 +811,15 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
         bg.post { endSession(); runner.clear() }
         worker.quitSafely()
         super.onDestroy()
+    }
+
+    /** PULSE's mode label in HandyTuner's words (the Quick Menu's: Auto, Max, Balanced, Saver). */
+    private fun hudMode(label: String): String? = when (label) {
+        "" -> null
+        "AutoTDP" -> "Auto"
+        "AAA / Max" -> "Max"
+        "Power Saving" -> "Saver"
+        else -> label
     }
 
     companion object {

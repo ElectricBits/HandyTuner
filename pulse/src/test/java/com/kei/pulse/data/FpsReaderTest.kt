@@ -50,4 +50,14 @@ class FpsReaderTest {
         assertNull(FpsReader.parseTimestats("NOFPS"))
         assertNull(FpsReader.parseTimestats("FR x AF y WORST z SLOW w LF a LAF b"))
     }
+
+    /** HandyTuner: SLOW50 (≥50 ms) is the hitch count for a 30 fps target; older output without it still parses. */
+    @Test fun parsesSlow50AndStaysCompatible() {
+        val s = FpsReader.parseTimestats("FR 45 AF 30.30 WORST 33 SLOW 41 SLOW50 0 LF 42 LAF 30.30")!!
+        assertEquals(41, s.slowFrames)
+        assertEquals(0, s.slowFrames50)
+        assertEquals(30.30f, s.avgFps, 0.01f)
+        val old = FpsReader.parseTimestats("FR 87 AF 90.50 WORST 16 SLOW 0 LF 87 LAF 63.00")!!
+        assertEquals(0, old.slowFrames50)
+    }
 }

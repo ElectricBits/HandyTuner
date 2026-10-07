@@ -114,7 +114,7 @@ private fun PresetForm(start: PresetDef, taken: List<String>, onDone: (PresetDef
                 p = if (i == 0) PulsePart(p.autoFps ?: 60, null, 0, p.fan) else PulsePart(null, i - 1, p.cap, p.fan)
             }
             if (p.autoFps != null) {
-                val fps = listOf(60, 90, 120)
+                val fps = listOf(30, 40, 60, 120)   // the Odin 2 Portal's AutoTDP targets (60/120 Hz panel: no 90)
                 chips("AutoTDP target", fps.map { "$it fps" to (p.autoFps == it) }) { i -> p = p.copy(autoFps = fps[i]) }
             } else {
                 val caps = listOf(0, 30, 40, 60)
