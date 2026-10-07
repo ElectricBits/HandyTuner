@@ -74,7 +74,9 @@ part of this repository.
 
 - **Found a bug, or tried it on another device?** Open an [issue](https://github.com/ElectricBits/HandyTuner/issues/new/choose)
   and attach the log from **Diagnostics → Export log file**.
-- **Want to send code?** Fork the repo and open a pull request. [`CONTRIBUTING.md`](CONTRIBUTING.md) explains how.
+- **Want to send code?** Fork the repo and open a pull request. [`CONTRIBUTING.md`](CONTRIBUTING.md) explains how, and
+  [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md) covers how we treat each other.
+- **Found a security problem?** Please report it privately: see [`SECURITY.md`](SECURITY.md).
 - **Questions, ideas, presets, or just hanging out?** Join the [HandyHelper Realm Discord](https://discord.gg/uGQQ2n36QR).
 
 ## Support
