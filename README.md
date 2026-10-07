@@ -19,9 +19,11 @@ presets, and the PULSE performance engine built in. Meet HandyHelper, who walks 
 
 ## What it does
 
+<p align="center"><img src="docs/screenshots/home.png" width="640" alt="HandyTuner's Home page"></p>
+
 - **HUD** over your games: FPS, CPU/GPU load and temperature, battery time left, ping, refresh rate.
 - **Quick Menu** (both sticks + R1): performance mode, AutoTDP and its FPS target, frame cap (30/40/60), fan,
-  brightness, volume, refresh rate, screenshots and screen recording.
+  presets, brightness, volume, refresh rate, screenshots, screen recording, AFK mode and Speed Up.
 - **Per-game presets**: Battery, Optimal, Performance, Competitive, or your own. Applied automatically when a
   game opens, including Windows games in GameNative. Export and import them as a file.
 - **PULSE engine**: power tiers, AutoTDP, frame caps, fan control including **Hold temp** (keeps the chip at a
@@ -32,6 +34,8 @@ presets, and the PULSE performance engine built in. Meet HandyHelper, who walks 
 - **Diagnostics**: every permission at a glance, and **Export log file** for bug reports.
 - **Safe mode** and **Reset everything to stock** put your device back if anything goes wrong.
 
+📖 **[Read the full user guide](docs/USER_GUIDE.md)**: every page and feature explained, plus FAQ and troubleshooting.
+
 ## Install
 
 1. Download the latest `HandyTuner-<version>.apk` from [Releases](https://github.com/ElectricBits/HandyTuner/releases).
@@ -39,6 +43,8 @@ presets, and the PULSE performance engine built in. Meet HandyHelper, who walks 
 3. Open HandyTuner and follow HandyHelper's setup.
 
 No root is needed: HandyTuner uses the system service AYN builds into the Odin.
+
+**Uninstalling?** Run **Diagnostics → Reset everything to stock** first, so settings like the charge limit are put back.
 
 ### Permissions, and why
 

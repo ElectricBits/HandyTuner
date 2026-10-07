@@ -81,7 +81,7 @@ fun HomePage(ctx: Context, actions: Actions) {
     // Scrolls: the page is taller than a 1080p screen, and the last card was cut off.
     Column(Modifier.verticalScroll(androidx.compose.foundation.rememberScrollState())) {
     val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
-    val greeting = when (hour) { in 5..11 -> "Good morning!"; in 12..17 -> "Good afternoon!"; else -> "Good evening!" }
+    val greeting = when (hour) { in 5..11 -> "Good morning!"; in 12..17 -> "Good afternoon!"; in 18..23 -> "Good evening!"; else -> "Hey, night owl!" }
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 12.dp)) {
         // Tap him and he moonwalks.
         var dance by remember { mutableStateOf(0) }
