@@ -25,7 +25,7 @@ body:
     attributes:
       label: HandyTuner version
       description: Shown in the About card at the bottom of the Home page.
-      placeholder: 0.9.1-beta
+      placeholder: 0.9.2-beta
     validations:
       required: true
   - type: textarea

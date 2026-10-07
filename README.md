@@ -11,7 +11,7 @@ presets, and the PULSE performance engine built in. Meet HandyHelper, who walks 
 > rough edges. Bug reports, tips and code help are all very welcome!
 
 > [!WARNING]
-> **Beta (0.9.1). Everything has been tested on the AYN Odin 2 Portal (Android 13) only.**
+> **Beta (0.9.2). Everything has been tested on the AYN Odin 2 Portal (Android 13) only.**
 > I don't know yet whether it works on any other device — including other Odin models, other AYN handhelds,
 > Retroid, or other Android versions. On anything else it may not work, or may change settings it shouldn't.
 > If you try it on another device, please open an issue with the result and an exported log
