@@ -2,8 +2,11 @@
 
 # HandyTuner
 
-**One app to tune your AYN Odin 2 Portal:** a game HUD, a Quick Menu you open from inside any game, per-game
+**One app to tune your Android gaming handheld:** a game HUD, a Quick Menu you open from inside any game, per-game
 presets, and the PULSE performance engine built in. Meet HandyHelper, who walks you through setup.
+
+Made and tested on the **AYN Odin 2 Portal** first, with **support for more handhelds planned**: see
+[Supported devices](#supported-devices).
 
 > [!NOTE]
 > **Honest heads-up: HandyTuner is vibe-coded.** I build it with AI (Claude), and half the time I don't fully know
@@ -11,11 +14,11 @@ presets, and the PULSE performance engine built in. Meet HandyHelper, who walks 
 > rough edges. Bug reports, tips and code help are all very welcome!
 
 > [!WARNING]
-> **Beta (0.9.2). Everything has been tested on the AYN Odin 2 Portal (Android 13) only.**
-> I don't know yet whether it works on any other device — including other Odin models, other AYN handhelds,
-> Retroid, or other Android versions. On anything else it may not work, or may change settings it shouldn't.
-> If you try it on another device, please open an issue with the result and an exported log
-> (Diagnostics → Export log file). "Reset everything to stock" (Diagnostics) puts back what HandyTuner changed.
+> **Beta (0.9.2). So far everything has been tested on the AYN Odin 2 Portal (Android 13) only.**
+> Other devices aren't tested yet: on them it may not work, or may change settings it shouldn't. If you try it on
+> another device, please open an issue with the result and an exported log (Diagnostics → Export log file) — that's
+> exactly how support for more devices gets added. "Reset everything to stock" (Diagnostics) puts back what
+> HandyTuner changed.
 
 ## What it does
 
@@ -35,6 +38,18 @@ presets, and the PULSE performance engine built in. Meet HandyHelper, who walks 
 - **Safe mode** and **Reset everything to stock** put your device back if anything goes wrong.
 
 📖 **[Read the full user guide](docs/USER_GUIDE.md)**: every page and feature explained, plus FAQ and troubleshooting.
+
+## Supported devices
+
+| Device | Status |
+|---|---|
+| **AYN Odin 2 Portal** | ✅ Tested: everything in this README works. |
+| **AYN Odin 3** | 🔜 Planned. The built-in PULSE engine already has a profile for its chip; HandyTuner itself is untested. |
+| **AYN Thor, Retroid Pocket 6** | 🔜 Planned. The PULSE engine already has a profile for their chip; HandyTuner itself is untested. |
+| **Other AYN and Retroid handhelds** | 🔜 Planned. HandyTuner checks what each device supports, but each one needs testing. |
+
+Want your device supported sooner? Try it and [open an issue](https://github.com/ElectricBits/HandyTuner/issues/new/choose)
+with your device and the log from **Diagnostics → Export log file**, or say hi on [Discord](https://discord.gg/uGQQ2n36QR).
 
 ## Install
 
