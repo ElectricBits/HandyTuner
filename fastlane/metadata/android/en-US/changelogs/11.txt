@@ -1,0 +1,5 @@
+• AutoTDP 30 and 40 fps on the Odin 2 Portal, and they really hold now. Broken Auto 90 removed.
+• AutoTDP at 30 fps saves power properly.
+• HUD: shows the real mode, battery charge and time left, more accurate FPS, calmer hint line, "cooling off" only when the chip really throttles.
+• Lighter: less background work while the HUD is on.
+• Full user guide.

@@ -54,6 +54,13 @@ with your device and the log from **Diagnostics → Export log file**, or say hi
 
 ## Install
 
+<a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://app/%7B%22id%22%3A%22com.electric.handytuner%22%2C%22url%22%3A%22https%3A%2F%2Fgithub.com%2FElectricBits%2FHandyTuner%22%2C%22author%22%3A%22ElectricBits%22%2C%22name%22%3A%22HandyTuner%22%2C%22additionalSettings%22%3A%22%7B%5C%22includePrereleases%5C%22%3A%20true%7D%22%7D"><img src="docs/design/badge_obtainium.png" alt="Get it on Obtainium" height="48"></a>
+
+**With [Obtainium](https://github.com/ImranR98/Obtainium)** (gets updates automatically): tap the badge on the Odin,
+or add `https://github.com/ElectricBits/HandyTuner` in Obtainium and turn on **Include prereleases**.
+
+**Or by hand:**
+
 1. Download the latest `HandyTuner-<version>.apk` from [Releases](https://github.com/ElectricBits/HandyTuner/releases).
 2. Open it on the Odin and allow installing from that app when Android asks.
 3. Open HandyTuner and follow HandyHelper's setup.

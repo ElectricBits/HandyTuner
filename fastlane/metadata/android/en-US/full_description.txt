@@ -1,0 +1,19 @@
+<p><b>One app to tune your Android gaming handheld:</b> a game HUD, a Quick Menu you open from inside any game, per-game presets, and the PULSE performance engine built in. HandyHelper walks you through setup.</p>
+
+<p><b>Beta. Tested on the AYN Odin 2 Portal (Android 13) only.</b> The Odin 3, Thor and Retroid Pocket 6 are untested so far. No root needed: HandyTuner uses the system service AYN builds into the Odin.</p>
+
+<ul>
+<li><b>HUD</b> over your games: FPS, CPU/GPU load and temperature, battery time left, ping, refresh rate.</li>
+<li><b>Quick Menu</b> (both sticks + R1): performance mode, AutoTDP and its FPS target, frame cap, fan, presets, brightness, volume, refresh rate, screenshots, screen recording, AFK mode and Speed Up.</li>
+<li><b>Per-game presets</b>, applied automatically when a game opens, including Windows games in GameNative.</li>
+<li><b>PULSE engine</b>: power tiers, AutoTDP, frame caps, fan control with Hold temp, sleep underclock and stick lights.</li>
+<li><b>Battery</b>: charge limit and play-while-charging.</li>
+<li><b>Network</b>: connection test, Low Latency mode, DNS benchmark and one-tap Private DNS.</li>
+<li><b>Controller</b> key mapping, <b>Diagnostics</b> with log export, <b>Safe mode</b> and <b>Reset everything to stock</b>.</li>
+</ul>
+
+<p><b>Privacy:</b> no accounts, ads, analytics or tracking. The network is only used when you ask (network test, DNS benchmark, links you tap).</p>
+
+<p>HandyTuner uses an accessibility service to draw the HUD and Quick Menu over games and to read the button combos that open them, and usage access to know which game is in front.</p>
+
+<p>HandyTuner is not made by, affiliated with or endorsed by AYN. It includes the engine of PULSE by keiretrogaming (GPL).</p>
