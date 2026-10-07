@@ -1,0 +1,20 @@
+name: Feature request
+description: An idea to make HandyTuner better.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What would you like to do?
+      description: What you're trying to do, and what gets in the way today.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: How could HandyTuner help?
+  - type: input
+    id: device
+    attributes:
+      label: Your device
+      placeholder: AYN Odin 2 Portal

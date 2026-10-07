@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <!-- The Network page's DNS test reads the active network's DNS servers. -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS"
+        tools:ignore="ProtectedPermissions" />
+    <!-- Private DNS is written through PServer (settings put), not with this permission. -->
+
+    <!-- The foreground game's uid, to find its server sockets. Sideloaded only. -->
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
+        tools:ignore="QueryAllPackagesPermission" />
+
+    <!-- The PULSE engine (pulse/, GPL-2.0): its watcher is a foreground service started at boot. -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+
+    <application
+        android:label="HandyTuner"
+        android:icon="@mipmap/ic_launcher"
+        android:allowBackup="false"
+        android:theme="@android:style/Theme.DeviceDefault.NoActionBar">
+
+        <!-- Landscape, either way up: it's laid out for the Odin held like a handheld. -->
+        <activity android:name=".MainActivity" android:exported="true" android:screenOrientation="sensorLandscape">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Its own process: the always-on part stays small (no UI toolkit loaded),
+             because a 7 GB Odin running a Windows game kills anything big. -->
+        <service
+            android:name=".OverlayService"
+            android:process=":overlay"
+            android:exported="true"
+            android:label="HandyTuner overlay"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data android:name="android.accessibilityservice" android:resource="@xml/overlay_service" />
+        </service>
+        <!-- Notification buttons (HUD, Quick Menu, Speed Up, Stop recording): run where the overlay lives. -->
+        <receiver android:name=".NotifyReceiver" android:process=":overlay" android:exported="false" />
+
+        <!-- The PULSE engine, in its own process so :overlay stays small (merge-plan.md stage 2).
+             ControlService is how :overlay talks to it: same app, so unexported and no permission. -->
+        <service android:name="com.kei.pulse.appwatch.ForegroundAppMonitorService" android:process=":pulse"
+            android:exported="false" android:foregroundServiceType="specialUse">
+            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="User-enabled per-app performance profile switching when configured apps launch" />
+        </service>
+        <service android:name="com.kei.pulse.sleep.SleepProfileMonitorService" android:process=":pulse"
+            android:exported="false" android:foregroundServiceType="specialUse">
+            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="User-enabled CPU profile automation for device sleep and wake transitions" />
+        </service>
+        <service android:name="com.kei.pulse.control.ControlService" android:process=":pulse" android:exported="false" />
+        <receiver android:name="com.kei.pulse.boot.BootCompletedReceiver" android:process=":pulse" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+    </application>
+</manifest>

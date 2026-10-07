@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="service_description">Reads the controller hotkey (press both sticks in) to open the HandyTuner overlay. Button presses are never stored or sent anywhere.</string>
+</resources>

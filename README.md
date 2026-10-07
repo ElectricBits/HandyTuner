@@ -1,0 +1,93 @@
+<p align="center"><img src="docs/design/logo.jpg" alt="HandyTuner" width="420"></p>
+
+# HandyTuner
+
+**One app to tune your AYN Odin 2 Portal:** a game HUD, a Quick Menu you open from inside any game, per-game
+presets, and the PULSE performance engine built in. Meet HandyHelper, who walks you through setup.
+
+> [!WARNING]
+> **Beta (0.9.0). Everything has been tested on the AYN Odin 2 Portal (Android 13) only.**
+> I don't know yet whether it works on any other device — including other Odin models, other AYN handhelds,
+> Retroid, or other Android versions. On anything else it may not work, or may change settings it shouldn't.
+> If you try it on another device, please open an issue with the result and an exported log
+> (Diagnostics → Export log file). "Reset everything to stock" (Diagnostics) puts back what HandyTuner changed.
+
+## What it does
+
+- **HUD** over your games: FPS, CPU/GPU load and temperature, battery time left, ping, refresh rate.
+- **Quick Menu** (both sticks + R1): performance mode, AutoTDP and its FPS target, frame cap (30/40/60), fan,
+  brightness, volume, refresh rate, screenshots and screen recording.
+- **Per-game presets**: Battery, Optimal, Performance, Competitive, or your own. Applied automatically when a
+  game opens, including Windows games in GameNative. Export and import them as a file.
+- **PULSE engine**: power tiers, AutoTDP, frame caps, fan control including **Hold temp** (keeps the chip at a
+  temperature you choose, never above 88 °C), **sleep underclock** while the screen is off, and **stick lights**.
+- **Battery**: charge limit and play-while-charging, using AYN's own charging switch.
+- **Network**: connection test, Low Latency mode, a DNS benchmark and one-tap Private DNS.
+- **Controller**: key mapping.
+- **Diagnostics**: every permission at a glance, and **Export log file** for bug reports.
+- **Safe mode** and **Reset everything to stock** put your device back if anything goes wrong.
+
+## Install
+
+1. Download the latest `HandyTuner-<version>.apk` from [Releases](https://github.com/ElectricBits/HandyTuner/releases).
+2. Open it on the Odin and allow installing from that app when Android asks.
+3. Open HandyTuner and follow HandyHelper's setup.
+
+No root is needed: HandyTuner uses the system service AYN builds into the Odin.
+
+### Permissions, and why
+
+| Permission | Why |
+|---|---|
+| Accessibility service | Draws the HUD and Quick Menu over games and reads the button combos that open them. Android 13 grays this switch out for apps installed from outside the Play Store until you tap **Allow restricted settings** on HandyTuner's App info page; setup shows you how. |
+| Usage access | Knows which game is in front, to apply its preset. |
+| Notifications | The status notification and short notices (screenshots saved, preset applied). |
+| Query all packages | Lists your games and finds a game's network connection for the ping reading. |
+
+HandyTuner also turns off **Odin Assistant's game detection** by default, because it changes performance per
+game and fights HandyTuner. Only that one accessibility service is switched off; the app stays. You can turn
+this off on the **Tweaks** page.
+
+## Privacy
+
+No accounts, ads, analytics or tracking. HandyTuner sends nothing about you anywhere. It only uses the network
+when you ask: the Network test, the DNS benchmark (your own DNS and a fixed list of well-known providers), and
+links you tap. Logs stay on your device unless you export and share them.
+
+## Build from source
+
+Needs JDK 17 and the Android SDK.
+
+```sh
+./gradlew testDebugUnitTest assembleDebug
+```
+
+The APK is in `app/build/outputs/apk/debug/`. Release builds are signed with the author's key, which is not
+part of this repository.
+
+## Help improve HandyTuner
+
+- **Found a bug, or tried it on another device?** Open an [issue](https://github.com/ElectricBits/HandyTuner/issues/new/choose)
+  and attach the log from **Diagnostics → Export log file**.
+- **Want to send code?** Fork the repo and open a pull request. [`CONTRIBUTING.md`](CONTRIBUTING.md) explains how.
+- **Questions, ideas, presets, or just hanging out?** Join the [HandyHelper Realm Discord](https://discord.gg/uGQQ2n36QR).
+
+## Support
+
+HandyTuner is free and always will be. If it helps you, you can buy me a coffee on
+[Ko-fi](https://ko-fi.com/electricbits) — there's also a button in the app's About card. Thank you!
+
+## License
+
+Copyright (C) 2026 ElectricBits. HandyTuner is free software under the **GNU General Public License, version 2
+only** (`GPL-2.0-only`, see [`LICENSE`](LICENSE)). It comes with
+**no warranty**: it changes performance, fan, display and network settings, so use it at your own risk.
+
+It includes the engine of [PULSE](https://github.com/keiretrogaming/pulse), copyrighted by keiretrogaming and its
+contributors and used under the GPL, which builds on
+[ClusterTune](https://github.com/AurelioB/cluster-tune) and [O2P Tweaks](https://github.com/FeralAI/o2ptweaks.app).
+Credits, fonts, icons and the full list of changes are in [`NOTICE.md`](NOTICE.md) and
+[`pulse/NOTICE.md`](pulse/NOTICE.md).
+
+HandyTuner is an independent project. It is not made by, affiliated with or endorsed by AYN, and it is not the
+official PULSE.

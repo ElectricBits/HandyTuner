@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Merge stage 1: the engine compiles inside HandyTuner but declares nothing yet. The fork's
+     original manifest is ../../FORK_AndroidManifest.xml; stage 2 moves its surviving components
+     into app/src/main/AndroidManifest.xml. -->
+<manifest />
