@@ -14,15 +14,24 @@ import java.io.File
  * stats on each read, and two apps doing that would corrupt each other's FPS.
  */
 class Stats {
-    private var lastFlips: Long? = null
-    private var lastFlipsAt = 0L
+    /** (page flips, time) for the last few seconds: FPS over ~3 s instead of 1, so timing jitter doesn't read 60 as 58. */
+    private val flipWindow = ArrayDeque<Pair<Long, Long>>()
+    private val recentFps = ArrayDeque<Int>()
+    private var lastFps: Int? = null
     private var lastCpu: Map<String, Pair<Long, Long>> = emptyMap()
 
-    /** Call about once a second, off the main thread. */
-    fun sample(): Bottleneck.Reading = Bottleneck.Reading(
-        fps = fps(), gpuBusy = gpuBusy(), busiestCore = busiestCore(), cpuTempC = cpuTempSmoothed(), memPressure = memPressure(),
-        throttling = throttling(),
-    )
+    /**
+     * Call about once a second, off the main thread. [paused] while the Quick Menu is open: the page-flip counter
+     * counts the whole screen, menu included, so the game's FPS reading is held instead of jumping (owner, 2026-10-07).
+     */
+    fun sample(paused: Boolean = false): Bottleneck.Reading {
+        val f = if (paused) { flipWindow.clear(); recentFps.clear(); lastFps } else fps()
+        if (!paused) f?.let { recentFps.addLast(it); while (recentFps.size > 3) recentFps.removeFirst() }
+        return Bottleneck.Reading(
+            fps = f, gpuBusy = gpuBusy(), busiestCore = busiestCore(), cpuTempC = cpuTempSmoothed(), memPressure = memPressure(),
+            throttling = throttling(), steadyFps = steadyAt(recentFps),
+        )
+    }
 
     /**
      * Whether the kernel is limiting the chip for heat right now, from its thermal cooling devices: each one's
@@ -45,10 +54,13 @@ class Stats {
         val out = PServer.run("service call SurfaceFlinger 1013") ?: return null
         val flips = Regex("Parcel\\(([0-9a-f]{8})").find(out)?.groupValues?.get(1)?.toLong(16) ?: return null
         val now = System.nanoTime()
-        val prev = lastFlips
-        val dt = (now - lastFlipsAt) / 1e9
-        lastFlips = flips; lastFlipsAt = now
-        return if (prev == null || dt <= 0 || flips < prev) null else ((flips - prev) / dt).toInt()
+        if (flipWindow.isNotEmpty() && flips < flipWindow.last().first) flipWindow.clear()   // counter reset
+        flipWindow.addLast(flips to now)
+        while (flipWindow.size > 4) flipWindow.removeFirst()
+        if (flipWindow.size < 2) return lastFps
+        val (f0, t0) = flipWindow.first()
+        val dt = (now - t0) / 1e9
+        return (if (dt <= 0) null else Math.round((flips - f0) / dt).toInt()).also { lastFps = it }
     }
 
     private fun gpuBusy() = read("/sys/class/kgsl/kgsl-3d0/gpu_busy_percentage")?.filter(Char::isDigit)?.toIntOrNull()
@@ -108,6 +120,10 @@ class Stats {
     companion object {
         /** Cooling devices that slow the CPU or GPU or park cores for heat (named as on the Odin 2 Portal's kernel). */
         val COOLING = Regex("cpufreq-cpu\\d+|cpu-cluster\\d+|thermal-cluster.*|gpu|devfreq-.*kgsl.*|thermal-pause-.*|pause-cpu\\d+|cpu-hotplug\\d+")
+
+        /** The rate a game sits at: every recent reading within 1 of 30/40/60/120 (three needed), else null. */
+        fun steadyAt(recent: Collection<Int>): Int? = if (recent.size < 3) null
+            else listOf(30, 40, 60, 120).firstOrNull { rate -> recent.all { kotlin.math.abs(it - rate) <= 1 } }
 
         /** Throttling: any cooling device engaged, or the GPU held below its top level for heat. */
         fun throttled(states: List<Int>, gpuLevel: Int?): Boolean = states.any { it > 0 } || (gpuLevel ?: 0) > 0

@@ -861,7 +861,10 @@ class ForegroundAppMonitorService : Service() {
             // Drives the per-app draw gate: only count draw toward peak/avg while the device is actually
             // working, so idle/menu/paused time can't poison the battery-life estimate.
             lastActiveLoadPercent = maxOf(telemetry.cpuLoadPercent ?: 0, telemetry.gpuLoadPercent ?: 0)
-            val fps = fpsReader.read(osdTarget) // FPS for the OSD target (works for standalone-overlay apps too)
+            // HandyTuner: its HUD measures FPS itself and only wants telemetry from here, so the SurfaceFlinger
+            // TimeStats dump (a real cost in SurfaceFlinger every second) runs only for AutoTDP or PULSE's own overlay.
+            val fps = if (autoActive || overlayShouldShow || quickAccessShouldShow) fpsReader.read(osdTarget)
+                else { fpsReader.stop(); null }
             val auto = if (autoActive) buildAutoReadout(policies, telemetry) else null
             // Keep the HUD/QA profile banner live: the bound mode can change mid-session (a Quick Access preset
             // switch, an AutoTDP stop) WITHOUT re-showing the overlay, so recompute the label every tick instead

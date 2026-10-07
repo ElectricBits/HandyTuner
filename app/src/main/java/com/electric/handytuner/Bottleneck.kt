@@ -18,6 +18,8 @@ object Bottleneck {
         val heldFps: Int? = null,
         /** [heldFps] is an AutoTDP target rather than a fixed cap. */
         val heldAuto: Boolean = false,
+        /** The rate the last few readings all sat at ([Stats.steadyAt]); null = not steady. */
+        val steadyFps: Int? = null,
     )
 
     /** Plain, calm words (owner, 2026-10-07: accurate and not scary). [warn] = amber; everything else is gray. */
@@ -31,17 +33,10 @@ object Bottleneck {
             GPU -> "The graphics chip is the limit right now"
             CPU -> "One CPU core is the limit right now"
             CAP -> if (r.heldAuto) "Auto is holding ${r.heldFps} fps" else "Holding your ${r.heldFps} fps cap"
-            STEADY -> "Steady at ${steadyRate(r.fps)} fps"
+            STEADY -> "Steady at ${r.steadyFps} fps"
             NONE -> "Running smoothly"
         }
     }
-
-    /**
-     * A rate a game commonly locks itself to on this 120 Hz panel (its own vsync or frame limit). Sitting there with
-     * no cap set means the game chose it, so a busy core or GPU isn't what's holding it back.
-     */
-    private val GAME_LOCKS = listOf(30, 40, 60, 120)
-    fun steadyRate(fps: Int?): Int? = fps?.let { f -> GAME_LOCKS.firstOrNull { kotlin.math.abs(f - it) <= 2 } }
 
     fun of(r: Reading): Verdict {
         // Only a cap this game really has: a game that runs at 60 on its own isn't "at a cap" (it said so on Max).
@@ -51,7 +46,8 @@ object Bottleneck {
             // Only when the kernel really is slowing the chip for heat (owner, 2026-10-07); at a steady cap it's a warning.
             r.throttling == true -> if (capped) Verdict.HOT_OK else Verdict.HEAT
             capped -> Verdict.CAP
-            r.heldFps == null && steadyRate(r.fps) != null -> Verdict.STEADY
+            // A game sitting at a rate it chose (its own frame limit): a busy core or GPU isn't what's holding it back.
+            r.heldFps == null && r.steadyFps != null -> Verdict.STEADY
             (r.gpuBusy ?: 0) >= 90 -> Verdict.GPU
             (r.busiestCore ?: 0) >= 90 -> Verdict.CPU               // games stall on one thread, not the average
             else -> Verdict.NONE

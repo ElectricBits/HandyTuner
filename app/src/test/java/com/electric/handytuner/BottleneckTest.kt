@@ -9,8 +9,8 @@ import org.junit.Test
 
 class BottleneckTest {
     private fun r(fps: Int? = 45, gpu: Int? = 50, core: Int? = 50, temp: Int? = 70, mem: Double? = 0.0, hot: Boolean? = false,
-                  held: Int? = null, auto: Boolean = false) =
-        Reading(fps, gpu, core, temp, mem, hot, held, auto)
+                  held: Int? = null, auto: Boolean = false, steady: Int? = null) =
+        Reading(fps, gpu, core, temp, mem, hot, held, auto, steady)
 
     @Test fun order() {
         assertEquals(Verdict.MEMORY, Bottleneck.of(r(gpu = 99, temp = 95, mem = 25.0, hot = true)))
@@ -25,9 +25,12 @@ class BottleneckTest {
 
     /** "Holding a cap" only when this game really has one: a game that runs at 60 on its own (on Max) is not capped. */
     @Test fun capOnlyWhenTheGameHasOne() {
-        assertEquals(Verdict.STEADY, Bottleneck.of(r(fps = 60)))
-        assertEquals(Verdict.STEADY, Bottleneck.of(r(fps = 58, core = 97)))   // a self-locked game isn't CPU-limited
-        assertEquals("Steady at 60 fps", Verdict.STEADY.text(r(fps = 59)))
+        assertEquals(Verdict.NONE, Bottleneck.of(r(fps = 60)))                 // one reading isn't "steady"
+        assertEquals(Verdict.STEADY, Bottleneck.of(r(fps = 60, core = 97, steady = 60)))   // self-locked isn't CPU-limited
+        assertEquals("Steady at 60 fps", Verdict.STEADY.text(r(steady = 60)))
+        assertEquals(60, Stats.steadyAt(listOf(60, 59, 61)))
+        assertEquals(null, Stats.steadyAt(listOf(60, 58, 60)))                  // 58 is not 60
+        assertEquals(null, Stats.steadyAt(listOf(60, 60)))
         assertEquals(Verdict.CAP, Bottleneck.of(r(fps = 41, held = 40)))
         assertEquals(Verdict.NONE, Bottleneck.of(r(fps = 55, held = 40)))
         assertEquals("Holding your 40 fps cap", Verdict.CAP.text(r(held = 40)))

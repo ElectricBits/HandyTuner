@@ -602,7 +602,7 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
             if (gen != hudGeneration || hud == null) return
             // Settings changed in the app: rebuild the HUD with the new look (show() reposts the tick).
             if (HudStyle.file(this@OverlayService).lastModified() != styleStamp) { main.post { hide(); show() }; return }
-            val r = stats.sample().let { held(it) }
+            val r = stats.sample(paused = menu.showing).let { held(it) }
             val t = ticks++
             val want = style.shown
             // Hidden items cost nothing: no detection, no pings.
