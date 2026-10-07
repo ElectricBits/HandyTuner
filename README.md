@@ -1,9 +1,14 @@
-<p align="center"><img src="docs/design/logo.jpg" alt="HandyTuner" width="420"></p>
+<p align="center"><img src="docs/design/logo.png" alt="HandyTuner" width="420"></p>
 
 # HandyTuner
 
 **One app to tune your AYN Odin 2 Portal:** a game HUD, a Quick Menu you open from inside any game, per-game
 presets, and the PULSE performance engine built in. Meet HandyHelper, who walks you through setup.
+
+> [!NOTE]
+> **Honest heads-up: HandyTuner is vibe-coded.** I build it with AI (Claude), and half the time I don't fully know
+> what I'm doing — but I'm learning as I go. I test everything on my own Odin 2 Portal before it ships, but expect
+> rough edges. Bug reports, tips and code help are all very welcome!
 
 > [!WARNING]
 > **Beta (0.9.0). Everything has been tested on the AYN Odin 2 Portal (Android 13) only.**
