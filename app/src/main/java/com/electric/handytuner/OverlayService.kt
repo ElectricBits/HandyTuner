@@ -99,6 +99,8 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
     @Volatile private var rules = SetupRules()
     @Volatile private var pads: List<Pad> = emptyList()
     @Volatile private var padActions: Map<Int, PadAction> = emptyMap()
+    /** The controller holding Select, -1 when none: Select + the Home shortcut is Back. */
+    private var selectHeldBy = -1
     @Volatile private var ownScreen = false                     // HandyTuner's own screens are in front
     private var rulesStamp = -1L
     private var padActionStamp = -1L
@@ -198,6 +200,7 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
             PadAction.AFK -> main.post { startAfk() }
             PadAction.NEXT_PRESET -> session?.pkg?.let { game -> bg.post { nextPreset(game) } }
             PadAction.HOME -> goHome()
+            PadAction.BACK -> goBack()
         }
     }
 
@@ -207,9 +210,7 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
      */
     private fun goHome() {
         performGlobalAction(GLOBAL_ACTION_HOME)
-        val tv = getSystemService(android.hardware.display.DisplayManager::class.java)
-            .getDisplays(android.hardware.display.DisplayManager.DISPLAY_CATEGORY_PRESENTATION)
-            .firstOrNull { it.displayId != android.view.Display.DEFAULT_DISPLAY } ?: return
+        val tv = tv() ?: return
         val pm = packageManager
         val home = pm.resolveActivity(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME), 0)?.activityInfo?.packageName
         // A new task, or Android adds it to the home app's task on the Odin's screen and ignores the TV.
@@ -220,6 +221,19 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
         runCatching { startActivity(i, android.app.ActivityOptions.makeBasic().setLaunchDisplayId(tv.displayId).toBundle()) }
             .onFailure { Log.w(TAG, "home on the TV: $it") }
     }
+
+    /**
+     * Android 13's Back from an accessibility service only reaches the Odin's own screen. Docked, the TV has the
+     * focus, and a key event from the shell goes to the focused screen.
+     */
+    private fun goBack() {
+        if (tv() == null) { performGlobalAction(GLOBAL_ACTION_BACK); return }
+        bg.post { if (!PServer.ok("input keyevent 4")) performGlobalAction(GLOBAL_ACTION_BACK) }
+    }
+
+    private fun tv() = getSystemService(android.hardware.display.DisplayManager::class.java)
+        .getDisplays(android.hardware.display.DisplayManager.DISPLAY_CATEGORY_PRESENTATION)
+        .firstOrNull { it.displayId != android.view.Display.DEFAULT_DISPLAY }
 
     /** Like the Quick Menu's Preset tile: the next built-in or own preset, saved for the game and applied. */
     private fun nextPreset(game: String) {
@@ -618,9 +632,11 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
             }
             KeyEvent.ACTION_UP -> held.remove(event.keyCode)
         }
+        if (event.keyCode == KeyEvent.KEYCODE_BUTTON_SELECT) selectHeldBy = if (event.action == KeyEvent.ACTION_DOWN) event.deviceId else -1
         // A button given an action on the Controller page (an 8BitDo's back paddles, say) does that, not the game.
         if (!menu.showing && !ownScreen) padActions[event.keyCode]?.let { a ->
-            if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) runPadAction(a)
+            val act = if (a == PadAction.HOME && selectHeldBy == event.deviceId) PadAction.BACK else a
+            if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) runPadAction(act)
             return true
         }
         // Couch play: the Odin's own buttons are held back while an external controller is connected.
