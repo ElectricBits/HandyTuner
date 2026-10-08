@@ -149,8 +149,8 @@ data class SetupRules(
     val keepAwake: Boolean = false,
     /** Pause PULSE's sleep underclock while docked; it comes back when undocked. */
     val sleepOff: Boolean = true,
-    /** Apps on a bigger-than-1080p TV draw at 1080p: a 4K game took 400 MB more, and Android closed HandyTuner. */
-    val tv1080: Boolean = true,
+    /** Apps on a bigger-than-1080p TV draw at 1080p: a 4K game takes ~300 MB more memory. Off: the owner plays in 4K. */
+    val tv1080: Boolean = false,
     /** Hold back the Odin's own buttons while an external controller is connected. */
     val ignoreBuiltIn: Boolean = false,
     /** Hide the key-mapping markers while an external controller is connected. */
