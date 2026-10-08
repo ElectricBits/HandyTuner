@@ -3,6 +3,7 @@
 package com.electric.handytuner
 
 import android.view.InputDevice
+import android.view.KeyEvent
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -42,6 +43,11 @@ class SetupTest {
         // The Odin 2 Portal's own controls, which Android calls external.
         assertFalse(Pads.isExternalPad(gamepad, false, true, false, 0x2020, "Xbox Wireless Controller", emptySet(), 0x0112))
         assertTrue(Pads.isExternalPad(gamepad, false, true, false, 0x2020, "8BitDo Ultimate 2C Wireless", emptySet(), 0x0111))
+    }
+
+    @Test fun stickMovementIsNotAPress() {
+        assertTrue(Pads.fromStick(KeyEvent.FLAG_FALLBACK))     // a stick moved: Android's made-up D-pad press
+        assertFalse(Pads.fromStick(0))                        // a real D-pad press or button
     }
 
     @Test fun brands() {

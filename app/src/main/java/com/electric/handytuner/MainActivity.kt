@@ -86,21 +86,29 @@ class MainActivity : ComponentActivity() {
             }
             return super.dispatchKeyEvent(event)
         }
+        if (!Pads.isRecordable(event.keyCode, event.flags)) return true   // stick movement
         when (event.action) {
             android.view.KeyEvent.ACTION_DOWN -> { recHeld += event.keyCode; if (recHeld.size > recBest.size) recBest = recHeld.toSet() }
-            android.view.KeyEvent.ACTION_UP -> recHeld -= event.keyCode
+            // A combo of two or more, all let go: done, no need to wait out the timer.
+            android.view.KeyEvent.ACTION_UP -> { recHeld -= event.keyCode; if (recHeld.isEmpty() && recBest.size >= 2) finishHotkey() }
         }
         return true
     }
 
+    private val hotkeyTimeout = Runnable { finishHotkey() }
+
     private fun recordHotkey(which: Hotkey) {
         recording = true; recordingFor = which; recHeld.clear(); recBest = emptySet()
-        window.decorView.postDelayed({
-            recording = false; recordingFor = null
-            if (recBest.size >= 2) which.save(this, recBest)
-            android.util.Log.i("HandyTuner", "hotkey recorded $recBest = ${Hotkey.names(recBest)}")
-            loadLabels()
-        }, 5_000)
+        window.decorView.postDelayed(hotkeyTimeout, 10_000)   // nothing (or one button) pressed: give up
+    }
+
+    private fun finishHotkey() {
+        val which = recordingFor ?: return
+        window.decorView.removeCallbacks(hotkeyTimeout)
+        recording = false; recordingFor = null
+        if (recBest.size >= 2) which.save(this, recBest)
+        android.util.Log.i("HandyTuner", "hotkey recorded $recBest = ${Hotkey.names(recBest)}")
+        loadLabels()
     }
 
     private fun loadLabels() {
@@ -179,7 +187,7 @@ class MainActivity : ComponentActivity() {
         listOf(Triple("HUD hotkey", Hotkey.HUD, hotkeyLabel), Triple("Quick Menu hotkey", Hotkey.MENU, menuKeyLabel)).forEach { (name, key, label) ->
             Row(Modifier.padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                 Button(onClick = { if (!recording) recordHotkey(key) }, modifier = Modifier.glowFocus(RoundedCornerShape(50)).width(260.dp)) {
-                    Text(if (recording && recordingFor == key) "Hold your buttons now… (5 s)" else "Record")
+                    Text(if (recording && recordingFor == key) "Hold your buttons, then let go…" else "Record")
                 }
                 Column(Modifier.padding(start = 16.dp)) {
                     Text(name, color = Hand.Muted, fontSize = 13.sp)

@@ -174,9 +174,11 @@ fun PadActionsCard(ctx: Context) {
 
     DisposableEffect(listening) {
         val before = act.keyHook
+        // The first button pressed is the one: recording stops there. Stick movement is ignored, and nothing
+        // reaches the screen meanwhile (a stick click would press whatever has focus).
         if (listening) act.keyHook = { e ->
-            if (e.action == KeyEvent.ACTION_DOWN && Pads.isPadKey(e.keyCode)) { picked = e.keyCode; listening = false }
-            true      // while listening, the press is for this card only
+            if (e.action == KeyEvent.ACTION_DOWN && Pads.isRecordable(e.keyCode, e.flags)) { picked = e.keyCode; listening = false }
+            true
         }
         onDispose { if (listening) act.keyHook = before }
     }
@@ -194,7 +196,7 @@ fun PadActionsCard(ctx: Context) {
         val p = picked
         if (p == null) {
             Button(onClick = { listening = true }, Modifier.padding(top = 10.dp).glowFocus(RoundedCornerShape(50))) {
-                Text(if (listening) "Press a controller button now… (10 s)" else "Add a shortcut")
+                Text(if (listening) "Press the button now…" else "Add a shortcut")
             }
         } else {
             Text("Button: ${KeyMapper.label(p)}. What should it do?", color = Color.White, fontSize = 15.sp, modifier = Modifier.padding(top = 10.dp))

@@ -109,6 +109,12 @@ object Pads {
 
     /** A controller button or the D-pad, the only keys "ignore the Odin's own controls" ever holds back. */
     fun isPadKey(code: Int) = KeyEvent.isGamepadButton(code) || code in DPAD
+    /**
+     * A press that can be recorded for a shortcut or hotkey: any controller button, the D-pad and stick clicks
+     * included. Moving a stick isn't one: Android turns it into D-pad presses marked FLAG_FALLBACK.
+     */
+    fun isRecordable(code: Int, flags: Int) = isPadKey(code) && !fromStick(flags)
+    fun fromStick(flags: Int) = flags and KeyEvent.FLAG_FALLBACK != 0
     private val DPAD = setOf(KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_DPAD_DOWN, KeyEvent.KEYCODE_DPAD_LEFT,
         KeyEvent.KEYCODE_DPAD_RIGHT, KeyEvent.KEYCODE_DPAD_CENTER)
 
