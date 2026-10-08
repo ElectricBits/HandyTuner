@@ -299,7 +299,7 @@ class QuickMenu(
         // Preset for the game in front (D14/D16): A cycles the built-ins, then the owner's own presets.
         val game = host.currentGame()
         val saved = game?.let { GameStore.get(svc, it) } ?: GameSettings.of(Preset.NEW_GAME)
-        val profileTile = if (game == null) tile(null, heading(R.drawable.ic_person, "Preset", "Open a game first", MUTED)).apply { alpha = 0.6f }
+        val profileTile = if (game == null) tile(null, heading(R.drawable.ic_person, "Preset", noGame(), MUTED)).apply { alpha = 0.6f }
         else tile({
             val all = Preset.entries.map { it.def } + CustomPresets.all(svc)
             val next = all[(all.indexOfFirst { it.key == saved.preset.key } + 1) % all.size]
@@ -435,6 +435,17 @@ class QuickMenu(
         panel.post { tabs[tab].focusFirst() }
     }
 
+    /**
+     * Why there's no game: nothing open, or an app HandyTuner doesn't count as a game (it doesn't say it's one,
+     * like a Godot game without appCategory="game"). "Open a game first" read as wrong while a game was running.
+     */
+    private fun noGame(): String {
+        val front = host.frontPkg() ?: return "Open a game first"
+        val home = svc.packageManager.resolveActivity(android.content.Intent(android.content.Intent.ACTION_MAIN)
+            .addCategory(android.content.Intent.CATEGORY_HOME), 0)?.activityInfo?.packageName
+        return if (front == home || front == svc.packageName) "Open a game first" else "Add this app on the Games page"
+    }
+
     private var tab = 0          // the tab used last (owner's call: the menu opens on it)
     private var switchTab: () -> Unit = {}
 
@@ -495,7 +506,7 @@ class QuickMenu(
         val fanRow = row(*fans.map { v -> segment(Actions.FAN_NAMES.getValue(v), fan == v) { tweak({ it.setFanMode(v) }) { p -> p.copy(fan = v) } } }.toTypedArray())
         val fanName = fan?.let { Actions.FAN_NAMES[it] } ?: "Pulse's fan"
         // Mode and FPS are saved for the game in front, so without a game they'd land on the home screen.
-        if (!gameOpen) return tile(null, heading(R.drawable.ic_speed, "Performance & Fan", "Open a game to change its mode • $fanName"),
+        if (!gameOpen) return tile(null, heading(R.drawable.ic_speed, "Performance & Fan", "${noGame().replace("Open a game first", "Open a game")} to change its mode • $fanName"),
             fanRow, *liveRows)
         return tile(null, heading(R.drawable.ic_speed, "Performance & Fan", "$mode • $fanName"),
             modeRow, *listOfNotNull(fpsRow).toTypedArray(), fanRow, *liveRows)

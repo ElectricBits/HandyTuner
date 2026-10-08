@@ -25,6 +25,14 @@ class GameIdTest {
         assertNull(com.kei.pulse.appwatch.ScreenTop.parse("Display #5 (activities from top to bottom):;Display #0 (…):;", 5))   // nothing resumed on the TV
     }
 
+    /** Captured off the Odin docked to a 4K TV. */
+    @Test fun tvForScreenshots() {
+        val out = "Display 4630946904417961859 (HWC display 0): port=131 pnpId=QCM displayName=\"\";" +
+            "Display 4620873314284888069 (HWC display 1): port=5 pnpId=HEC displayName=\"HISENSE\";"
+        assertEquals("4620873314284888069", Actions.externalDisplayId(out))
+        assertNull(Actions.externalDisplayId("Display 4630946904417961859 (HWC display 0): port=131;"))
+    }
+
     @Test fun onlyHelpersMeansNoGameYet() {
         assertNull(GameId.exe("C:\\windows\\explorer.exe /desktop;C:\\windows\\system32\\winedevice.exe;"))
         assertNull(GameId.exe(""))

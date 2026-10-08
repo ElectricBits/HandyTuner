@@ -140,18 +140,28 @@ class Actions(private val ctx: Context) {
     fun screenshot(): String? {
         val path = "/sdcard/Pictures/HandyTuner/HT_${stamp()}.png"
         PServer.run("mkdir -p /sdcard/Pictures/HandyTuner")
-        if (!PServer.ok("screencap -p $path")) return null
+        if (!PServer.ok("screencap ${tvTarget("-d")}-p $path")) return null
         MediaScannerConnection.scanFile(ctx, arrayOf(path), null) { _, uri -> Notifier.screenshot(ctx, uri, path) }
         return path
     }
 
     var recordingPath: String? = null; private set
 
+    /**
+     * Docked to a TV, screenshots and recordings are of the TV, where the game is: screencap and screenrecord
+     * default to the Odin's own screen. They take SurfaceFlinger's physical display id, not Android's display id.
+     */
+    private fun tvTarget(flag: String): String {
+        if (Resolution.tv(ctx) == null) return ""
+        val ids = PServer.run("dumpsys SurfaceFlinger --display-id | tr '\\n' ';'") ?: return ""
+        return externalDisplayId(ids)?.let { "$flag $it " } ?: ""
+    }
+
     /** Up to 3 minutes (screenrecord's own limit); detached so PServer's call returns at once. */
     fun startRecording() {
         val path = "/sdcard/Movies/HandyTuner/HT_${stamp()}.mp4"
         PServer.run("mkdir -p /sdcard/Movies/HandyTuner")
-        PServer.run("setsid screenrecord --time-limit 180 $path </dev/null >/dev/null 2>&1 &")
+        PServer.run("setsid screenrecord ${tvTarget("--display-id")}--time-limit 180 $path </dev/null >/dev/null 2>&1 &")
         recordingPath = path
         Notifier.recording(ctx)
         // screenrecord stops itself at 3 minutes: finish up then, if Stop wasn't pressed first.
@@ -172,6 +182,10 @@ class Actions(private val ctx: Context) {
     }
 
     companion object {
+        /** The first non-built-in display in `dumpsys SurfaceFlinger --display-id`: "Display 46… (HWC display 1): …". */
+        fun externalDisplayId(out: String): String? =
+            Regex("""Display (\d+) \(HWC display [1-9]\d*\)""").find(out)?.groupValues?.get(1)
+
         /** PULSE's engine is built into this app (merge-plan.md), in the `$PULSE:pulse` process. */
         const val PULSE = "com.electric.handytuner"
         private const val TAG = "HandyTuner"
