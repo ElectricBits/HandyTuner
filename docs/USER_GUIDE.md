@@ -38,7 +38,8 @@ color, and has you try both hotkeys. You can run setup again any time from **Dia
 | **Both back buttons + both sticks pressed in** | Show or hide the HUD |
 | **Both sticks pressed in + R1** | Open the Quick Menu |
 
-They work in any game. Change them on the **HUD** page (**Record**, then press your new combo).
+They work in any game, on the Odin's own buttons or an external controller whose back paddles send the same
+buttons (an 8BitDo's do). Change them on the **HUD** page (**Record**, then press your new combo).
 
 ---
 
@@ -174,9 +175,10 @@ PULSE separately; installing the separate PULSE app alongside HandyTuner would m
   controller support. Buttons only: on Android 13 the sticks can't be mapped. Show the layout over the game while you set it up, and export or import layouts as files.
 - Shortcuts to the Odin's own **Deadzones, triggers & more** and **Key Test & stick calibration**.
 
-### External controllers (beta, not yet tested on real hardware)
+### External controllers (beta)
 
-For Bluetooth, USB or dongle controllers such as 8BitDo and Xbox pads.
+For Bluetooth, USB or dongle controllers such as 8BitDo and Xbox pads. Tested with an 8BitDo Ultimate 2C over
+Bluetooth.
 
 - **Connected controllers:** every controller Android sees, with its brand and battery. **Rumble test** checks the
   motor. If the Odin's own controls are ever listed as an external controller, press **This isn't a controller**.
@@ -184,7 +186,11 @@ For Bluetooth, USB or dongle controllers such as 8BitDo and Xbox pads.
   should read close to 0.00; more than 0.10 means drift. 8BitDo pads send different buttons in different modes, so
   check here if A/B come out swapped.
 - **Button shortcuts:** give a button a HandyTuner action (Quick Menu, HUD, screenshot, recording, next preset, Speed
-  Up, AFK). In games that button does the action and the game doesn't see it.
+  Up, AFK, **go to the home screen**, **go back**). In games that button does the action and the game doesn't see
+  it. Shortcuts are off on HandyTuner's own screens, so the button test still works there.
+  - **Go to the home screen** suits a controller's Home button. Docked to a TV, the TV goes home too. It acts when
+    you let go: **hold it and press Select** to go back instead (the Select never reaches the app). Some launchers,
+    Cocoon among them, ignore Android's Back in their own menus; use B there.
 - **When a controller is connected:** a preset for every game, **Ignore the Odin's own buttons** (buttons only, the
   hotkeys still work), hide the key-mapping markers, and alerts when the controller disconnects mid-game or its
   battery drops to 20% and 10%.
@@ -197,11 +203,13 @@ For Bluetooth, USB or dongle controllers such as 8BitDo and Xbox pads.
 ## Dock & TV
 
 HandyTuner counts the Odin as **docked** when a TV or monitor is plugged in (or, if you switch it on, when any
-charger is). Docked with a controller is **Couch mode**. It switches within a few seconds, and switches back when you
+charger is: the ODIN Station without a TV only shows up as a charger). Docked with a controller is **Couch mode**. It switches within a few seconds, and switches back when you
 undock.
 
 - **Presets:** one for docked and one for couch. They go over each game's own preset while docked; the game's own
   comes back when you undock.
+- With a TV, the **HUD** and the **Quick Menu** open on the TV, and the game is the app on the TV (so presets and
+  the Quick Menu follow it, not the home screen on the Odin's own screen).
 - **TV-size HUD**, **Dim the Odin's screen**, **Keep the screen awake** and **Pause sleep underclock** while docked.
   Each is put back when you undock.
 - **Charging while docked:** its own charge limit, so a docked Odin doesn't sit at 100%.
