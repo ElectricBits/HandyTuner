@@ -493,6 +493,8 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
                     GameStore.get(this@OverlayService, pendingApply!!)?.let { applyGame(pendingApply!!, it) }
                 } else if (changedProfiles) {
                     session?.let { o -> GameStore.get(this@OverlayService, o.pkg)?.let { applyGame(o.pkg, it) } }
+                        // The app in front was just added on the Games page: count it as a game now, not after an alt-tab.
+                        ?: run { if (front0 != null && GameStore.get(this@OverlayService, front0!!) != null) front0 = null }
                 }
                 ensureTweaks()
                 chargeTick()
