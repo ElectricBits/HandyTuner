@@ -752,8 +752,13 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
         override fun onDisplayRemoved(id: Int) {}
     }
 
-    private fun refreshHz() = getSystemService(android.hardware.display.DisplayManager::class.java)
-        .getDisplay(android.view.Display.DEFAULT_DISPLAY)?.refreshRate?.let { Math.round(it) }
+    /** The screen the HUD is on: the TV while docked to one (a 4K60 TV read as the Odin's 120 Hz before). */
+    private fun hudScreen() = tvScreen() ?: getSystemService(android.hardware.display.DisplayManager::class.java)
+        .getDisplay(android.view.Display.DEFAULT_DISPLAY)
+    private fun refreshHz() = hudScreen()?.refreshRate?.let { Math.round(it) }
+    /** The most that screen can do at its resolution, so 60 Hz on a 60 Hz TV isn't shown as a warning. */
+    private fun maxHz() = hudScreen()?.let { d -> d.supportedModes.filter { it.physicalWidth == d.mode.physicalWidth }
+        .maxOfOrNull { Math.round(it.refreshRate) } } ?: 120
 
     private fun pulseStats() = pulse.stats()
 
@@ -933,7 +938,7 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
         // PERF: what the panel is doing.
         if (HudStyle.Item.FPS in want) part("FPS ", fps?.toString(), if ((fps ?: 0) >= 55) GOOD else if ((fps ?: 0) >= 30) WARN else BAD)
         // The panel's rate right now: Pulse's AutoTDP lowers it to hold its target on this chip (60 Hz for 60 fps).
-        if (HudStyle.Item.HZ in want) refreshHz().let { hz -> part("", hz?.let { "${it}Hz" }, if ((hz ?: 0) >= 120) GOOD else if ((hz ?: 0) >= 60) WARN else BAD) }
+        if (HudStyle.Item.HZ in want) refreshHz().let { hz -> part("", hz?.let { "${it}Hz" }, if ((hz ?: 0) >= minOf(120, maxHz())) GOOD else if ((hz ?: 0) >= 60) WARN else BAD) }
         f.pulse?.let { p ->
             fun num(k: String) = if (p.has(k) && !p.isNull(k)) p.optDouble(k) else null
             // "12/34%" in a mono font reads as a fraction or a date, and never says which half is
