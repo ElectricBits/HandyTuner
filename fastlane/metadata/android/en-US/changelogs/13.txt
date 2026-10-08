@@ -1,0 +1,3 @@
+• External controllers (beta): 8BitDo, Xbox and more. Battery, button and stick test, button shortcuts (Home and Back too), per-controller layouts and a controller preset.
+• Dock & TV (beta): docked and couch presets; the HUD and Quick Menu open on the TV; dim the Odin's screen, keep awake, own charge limit.
+• Fix: a game's first preset sometimes didn't apply until you switched apps.
