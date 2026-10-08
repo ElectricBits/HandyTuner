@@ -53,6 +53,8 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
     private val held = mutableSetOf<Int>()
     private var hud: LinearLayout? = null
     private var hudLp: WindowManager.LayoutParams? = null
+    /** The screen the HUD is on: the TV while docked to one, else the Odin's. */
+    private var hudWm: WindowManager? = null
     private var hudWidth = 0
     /** One TextView per group: PERF, NET, TEMP, SYS, then the verdict line. */
     private lateinit var linePerf: TextView
@@ -715,8 +717,13 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
             // 140: under stock Pulse's top bar. With the fork its bar is off, so the HUD goes up top.
             x = 24; y = if (top && !pulse.connected) 140 else 40
         }
-        getSystemService(WindowManager::class.java).addView(box, lp)
-        hud = box; hudLp = lp
+        // Docked to a TV, the HUD goes there: the Odin's own screen may be dimmed, and it's not where you look.
+        val onTv = if (setup?.docked == true) tv()?.let { d -> runCatching {
+            createDisplayContext(d).getSystemService(WindowManager::class.java).also { it.addView(box, lp) }
+        }.onFailure { Log.w(TAG, "HUD on the TV: $it") }.getOrNull() } else null
+        val wm = onTv ?: getSystemService(WindowManager::class.java).also { it.addView(box, lp) }
+        hud = box; hudLp = lp; hudWm = wm
+        Log.i(TAG, "HUD on ${if (onTv != null) "the TV" else "the Odin's screen"} (setup $setup)")
         getSystemService(android.hardware.display.DisplayManager::class.java).registerDisplayListener(displayListener, main)
         bg.post(tickFor(gen))
     }
@@ -725,8 +732,8 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
         hudGeneration++   // orphans the chain that may be mid-sample: it notices and does not re-post
         getSystemService(android.hardware.display.DisplayManager::class.java).unregisterDisplayListener(displayListener)
         lastDrawn = null
-        hud?.let { getSystemService(WindowManager::class.java).removeView(it) }
-        hud = null; hudWidth = 0
+        hud?.let { v -> runCatching { hudWm?.removeView(v) } }   // the TV may be gone already
+        hud = null; hudWidth = 0; hudWm = null
     }
 
     private var lastDrawn: Pair<Frame, Bottleneck.Verdict>? = null
@@ -748,7 +755,7 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
         val box = hud ?: return; val lp = hudLp ?: return
         val (dx, dy) = DRIFT[step % DRIFT.size]
         lp.x = 24 + dx; lp.y = (if (lp.gravity and Gravity.TOP == Gravity.TOP && !pulse.connected) 140 else 40) + dy
-        getSystemService(WindowManager::class.java).updateViewLayout(box, lp)
+        runCatching { hudWm?.updateViewLayout(box, lp) }
     }
 
     private fun battery() = getSystemService(BatteryManager::class.java).getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
@@ -993,7 +1000,7 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
             .maxOfOrNull { it.paint.measureText(it.text.toString()) }?.toInt()?.plus(box.paddingLeft + box.paddingRight + 8) ?: 0
         if (w != hudWidth) {
             hudWidth = w
-            hudLp?.let { it.width = w; getSystemService(WindowManager::class.java).updateViewLayout(box, it) }
+            hudLp?.let { it.width = w; runCatching { hudWm?.updateViewLayout(box, it) } }
         }
     }
 
