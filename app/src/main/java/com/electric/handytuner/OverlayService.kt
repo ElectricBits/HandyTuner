@@ -99,8 +99,10 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
     @Volatile private var rules = SetupRules()
     @Volatile private var pads: List<Pad> = emptyList()
     @Volatile private var padActions: Map<Int, PadAction> = emptyMap()
-    /** The controller holding Select, -1 when none: Select + the Home shortcut is Back. */
-    private var selectHeldBy = -1
+    /** The controller holding the Home shortcut (-1: none). Select pressed meanwhile is Back, and Home then does nothing. */
+    private var homeHeldBy = -1
+    private var homeUsed = false
+    private var selectEaten = false
     @Volatile private var ownScreen = false                     // HandyTuner's own screens are in front
     private var rulesStamp = -1L
     private var padActionStamp = -1L
@@ -632,11 +634,23 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
             }
             KeyEvent.ACTION_UP -> held.remove(event.keyCode)
         }
-        if (event.keyCode == KeyEvent.KEYCODE_BUTTON_SELECT) selectHeldBy = if (event.action == KeyEvent.ACTION_DOWN) event.deviceId else -1
+        // Home held + Select = Back. The Select is kept from the app (Cocoon opens its info panel on it).
+        if (event.keyCode == KeyEvent.KEYCODE_BUTTON_SELECT) {
+            if (event.action == KeyEvent.ACTION_DOWN && homeHeldBy == event.deviceId) {
+                if (event.repeatCount == 0) { homeUsed = true; selectEaten = true; runPadAction(PadAction.BACK) }
+                return true
+            }
+            if (event.action == KeyEvent.ACTION_UP && selectEaten) { selectEaten = false; return true }
+        }
         // A button given an action on the Controller page (an 8BitDo's back paddles, say) does that, not the game.
         if (!menu.showing && !ownScreen) padActions[event.keyCode]?.let { a ->
-            val act = if (a == PadAction.HOME && selectHeldBy == event.deviceId) PadAction.BACK else a
-            if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) runPadAction(act)
+            if (a == PadAction.HOME) {
+                // On release, so a Select pressed while it's held can make it Back instead.
+                if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) { homeHeldBy = event.deviceId; homeUsed = false }
+                if (event.action == KeyEvent.ACTION_UP) { if (!homeUsed && homeHeldBy == event.deviceId) runPadAction(a); homeHeldBy = -1 }
+                return true
+            }
+            if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) runPadAction(a)
             return true
         }
         // Couch play: the Odin's own buttons are held back while an external controller is connected.

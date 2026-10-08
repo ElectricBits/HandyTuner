@@ -214,7 +214,7 @@ data class SetupRules(
 /** Things a controller button (an 8BitDo's back paddles, say) can do instead of reaching the game. */
 enum class PadAction(val label: String) {
     QUICK_MENU("Open the Quick Menu"), HUD("Show or hide the HUD"), SCREENSHOT("Screenshot"), RECORD("Start or stop recording"),
-    NEXT_PRESET("Next preset for this game"), SPEED_UP("Speed Up"), AFK("AFK mode"), HOME("Go to the home screen (with Select held: back)"), BACK("Go back");
+    NEXT_PRESET("Next preset for this game"), SPEED_UP("Speed Up"), AFK("AFK mode"), HOME("Go to the home screen (hold it and press Select: back)"), BACK("Go back");
 
     companion object {
         fun file(ctx: Context) = File(ctx.filesDir, "pad_actions.properties")
