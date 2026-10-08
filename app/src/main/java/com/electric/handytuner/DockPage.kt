@@ -30,7 +30,7 @@ import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 
 /**
- * Dock & TV: what changes while the Odin is docked (Setup.kt). The :overlay watcher does the switching;
+ * Dock & Screen: what changes while the Odin is docked (Setup.kt). The :overlay watcher does the switching;
  * this page only writes setup.properties and the docked charge limit.
  */
 @OptIn(ExperimentalLayoutApi::class)
@@ -56,6 +56,7 @@ fun DockPage(ctx: Context) {
     }
 
     Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        ResolutionCard(ctx)   // the screens first: the Odin's own, and the TV's
         HandCard(Modifier.fillMaxWidth()) {
             Text("Right now: ${now?.first?.label ?: "…"} mode", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
             Text(now?.second ?: "Checking…", color = Hand.Blue, fontSize = 14.sp)
@@ -84,8 +85,6 @@ fun DockPage(ctx: Context) {
             SettingSwitch("Pause sleep underclock", "PULSE's sleep underclock stays off while docked, and comes back on when you undock.",
                 r.sleepOff) { save(r.copy(sleepOff = it)) }
         }
-
-        ResolutionCard(ctx)
 
         DockChargeCard(ctx)
 

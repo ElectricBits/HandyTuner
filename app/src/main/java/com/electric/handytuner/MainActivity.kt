@@ -113,7 +113,7 @@ class MainActivity : ComponentActivity() {
     private enum class Page(val label: String, val icon: Int) {
         HOME("Home", R.drawable.ic_home), GAMES("Games", R.drawable.ic_sports_esports), HUD("HUD", R.drawable.ic_desktop_windows),
         BATTERY("Battery", R.drawable.ic_battery_horiz_075), NETWORK("Network", R.drawable.ic_wifi), TWEAKS("Tweaks", R.drawable.ic_tune), CONTROLLER("Controller", R.drawable.ic_sports_esports),
-        DOCK("Dock & TV", R.drawable.ic_desktop_windows),
+        DOCK("Dock & Screen", R.drawable.ic_desktop_windows),
         DIAGNOSTICS("Diagnostics", R.drawable.ic_build),
     }
 

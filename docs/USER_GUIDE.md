@@ -5,7 +5,7 @@ Everything HandyTuner does, page by page, in plain words. HandyTuner is a beta t
 
 **Contents:** [Setup](#setup) · [Hotkeys](#hotkeys) · [Home](#home) · [Quick Menu](#quick-menu) · [HUD](#hud) ·
 [Games and presets](#games-and-presets) · [Battery](#battery) · [Network](#network) · [Tweaks](#tweaks) ·
-[Controller](#controller) · [Dock & TV](#dock--tv) · [Diagnostics](#diagnostics) · [Safety](#safety-safe-mode-and-reset) · [FAQ](#faq-and-troubleshooting)
+[Controller](#controller) · [Dock & Screen](#dock--screen) · [Diagnostics](#diagnostics) · [Safety](#safety-safe-mode-and-reset) · [FAQ](#faq-and-troubleshooting)
 
 ---
 
@@ -152,7 +152,6 @@ network part), and share them as a file in your Downloads folder. Importing neve
 
 | Tweak | What it does |
 |---|---|
-| **Resolution** | The Odin's screen at **Native 100%** (1080p on the Odin 2 Portal), 90, 85, 80, 75, 67, 60 or 50% (each shows its resolution), and the TV while docked at **Default** (its own resolution), 4K, 1440p, 1080p or 720p. Fewer pixels is less work for the graphics chip, and on a 4K TV about 300 MB less memory. **Keep text and buttons the same size** (on) scales them with it. A running game may pause once when it changes. Also on the **Dock & TV** page; **Reset everything to stock** puts both back. |
 | **Low Latency mode** | Wi-Fi only: stops the Wi-Fi radio napping between packets and pauses background Wi-Fi and Bluetooth scans, which cause lag spikes. It never changes performance or presets. |
 | **Speed Up** | Closes background apps and clears them from Recents. Never your last game, HandyTuner, or an app that's downloading. |
 | **Keep Odin Assistant's game detection off** | Odin Assistant can change performance and fan per game, which fights HandyTuner. On by default; it switches off only that one feature, and the app stays. |
@@ -201,7 +200,13 @@ Bluetooth.
 
 ---
 
-## Dock & TV
+## Dock & Screen
+
+**Resolution** comes first: the Odin's screen at **Native 100%** (1080p on the Odin 2 Portal), 90, 85, 80, 75, 67, 60
+or 50% (each shows its resolution), and the TV while docked at **Default** (its own resolution), 4K, 1440p, 1080p or
+720p. Fewer pixels is less work for the graphics chip, and on a 4K TV about 300 MB less memory. **Keep text and
+buttons the same size** (on) scales them with it. A running game may pause once when it changes. **Reset everything
+to stock** puts both back.
 
 HandyTuner counts the Odin as **docked** when a TV or monitor is plugged in (or, if you switch it on, when any
 charger is: the ODIN Station without a TV only shows up as a charger). Docked with a controller is **Couch mode**. It switches within a few seconds, and switches back when you
@@ -209,7 +214,6 @@ undock.
 
 - **Presets:** one for docked and one for couch. They go over each game's own preset while docked; the game's own
   comes back when you undock.
-- **Resolution** for the TV (Default, 4K, 1440p, 1080p or 720p), the same card as on the Tweaks page.
 - With a TV, the **HUD** and the **Quick Menu** open on the TV, and the game is the app on the TV (so presets and
   the Quick Menu follow it, not the home screen on the Odin's own screen).
 - **TV-size HUD**, **Dim the Odin's screen**, **Keep the screen awake** and **Pause sleep underclock** while docked.
