@@ -206,6 +206,9 @@ class ForegroundAppMonitorService : Service() {
             // Make the edit take effect on the RUNNING game — the poll loop only re-binds on a foreground CHANGE,
             // so without this a live toggle/value edit would wait for an alt-tab (QA bug #2).
             if (pkg == boundPackage) applyLiveEdit(pkg, updated, action, globalDefault)
+            // HandyTuner fork: a game that came up with no profile wasn't bound, so its first edit (a preset
+            // HandyTuner applies at launch) sat saved until an alt-tab. Re-run the bind decision for it now.
+            else if (pkg == lastForeground) handleForegroundChange(pkg, force = true)
             return
         }
         // Global system controls (set-and-leave, like the Deck) — applied directly to the device; the panel
@@ -1830,6 +1833,8 @@ class ForegroundAppMonitorService : Service() {
     private var lastResumed: String? = null
 
     private fun currentForegroundPackage(): String? {
+        // Docked to a TV, the game is the app on the TV, whatever opened last on the Odin's own screen.
+        ScreenTop.onTv(this)?.let { lastResumed = it; return it }
         val usageStats = getSystemService<UsageStatsManager>() ?: return null
         val now = System.currentTimeMillis()
         val lookback = if (foregroundSeeded) EVENT_WINDOW_MS else RESTART_LOOKBACK_MS
