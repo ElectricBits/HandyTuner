@@ -422,6 +422,7 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
     /** For the debug receiver: run on the worker thread, where profile changes belong. */
     fun bgRun(work: () -> Unit) { bg.post(work) }
 
+    override fun tvScreen() = if (setup?.docked == true) tv() else null
     override fun applyGameNow(id: String) { bg.post { GameStore.get(this, id)?.let { applyGame(id, it) } } }
 
     private val watch = object : Runnable {

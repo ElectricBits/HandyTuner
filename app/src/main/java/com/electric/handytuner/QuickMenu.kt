@@ -50,10 +50,13 @@ class QuickMenu(
         fun pulse(): PulseLink
         /** Apply a game's saved settings now (on the worker thread, after anything already queued). */
         fun applyGameNow(id: String)
+        /** The TV while docked to one, where the menu opens; null for the Odin's own screen. */
+        fun tvScreen(): android.view.Display?
     }
 
     private val main = Handler(Looper.getMainLooper())
-    private val wm get() = svc.getSystemService(WindowManager::class.java)
+    /** The screen the open menu is on. */
+    private var wm: WindowManager? = null
     private var root: View? = null
     val showing get() = root != null
 
@@ -85,8 +88,8 @@ class QuickMenu(
     }
 
     fun hide() {
-        root?.let { runCatching { wm.removeView(it) } }
-        root = null
+        root?.let { v -> runCatching { wm?.removeView(v) } }   // the TV may be gone already
+        root = null; wm = null
     }
 
     // --- building blocks ---------------------------------------------------------
@@ -421,7 +424,11 @@ class QuickMenu(
             WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
             PixelFormat.TRANSLUCENT,
         ).apply { gravity = Gravity.END or Gravity.TOP }
-        wm.addView(panel, lp)
+        // Docked to a TV, the menu opens there, and the controller's buttons follow it (it takes the focus).
+        wm = host.tvScreen()?.let { d -> runCatching {
+            svc.createDisplayContext(d).getSystemService(WindowManager::class.java).also { it.addView(panel, lp) }
+        }.onFailure { Log.w("HandyTuner", "menu on the TV: $it") }.getOrNull() }
+            ?: svc.getSystemService(WindowManager::class.java).also { it.addView(panel, lp) }
         root = panel
         panel.translationX = panelWidth.toFloat()
         panel.animate().translationX(0f).setDuration(180).start()
