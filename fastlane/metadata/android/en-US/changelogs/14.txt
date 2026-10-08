@@ -1,0 +1,2 @@
+• Resolution: the Odin's screen (Native to 50%) and the TV while docked (4K, 1440p, 1080p, 720p).
+• Fix: loading a big game could switch on safe mode and stop HandyTuner until you cleared it.
