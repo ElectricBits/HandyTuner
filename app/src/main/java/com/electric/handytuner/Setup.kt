@@ -58,6 +58,12 @@ object Pads {
     const val VENDOR_NINTENDO = 0x057e
     private val KNOWN = setOf(VENDOR_8BITDO, VENDOR_MICROSOFT, VENDOR_SONY, VENDOR_NINTENDO)
 
+    /**
+     * The Odin 2 Portal's own controls: AYN's driver names them "Xbox Wireless Controller" (2020:0112, with its own
+     * Vendor_2020_Product_0112.kl) and Android marks them external, so the system's answer can't be trusted for them.
+     */
+    fun isOdinBuiltIn(vendor: Int, product: Int) = vendor == 0x2020 && product == 0x0112
+
     fun brand(vendor: Int, name: String) = when {
         vendor == VENDOR_8BITDO || name.contains("8bitdo", true) -> "8BitDo"
         vendor == VENDOR_MICROSOFT || name.contains("xbox", true) -> "Xbox"
@@ -73,10 +79,10 @@ object Pads {
      * valve if the Odin's own controls are ever mistaken for one.
      */
     fun isExternalPad(sources: Int, virtual: Boolean, external: Boolean?, hasBattery: Boolean, vendor: Int, name: String,
-                      ignored: Set<String>): Boolean {
+                      ignored: Set<String>, product: Int = 0): Boolean {
         val pad = sources and InputDevice.SOURCE_GAMEPAD == InputDevice.SOURCE_GAMEPAD ||
             sources and InputDevice.SOURCE_JOYSTICK == InputDevice.SOURCE_JOYSTICK
-        if (!pad || virtual || name in ignored) return false
+        if (!pad || virtual || name in ignored || isOdinBuiltIn(vendor, product)) return false
         return external ?: (hasBattery || vendor in KNOWN)
     }
 
@@ -88,7 +94,7 @@ object Pads {
     }.getOrNull()
 
     fun isExternal(d: InputDevice?, ignored: Set<String>) = d != null && isExternalPad(d.sources, d.isVirtual, systemSaysExternal(d),
-        runCatching { d.batteryState.isPresent }.getOrDefault(false), d.vendorId, d.name, ignored)
+        runCatching { d.batteryState.isPresent }.getOrDefault(false), d.vendorId, d.name, ignored, d.productId)
 
     /** Every external controller connected now, one entry per pad (a pad can show up as several input devices). */
     fun connected(ignored: Set<String>): List<Pad> = InputDevice.getDeviceIds().toList().mapNotNull { InputDevice.getDevice(it) }

@@ -39,6 +39,9 @@ class SetupTest {
         assertFalse(Pads.isExternalPad(InputDevice.SOURCE_KEYBOARD, false, true, true, Pads.VENDOR_8BITDO, "Keys", emptySet()))
         assertFalse(Pads.isExternalPad(gamepad, true, true, true, Pads.VENDOR_8BITDO, "Virtual", emptySet()))
         assertFalse(Pads.isExternalPad(gamepad, false, true, true, Pads.VENDOR_8BITDO, "8BitDo", setOf("8BitDo")))
+        // The Odin 2 Portal's own controls, which Android calls external.
+        assertFalse(Pads.isExternalPad(gamepad, false, true, false, 0x2020, "Xbox Wireless Controller", emptySet(), 0x0112))
+        assertTrue(Pads.isExternalPad(gamepad, false, true, false, 0x2020, "8BitDo Ultimate 2C Wireless", emptySet(), 0x0111))
     }
 
     @Test fun brands() {
