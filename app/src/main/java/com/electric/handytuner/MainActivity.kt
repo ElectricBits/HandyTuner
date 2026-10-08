@@ -265,7 +265,7 @@ class MainActivity : ComponentActivity() {
         HandCard(Modifier.fillMaxWidth().padding(top = 16.dp)) {
             Text("Reset everything to stock", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 17.sp)
             Text(done?.let { "Done: $it setting${if (it == 1) "" else "s"} put back." }
-                ?: "Puts back every setting HandyTuner changed: brightness, refresh rate, scanning, Private DNS, button layout, stick lights, sleep underclock, frame caps.",
+                ?: "Puts back every setting HandyTuner changed: brightness, refresh rate, scanning, Private DNS, button layout, stick lights, sleep underclock, frame caps, resolution.",
                 color = Hand.Muted, fontSize = 14.sp)
             Row(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 if (!confirm) Button(onClick = { confirm = true }, Modifier.glowFocus(RoundedCornerShape(50))) { Text("Reset…") }
@@ -276,6 +276,7 @@ class MainActivity : ComponentActivity() {
                             val n = Originals.saved(this@MainActivity).size
                             Originals.restore(this@MainActivity)
                             if (java.io.File(filesDir, "gms_off").exists()) actions.setPlayServices(true)
+                            Resolution.save(this@MainActivity, Resolution()); Resolution.putBack(this@MainActivity)
                             java.io.File(filesDir, "reset").writeText(System.currentTimeMillis().toString())
                             android.util.Log.i("HandyTuner", "reset to stock: $n settings")
                             withContext(Dispatchers.Main) { done = n }

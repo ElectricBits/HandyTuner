@@ -83,9 +83,9 @@ fun DockPage(ctx: Context) {
             SettingSwitch("Keep the screen awake", "No screen timeout while docked.", r.keepAwake) { save(r.copy(keepAwake = it)) }
             SettingSwitch("Pause sleep underclock", "PULSE's sleep underclock stays off while docked, and comes back on when you undock.",
                 r.sleepOff) { save(r.copy(sleepOff = it)) }
-            SettingSwitch("Draw the TV at 1080p", "Saves about 300 MB of memory on a 4K TV, for games that run out. " +
-                "The TV scales the picture up.", r.tv1080) { save(r.copy(tv1080 = it)) }
         }
+
+        ResolutionCard(ctx)
 
         DockChargeCard(ctx)
 

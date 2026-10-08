@@ -50,6 +50,7 @@ object Tweaks {
 fun TweaksPage(ctx: Context) {
     var lowLatency by remember { mutableStateOf(Tweaks.lowLatency(ctx)) }
     Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        ResolutionCard(ctx)
         HandCard(Modifier.fillMaxWidth()) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
