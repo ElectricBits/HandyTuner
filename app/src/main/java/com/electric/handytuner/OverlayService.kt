@@ -432,7 +432,8 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
                 // every branch below it ends in an apply, and an overlay that crash-loops must not be
                 // the thing that keeps writing to the device between the crashes.
                 // Stepping aside over HandyTuner's own screens changes nothing on the device, so it runs in safe mode too.
-                val front0Pkg = front.current()
+                val usage = front.current()
+                val front0Pkg = com.kei.pulse.appwatch.ScreenTop.onTv(this@OverlayService) ?: usage
                 ownScreen = front0Pkg == packageName
                 main.post { hud?.visibility = if (front0Pkg == packageName) View.GONE else View.VISIBLE }
                 val safe = SafeMode.active(this@OverlayService)

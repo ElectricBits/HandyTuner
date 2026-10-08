@@ -15,6 +15,16 @@ class GameIdTest {
         assertEquals("SlimeRancher.exe", GameId.exe(out))
     }
 
+    /** Captured off the Odin docked to a TV: the game on the TV (5), Cocoon on its own screen (0). */
+    @Test fun topOfEachScreen() {
+        val out = "Display #5 (activities from top to bottom):;    topResumedActivity=ActivityRecord{8c83d8 u0 app.gamenative/.MainActivity} t218};" +
+            "Display #0 (activities from top to bottom):;      topResumedActivity=ActivityRecord{235e4be u0 rip.moth.cocoonshell/.ExternalDisplayActivity} t203};"
+        assertEquals("app.gamenative", com.kei.pulse.appwatch.ScreenTop.parse(out, 5))
+        assertEquals("rip.moth.cocoonshell", com.kei.pulse.appwatch.ScreenTop.parse(out, 0))
+        assertNull(com.kei.pulse.appwatch.ScreenTop.parse(out, 7))
+        assertNull(com.kei.pulse.appwatch.ScreenTop.parse("Display #5 (activities from top to bottom):;Display #0 (…):;", 5))   // nothing resumed on the TV
+    }
+
     @Test fun onlyHelpersMeansNoGameYet() {
         assertNull(GameId.exe("C:\\windows\\explorer.exe /desktop;C:\\windows\\system32\\winedevice.exe;"))
         assertNull(GameId.exe(""))

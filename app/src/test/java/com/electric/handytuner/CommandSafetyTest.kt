@@ -72,6 +72,12 @@ class CommandSafetyTest {
             assertTrue("exes.sh can change things: $bad", bad !in sh)
     }
 
+    @Test fun topsScriptOnlyLists() {
+        val sh = com.kei.pulse.appwatch.ScreenTop.SCRIPT
+        for (node in PServer.NEVER_TOUCH) assertTrue("tops.sh mentions $node", node !in sh)
+        for (bad in listOf("kill", "rm ", "chmod", "pservice", ">")) assertTrue("tops.sh can change things: $bad", bad !in sh)
+    }
+
     @Test fun killScriptKeepsTheGamePulseAndHandyTuner() {
         val sh = Actions.killScriptText("com.electric.handytuner")
         // The last game is "$1", so it can't be pinned by name; it is skipped three ways instead.
