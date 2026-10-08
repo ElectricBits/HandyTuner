@@ -11,8 +11,8 @@ import java.util.Properties
  *
  * HandyTuner writes system settings and Pulse commands continuously, so an overlay in a crash loop is
  * worse than one that isn't running: it can leave the device half-configured on the way down. Three
- * starts inside ten minutes is the shape of a loop (a low-memory kill, or the accessibility service
- * being restarted), never of normal use — the overlay runs for hours at a time once started.
+ * starts inside ten minutes is the shape of a loop (the accessibility service being restarted; not
+ * low-memory kills, see [recordStart]), never of normal use — the overlay runs for hours at a time once started.
  *
  * On the third start it puts everything back ([trip]) and then the overlay stops writing altogether
  * ([active]) until the owner clears it by hand. Sticky on purpose: a watchdog that clears itself on
@@ -50,6 +50,10 @@ object SafeMode {
      * three processes would otherwise look like three innocent ones.
      */
     fun recordStart(ctx: Context): Boolean {
+        // Android closing the overlay to free memory isn't a crash loop: loading a big game killed it three
+        // times in seconds (with Google services, the keyboard and the launcher), which tripped safe mode and
+        // stopped HandyTuner mid-game. Those starts don't count; a crash still does.
+        if (diedForMemory(ctx)) return false
         val now = System.currentTimeMillis()
         val p = Properties()
         runCatching { File(ctx.filesDir, STARTS).inputStream().use { p.load(it) } }
@@ -61,6 +65,14 @@ object SafeMode {
         runCatching { File(ctx.filesDir, STARTS).storeAtomic(p) }
         return trip
     }
+
+    /** Whether the overlay's last death was Android freeing memory (the low-memory killer). */
+    private fun diedForMemory(ctx: Context) = runCatching {
+        ctx.getSystemService(android.app.ActivityManager::class.java)
+            .getHistoricalProcessExitReasons(ctx.packageName, 0, 10)
+            .firstOrNull { it.processName == "${ctx.packageName}:overlay" }
+            ?.reason == android.app.ApplicationExitInfo.REASON_LOW_MEMORY
+    }.getOrDefault(false)
 
     /**
      * An app update restarts the overlay too, and three installs in ten minutes tripped safe mode on the
