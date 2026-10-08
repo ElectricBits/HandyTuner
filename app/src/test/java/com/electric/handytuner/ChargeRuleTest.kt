@@ -36,4 +36,16 @@ class ChargeRuleTest {
         val s = ChargeRule.Settings(limit = 100)
         assertEquals(false, ChargeRule.decide(s, true, 100, false, false))
     }
+
+    @Test fun dockedLimitWhileDocked() {
+        val s = ChargeRule.Settings(limit = 90, dockedLimit = 60)
+        assertEquals(true, ChargeRule.decide(s, true, 70, false, false, docked = true))
+        assertEquals(false, ChargeRule.decide(s, true, 70, false, false, docked = false))
+    }
+
+    @Test fun noDockedLimitUsesTheNormalOne() {
+        val s = ChargeRule.Settings(limit = 80)
+        assertEquals(true, ChargeRule.decide(s, true, 85, false, false, docked = true))
+        assertEquals(false, ChargeRule.decide(s, true, 70, false, false, docked = true))
+    }
 }

@@ -129,7 +129,7 @@ object GameStore {
     }
 
     /** Game launchers and emulators that Android doesn't file under "Games". */
-    private val LAUNCHERS = setOf(
+    val LAUNCHERS = setOf(
         "app.gamenative", "com.winlator", "com.retroarch", "com.retroarch.aarch64", "org.ppsspp.ppsspp",
         "org.dolphinemu.dolphinemu", "com.github.stenzek.duckstation", "xyz.aethersx2.android", "org.yuzu.yuzu_emu",
         "dev.eden.eden_emulator", "info.cemu.cemu", "org.citra.emu", "com.antutu.ABenchMark",

@@ -25,6 +25,7 @@ object Notifier {
     private const val ID_STATUS = 1; private const val ID_SHOT = 2; private const val ID_REC = 3
     private const val ID_PROFILE = 4; private const val ID_SPEED = 5
     private const val ID_APPLIED = 6
+    private const val ID_SETUP = 7; private const val ID_PAD = 8
 
     private fun nm(ctx: Context) = ctx.getSystemService(NotificationManager::class.java).apply {
         createNotificationChannel(NotificationChannel(STATUS, "Status and quick buttons", NotificationManager.IMPORTANCE_LOW))
@@ -113,6 +114,14 @@ object Notifier {
         .setContentTitle("HandyTuner: safe mode")
         .setContentText("It restarted too often. Everything it changed was put back and changes are off until you clear it in the app → Diagnostics.")
         .setTimeoutAfter(20_000).setAutoCancel(true).setContentIntent(openApp(ctx)).build())
+
+    /** The setup changed (docked, controller connected…) and what it switched to. */
+    fun setup(ctx: Context, title: String, text: String) = nm(ctx).notify(ID_SETUP, base(ctx, EVENTS)
+        .setContentTitle(title).setContentText(text).setTimeoutAfter(8_000).setAutoCancel(true).build())
+
+    /** A controller dropped mid-game, or its battery is low. One at a time: a newer one replaces it. */
+    fun pad(ctx: Context, title: String, text: String) = nm(ctx).notify(ID_PAD, base(ctx, EVENTS)
+        .setContentTitle(title).setContentText(text).setTimeoutAfter(15_000).setAutoCancel(true).build())
 
     fun allowed(ctx: Context) = ctx.getSystemService(NotificationManager::class.java).areNotificationsEnabled()
 }

@@ -76,15 +76,138 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
     private val keyView by lazy { KeyMapView(this, nunito) }
     private fun loadKeymap() {
         val p = frontPkg
-        val spots = if (KeyMapper.canMap(p)) KeyMapper.get(this, p!!) else emptyList()
+        // With an external controller, the game's controller layout if it has one (KeyMapper.slot).
+        val spots = if (KeyMapper.canMap(p)) KeyMapper.forPlay(this, p!!, padOn) else emptyList()
         val set = KeyMapper.settings(this)
         keyPlayer.use(spots); keyPlayer.settings = set
-        main.post { if (set.show && !editor.open) keyView.show(spots, set.opacity) else keyView.hide() }
+        val markers = set.show && !editor.open && !(padOn && rules.hideMarkers)
+        main.post { if (markers) keyView.show(spots, set.opacity) else keyView.hide() }
     }
     override fun frontPkg() = frontPkg
     override fun pulse() = pulse
-    override fun keyCount() = frontPkg?.let { KeyMapper.get(this, it).size } ?: 0
-    override fun openKeyEditor() { frontPkg?.takeIf { KeyMapper.canMap(it) }?.let { p -> main.post { menu.hide(); keyView.hide(); editor.start(p) } } }
+    override fun keyCount() = frontPkg?.let { KeyMapper.forPlay(this, it, padOn).size } ?: 0
+    override fun openKeyEditor() {
+        frontPkg?.takeIf { KeyMapper.canMap(it) }?.let { p ->
+            val pad = padOn
+            main.post { menu.hide(); keyView.hide(); editor.start(KeyMapper.slot(p, pad), KeyMapper.forPlay(this, p, pad)) }
+        }
+    }
+
+    // --- Setup: handheld, docked, controller or couch (Setup.kt), checked every watcher tick ---
+    @Volatile private var setup: Setup? = null                  // null until the first check
+    @Volatile private var rules = SetupRules()
+    @Volatile private var pads: List<Pad> = emptyList()
+    @Volatile private var padActions: Map<Int, PadAction> = emptyMap()
+    @Volatile private var ownScreen = false                     // HandyTuner's own screens are in front
+    private var rulesStamp = -1L
+    private var padActionStamp = -1L
+    private val padLow = mutableMapOf<String, Int>()            // pad name → the low-battery step already announced
+    private var awakeView: View? = null
+    private val padOn get() = setup?.pad == true
+
+    /**
+     * Works out the setup and acts when it changes: the game in front is re-applied (the setup's preset goes
+     * over its own), the HUD is redrawn (bigger on a TV), the key layout swaps, and the dock extras switch.
+     */
+    private fun setupTick() {
+        val rulesChanged = SetupRules.file(this).lastModified().let { m -> (m != rulesStamp).also { if (it) { rulesStamp = m; rules = SetupRules.load(this) } } }
+        PadAction.file(this).lastModified().let { m -> if (m != padActionStamp) { padActionStamp = m; padActions = PadAction.load(this) } }
+        val now = Pads.connected(rules.ignoredPads)
+        padAlerts(pads, now)
+        pads = now
+        val next = Setup.of(Dock.docked(this, rules), now.isNotEmpty())
+        val was = setup
+        if (next == was && !rulesChanged) return
+        setup = next
+        Log.i(TAG, "setup: $was -> $next, pads ${now.map { it.name }}")
+        dockExtras(next, rules)
+        loadKeymap()
+        if (was?.docked != next.docked || rulesChanged) main.post { if (hud != null) { hide(); show() } }
+        session?.let { o -> GameStore.get(this, o.pkg)?.let { applyGame(o.pkg, it) } }
+        if (was != null && next != was) {
+            val preset = rules.presetFor(next)?.let { k -> SetupRules.presets(this).firstOrNull { it.key == k }?.label }
+            Notifier.setup(this, "${next.label} mode", listOfNotNull(
+                now.firstOrNull()?.name?.let { "Controller: $it" },
+                preset?.let { "Preset: $it" } ?: "Games keep their own presets",
+            ).joinToString(" · "))
+            // Only on a real change: an Odin that boots already docked doesn't open the app on its own.
+            if (next.docked && !was.docked) rules.launchOnDock?.let { launch(it) }
+        }
+    }
+
+    /**
+     * Dim the Odin's screen, keep it awake, and pause PULSE's sleep underclock while docked; put each back when
+     * not. Marker files remember what was changed, so a restart or an undock while killed still puts it back.
+     */
+    private fun dockExtras(s: Setup, r: SetupRules) {
+        val dimmed = java.io.File(filesDir, DOCK_DIMMED)
+        if (s.docked && r.dimScreen) { if (!dimmed.exists()) { actions.setBrightnessPct(1); dimmed.writeText("1") } }
+        else if (dimmed.exists()) { Originals.restore(this, listOf("screen_brightness_mode", "screen_brightness")); dimmed.delete() }
+
+        if (pulse.supports(Applied.Feature.ENGINE_SETTINGS)) {
+            val sleepWasOn = java.io.File(filesDir, DOCK_SLEEP_WAS_ON)
+            if (s.docked && r.sleepOff) {
+                if (!sleepWasOn.exists() && pulse.engineSettings()?.optBoolean("sleep") == true &&
+                    pulse.call { it.setEngineSetting("sleep", "off") } == true) sleepWasOn.writeText("1")
+            } else if (sleepWasOn.exists() && pulse.call { it.setEngineSetting("sleep", "on") } == true) sleepWasOn.delete()
+        }
+
+        val awake = s.docked && r.keepAwake
+        main.post {
+            val wm = getSystemService(WindowManager::class.java)
+            if (awake && awakeView == null) awakeView = View(this).also { v ->
+                wm.addView(v, WindowManager.LayoutParams(1, 1, WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
+                    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
+                        WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON, PixelFormat.TRANSLUCENT))
+            }
+            if (!awake) awakeView?.let { runCatching { wm.removeView(it) }; awakeView = null }
+        }
+    }
+
+    /** A controller that disconnected mid-game, or whose battery fell to 20% and then 10%: said once each. */
+    private fun padAlerts(before: List<Pad>, now: List<Pad>) {
+        before.filter { b -> now.none { it.name == b.name } }.forEach { gone ->
+            padLow.remove(gone.name)
+            if (rules.padAlerts && session != null) Notifier.pad(this, "Controller disconnected", "${gone.name} dropped while you were playing.")
+        }
+        now.forEach { p ->
+            val b = p.battery ?: return@forEach
+            val step = PAD_LOW_STEPS.firstOrNull { b <= it }
+            if (step == null) { padLow.remove(p.name); return@forEach }
+            if ((padLow[p.name] ?: Int.MAX_VALUE) <= step) return@forEach
+            padLow[p.name] = step
+            if (rules.padAlerts) Notifier.pad(this, "Controller battery $b%", "${p.name} needs charging soon.")
+        }
+    }
+
+    private fun launch(pkg: String) = runCatching {
+        packageManager.getLaunchIntentForPackage(pkg)?.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)?.let { startActivity(it) }
+        Log.i(TAG, "docked: opened $pkg")
+    }.onFailure { Log.w(TAG, "docked: couldn't open $pkg: $it") }
+
+    /** A controller button given an action on the Controller page. */
+    private fun runPadAction(a: PadAction) {
+        Log.i(TAG, "pad action $a")
+        when (a) {
+            PadAction.QUICK_MENU -> main.post { menu.toggle() }
+            PadAction.HUD -> main.post { toggle() }
+            PadAction.SCREENSHOT -> bg.post { actions.screenshot() }
+            PadAction.RECORD -> bg.post { if (actions.recordingPath != null) actions.stopRecording() else actions.startRecording() }
+            PadAction.SPEED_UP -> speedUpFromNotification()
+            PadAction.AFK -> main.post { startAfk() }
+            PadAction.NEXT_PRESET -> session?.pkg?.let { game -> bg.post { nextPreset(game) } }
+        }
+    }
+
+    /** Like the Quick Menu's Preset tile: the next built-in or own preset, saved for the game and applied. */
+    private fun nextPreset(game: String) {
+        val all = SetupRules.presets(this)
+        val saved = GameStore.get(this, game) ?: GameSettings.of(Preset.NEW_GAME)
+        val next = GameSettings.of(all[(all.indexOfFirst { it.key == saved.preset.key } + 1) % all.size])
+        GameStore.set(this, game, next)
+        applyGame(game, next)
+        Notifier.preset(this, next, label(game) + (setup?.let { s -> rules.presetFor(s)?.let { " (${s.label} mode keeps its own preset)" } } ?: ""))
+    }
 
     // --- Game watch: profiles on, sessions recorded, every 3 s whether or not the HUD is up ---
     private data class Open(val pkg: String, val label: String, val start: Long, val bat: Int, val charging: Boolean)
@@ -108,7 +231,7 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
         // Plugged, not "charging": once bypassed the battery reports not charging while the charger is in.
         val plugged = b.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0) != 0
         val level = b.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) * 100 / b.getIntExtra(BatteryManager.EXTRA_SCALE, 100).coerceAtLeast(1)
-        val want = ChargeRule.decide(ChargeRule.load(this), plugged, level, session != null, bypassed == true) ?: return
+        val want = ChargeRule.decide(ChargeRule.load(this), plugged, level, session != null, bypassed == true, setup?.docked == true) ?: return
         if (want == bypassed) return
         Originals.put(this, "system:${ChargeRule.KEY}", if (want) "1" else "0")
         bypassed = want
@@ -126,7 +249,9 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
      * A game's settings: HandyTuner's part now, and the Pulse part sent to the fork (D16), only what differs
      * from what Pulse already has for the game in front. Runs on the worker thread (binder calls).
      */
-    private fun applyGame(id: String, g: GameSettings) {
+    private fun applyGame(id: String, saved: GameSettings) {
+        // Docked, controller or couch: that setup's preset, if it has one, goes over the game's own.
+        val g = rules.effective(saved, setup ?: Setup.HANDHELD, SetupRules.presets(this))
         runner.apply(g.profile)
         val st = pulse.state() ?: return                         // no fork: the HandyTuner part is all there is
         // Pulse applies to the app IT sees in front; if that's not this game yet, don't touch another app's settings.
@@ -266,6 +391,7 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
                 // the thing that keeps writing to the device between the crashes.
                 // Stepping aside over HandyTuner's own screens changes nothing on the device, so it runs in safe mode too.
                 val front0Pkg = front.current()
+                ownScreen = front0Pkg == packageName
                 main.post { hud?.visibility = if (front0Pkg == packageName) View.GONE else View.VISIBLE }
                 val safe = SafeMode.active(this@OverlayService)
                 // Cleared in the app: take back what safe mode handed to Pulse (its bar, its all-games default).
@@ -284,9 +410,13 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
                         pulse.call { it.clearFrameCaps() }       // caps outlive restarts; Reset means stock
                         restorePulseDefault()
                         if (pulse.supports(Applied.Feature.ENGINE_SETTINGS)) TUNING_STOCK.forEach { (k, v) -> pulse.call { it.setEngineSetting(k, v) } }
+                        // The app already put the brightness back, and sleep underclock is stock (off) now.
+                        java.io.File(filesDir, DOCK_DIMMED).delete(); java.io.File(filesDir, DOCK_SLEEP_WAS_ON).delete()
                     }
                     resetStamp = r
                 }
+                // Its own guard: a failure reading controllers or displays must not stop game detection below.
+                runCatching { setupTick() }.onFailure { Log.w(TAG, "setup: $it") }
                 val pkg = front0Pkg
                 // Pulse, HandyTuner's own screens and the system UI don't end a game: you're only checking something.
                 val neutral = pkg == null || pkg == packageName || pkg == Actions.PULSE || pkg == "com.android.systemui"
@@ -384,6 +514,7 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
             if (SafeMode.active(this)) return@post            // read-only: Pulse keeps its own bar and default
             if (pulse.call { it.setOverlayEnabled(false) } == true) java.io.File(filesDir, PULSE_HUD_OFF).writeText("1")
             outsideGamesDefault()
+            setup?.let { dockExtras(it, rules) }                // PULSE's sleep setting needed the link up
             main.post { if (hud != null) { hide(); show() } }   // move up into the space Pulse's bar used
         } }
         pulse.connect()
@@ -424,6 +555,12 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
         runCatching { pulse.call { it.clearFrameCaps() } }.onFailure { Log.w(TAG, "safemode: caps", it) }
         runCatching { restorePulseDefault() }.onFailure { Log.w(TAG, "safemode: all-games default", it) }
         runCatching { Originals.restore(this) }.onFailure { Log.w(TAG, "safemode: settings", it) }
+        java.io.File(filesDir, DOCK_DIMMED).delete()
+        runCatching {
+            val sleepWasOn = java.io.File(filesDir, DOCK_SLEEP_WAS_ON)
+            if (sleepWasOn.exists() && pulse.call { it.setEngineSetting("sleep", "on") } == true) sleepWasOn.delete()
+        }.onFailure { Log.w(TAG, "safemode: sleep underclock", it) }
+        main.post { awakeView?.let { runCatching { getSystemService(WindowManager::class.java).removeView(it) } }; awakeView = null }
         val off = java.io.File(filesDir, PULSE_HUD_OFF)
         if (off.exists() && pulse.call { it.setOverlayEnabled(true) } == true) off.delete()
         java.io.File(filesDir, "reset").writeText(System.currentTimeMillis().toString())
@@ -459,6 +596,14 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
             }
             KeyEvent.ACTION_UP -> held.remove(event.keyCode)
         }
+        // A button given an action on the Controller page (an 8BitDo's back paddles, say) does that, not the game.
+        if (!menu.showing && !ownScreen) padActions[event.keyCode]?.let { a ->
+            if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) runPadAction(a)
+            return true
+        }
+        // Couch play: the Odin's own buttons are held back while an external controller is connected.
+        // The combos above still saw them, so the hotkeys keep working.
+        if (rules.ignoreBuiltIn && padOn && Pads.isPadKey(event.keyCode) && !Pads.isExternal(event.device, rules.ignoredPads)) return true
         // A mapped button becomes a tap on the screen, and the game doesn't see the button.
         return !menu.showing && keyPlayer.onKey(event)
     }
@@ -489,7 +634,9 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
     private fun show() {
         if (hud != null) return
         val gen = ++hudGeneration
-        style = HudStyle.load(this); styleStamp = HudStyle.file(this).lastModified()
+        // Docked to a TV: the TV size, readable from the sofa.
+        style = HudStyle.load(this).let { if (setup?.docked == true && rules.tvHud) it.copy(size = HudStyle.Size.XL) else it }
+        styleStamp = HudStyle.file(this).lastModified()
         linePerf = neonText(15f)
         lineNet = neonText(15f)
         lineTemp = neonText(15f)
@@ -585,6 +732,8 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
     private data class Frame(
         val r: Bottleneck.Reading, val game: Net.Latency?, val net: Net.Latency?, val band: String?, val bars: Int,
         val ramMb: Int?, val batLeftMin: Int?, val batPct: Int, val charging: Boolean,
+        /** The lowest battery of the connected controllers, when any reports one. */
+        val padBat: Int?,
         /** The Pulse fork's live stats (IPulseControl.stats); null without the fork or items. */
         val pulse: org.json.JSONObject?,
     )
@@ -614,6 +763,7 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
             val bars = if (band == null) 0 else wifi.calculateSignalLevel(info.rssi) * 4 / wifi.maxSignalLevel.coerceAtLeast(1)
             val f = Frame(
                 r, lastGame, lastNet, band, bars, stats.freeRamMb(), batteryLeftMin(), battery(), charging(),
+                pads.mapNotNull { it.battery }.minOrNull(),
                 if (PULSE_ITEMS.any { it in want }) pulseStats() else null,
             )
             // Sampling above takes long enough for hide()/show() to have landed meanwhile. Re-check
@@ -763,6 +913,9 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
             val text = when { f.charging -> "${f.batPct}% ⚡"; left != null -> "${f.batPct}% · $left"; else -> "${f.batPct}%" }
             partIcon(R.drawable.ic_battery_horiz_075, style.accent, text.takeIf { f.batPct > 0 }, style.accent)
         }
+        f.padBat?.takeIf { HudStyle.Item.PAD in want }?.let { b ->
+            partIcon(R.drawable.ic_sports_esports, style.accent, "$b%", if (b <= 10) BAD else if (b <= 20) WARN else style.accent)
+        }
         if (HudStyle.Item.CLOCK in want) part("", java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault()).format(java.util.Date()), 0xFFFFFFFF.toInt())
         lineSys.text = group("SYS  ", R.drawable.ic_memory, 0xFFFF2BD6.toInt(), s)         // magenta
 
@@ -798,6 +951,7 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
         instance = null
         pulse.disconnect()
         hide(); menu.hide(); keyView.hide(); if (afkView != null) endAfk()
+        awakeView?.let { runCatching { getSystemService(WindowManager::class.java).removeView(it) } }; awakeView = null
         bg.removeCallbacks(watch)
         // PServer and the battery are blocking binder calls — `runner.clear()` restores every saved
         // key through them, and `endSession()` reads the battery twice — so doing either here holds
@@ -846,6 +1000,9 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
         private val DRIFT = listOf(0 to 0, 2 to 1, 3 to 3, 1 to 2, -1 to 3, -2 to 1)
         private const val KEY_SHOWN = "shown"
         private const val KEY_AFK = "afk"
+        private const val DOCK_DIMMED = "dock_dimmed"               // the screen was dimmed for the dock; undock puts it back
+        private const val DOCK_SLEEP_WAS_ON = "dock_sleep_was_on"   // sleep underclock was paused for the dock
+        private val PAD_LOW_STEPS = listOf(10, 20)                  // controller battery warnings, lowest first
         private const val MAGENTA = 0xFFFF2BD6.toInt()
         private const val GOOD = 0xFF39FF14.toInt()
         private const val WARN = 0xFFFFB300.toInt()

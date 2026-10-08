@@ -63,7 +63,18 @@ class MainActivity : ComponentActivity() {
     private var menuHeld by mutableStateOf(false)
     private val appHeld = mutableSetOf<Int>()
 
+    /** The Controller page's button test and "press a button" capture. Returning true keeps the key from the UI. */
+    var keyHook: ((android.view.KeyEvent) -> Boolean)? = null
+    /** The Controller page's stick test. */
+    var motionHook: ((android.view.MotionEvent) -> Unit)? = null
+
+    override fun dispatchGenericMotionEvent(ev: android.view.MotionEvent): Boolean {
+        motionHook?.invoke(ev)
+        return super.dispatchGenericMotionEvent(ev)
+    }
+
     override fun dispatchKeyEvent(event: android.view.KeyEvent): Boolean {
+        if (!recording && keyHook?.invoke(event) == true) return true
         if (!recording) {
             when (event.action) {
                 android.view.KeyEvent.ACTION_DOWN -> {
@@ -102,6 +113,7 @@ class MainActivity : ComponentActivity() {
     private enum class Page(val label: String, val icon: Int) {
         HOME("Home", R.drawable.ic_home), GAMES("Games", R.drawable.ic_sports_esports), HUD("HUD", R.drawable.ic_desktop_windows),
         BATTERY("Battery", R.drawable.ic_battery_horiz_075), NETWORK("Network", R.drawable.ic_wifi), TWEAKS("Tweaks", R.drawable.ic_tune), CONTROLLER("Controller", R.drawable.ic_sports_esports),
+        DOCK("Dock & TV", R.drawable.ic_desktop_windows),
         DIAGNOSTICS("Diagnostics", R.drawable.ic_build),
     }
 
@@ -139,6 +151,7 @@ class MainActivity : ComponentActivity() {
                             Page.NETWORK -> NetworkPage(this@MainActivity)
                             Page.TWEAKS -> TweaksPage(this@MainActivity)
                             Page.CONTROLLER -> ControllerPage(this@MainActivity)
+                            Page.DOCK -> DockPage(this@MainActivity)
                             Page.DIAGNOSTICS -> DiagnosticsPage()
                         }
                     }

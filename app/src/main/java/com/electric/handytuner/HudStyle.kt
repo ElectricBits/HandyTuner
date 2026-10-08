@@ -21,10 +21,10 @@ data class HudStyle(
     val compact: Boolean = false,
 ) {
     enum class Corner(val label: String) { TOP_LEFT("Top left"), TOP_RIGHT("Top right"), BOTTOM_LEFT("Bottom left"), BOTTOM_RIGHT("Bottom right") }
-    enum class Size(val label: String, val scale: Float) { S("Small", 0.8f), M("Medium", 1f), L("Large", 1.25f) }
+    enum class Size(val label: String, val scale: Float) { S("Small", 0.8f), M("Medium", 1f), L("Large", 1.25f), XL("TV", 1.7f) }
     enum class Item(val label: String) {
         FPS("FPS"), HZ("Refresh rate (Hz)"), GAME("Game ping"), NET("Net test"), WIFI("Wi-Fi"), RAM("Free RAM"),
-        SESSION("Battery time left"), CLOCK("Clock"), BOTTLENECK("Bottleneck line"),
+        SESSION("Battery time left"), CLOCK("Clock"), BOTTLENECK("Bottleneck line"), PAD("Controller battery"),
         // From the Pulse fork (its own HUD is off, so these replace it; docs/feature-registry.md F4).
         TEMPS("CPU/GPU °C (Pulse)"), WATTS("Watts (Pulse)"), LOAD("CPU/GPU load (Pulse)"), MODE("Pulse mode"),
     }

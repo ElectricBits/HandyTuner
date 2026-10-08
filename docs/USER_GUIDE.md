@@ -5,7 +5,7 @@ Everything HandyTuner does, page by page, in plain words. HandyTuner is a beta t
 
 **Contents:** [Setup](#setup) · [Hotkeys](#hotkeys) · [Home](#home) · [Quick Menu](#quick-menu) · [HUD](#hud) ·
 [Games and presets](#games-and-presets) · [Battery](#battery) · [Network](#network) · [Tweaks](#tweaks) ·
-[Controller](#controller) · [Diagnostics](#diagnostics) · [Safety](#safety-safe-mode-and-reset) · [FAQ](#faq-and-troubleshooting)
+[Controller](#controller) · [Dock & TV](#dock--tv) · [Diagnostics](#diagnostics) · [Safety](#safety-safe-mode-and-reset) · [FAQ](#faq-and-troubleshooting)
 
 ---
 
@@ -173,6 +173,39 @@ PULSE separately; installing the separate PULSE app alongside HandyTuner would m
 - **Key mapping:** make layouts that turn controller buttons into screen taps (or holds) for Android games without
   controller support. Buttons only: on Android 13 the sticks can't be mapped. Show the layout over the game while you set it up, and export or import layouts as files.
 - Shortcuts to the Odin's own **Deadzones, triggers & more** and **Key Test & stick calibration**.
+
+### External controllers (beta, not yet tested on real hardware)
+
+For Bluetooth, USB or dongle controllers such as 8BitDo and Xbox pads.
+
+- **Connected controllers:** every controller Android sees, with its brand and battery. **Rumble test** checks the
+  motor. If the Odin's own controls are ever listed as an external controller, press **This isn't a controller**.
+- **Button & stick test:** press any button (back paddles too) to see what it sends. With the sticks let go they
+  should read close to 0.00; more than 0.10 means drift. 8BitDo pads send different buttons in different modes, so
+  check here if A/B come out swapped.
+- **Button shortcuts:** give a button a HandyTuner action (Quick Menu, HUD, screenshot, recording, next preset, Speed
+  Up, AFK). In games that button does the action and the game doesn't see it.
+- **When a controller is connected:** a preset for every game, **Ignore the Odin's own buttons** (buttons only, the
+  hotkeys still work), hide the key-mapping markers, and alerts when the controller disconnects mid-game or its
+  battery drops to 20% and 10%.
+- **Key layouts per controller:** a key-mapping layout made while an external controller is connected is saved for
+  the controller, so it can differ from the Odin's own.
+- The HUD can show the **controller battery** (HUD page → What the HUD shows).
+
+---
+
+## Dock & TV
+
+HandyTuner counts the Odin as **docked** when a TV or monitor is plugged in (or, if you switch it on, when any
+charger is). Docked with a controller is **Couch mode**. It switches within a few seconds, and switches back when you
+undock.
+
+- **Presets:** one for docked and one for couch. They go over each game's own preset while docked; the game's own
+  comes back when you undock.
+- **TV-size HUD**, **Dim the Odin's screen**, **Keep the screen awake** and **Pause sleep underclock** while docked.
+  Each is put back when you undock.
+- **Charging while docked:** its own charge limit, so a docked Odin doesn't sit at 100%.
+- **Open an app when docked:** a game or launcher to open when you dock.
 
 ---
 

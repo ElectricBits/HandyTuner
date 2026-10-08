@@ -25,9 +25,10 @@ class KeyMapEditor(private val svc: AccessibilityService, private val font: Type
     private var speed = 0.004f
     val open get() = view != null
 
-    fun start(gamePkg: String) {
-        pkg = gamePkg
-        spots.clear(); spots += KeyMapper.get(svc, pkg)
+    /** [slot]: where the layout is saved ([KeyMapper.slot]); [initial]: what it starts from. */
+    fun start(slot: String, initial: List<KeyMapper.Spot>) {
+        pkg = slot
+        spots.clear(); spots += initial
         cx = 0.5f; cy = 0.5f
         val v = EditorView()
         svc.getSystemService(WindowManager::class.java).addView(v, WindowManager.LayoutParams(

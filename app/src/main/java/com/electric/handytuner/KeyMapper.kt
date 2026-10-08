@@ -82,6 +82,19 @@ object KeyMapper {
         }.toString())
     }
 
+    /**
+     * Where a game's layout is saved: under its package, or "<package>#pad" for the layout used while an
+     * external controller is connected (its buttons can sit differently from the Odin's).
+     */
+    const val PAD = "#pad"
+    fun slot(pkg: String, pad: Boolean) = if (pad) pkg + PAD else pkg
+
+    /** The layout to play: with a controller, its own layout if it has one, else the Odin's. */
+    fun forPlay(ctx: Context, pkg: String, pad: Boolean): List<Spot> {
+        val m = all(ctx)
+        return (if (pad) m[slot(pkg, true)] else null) ?: m[pkg].orEmpty()
+    }
+
     /** Native Android games only: GameNative and emulators already speak controller. */
     fun canMap(pkg: String?) = pkg != null && pkg !in GameId.WINDOWS_HOSTS && ':' !in pkg
 

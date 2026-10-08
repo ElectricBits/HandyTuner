@@ -33,7 +33,9 @@ Made and tested on the **AYN Odin 2 Portal** first, with **support for more hand
   temperature you choose, never above 88 °C), **sleep underclock** while the screen is off, and **stick lights**.
 - **Battery**: charge limit and play-while-charging, using AYN's own charging switch.
 - **Network**: connection test, Low Latency mode, a DNS benchmark and one-tap Private DNS.
-- **Controller**: key mapping.
+- **Controller**: key mapping, and (beta) external controllers like 8BitDo and Xbox: battery, button and stick test,
+  button shortcuts, per-controller layouts and a controller preset.
+- **Dock & TV** (beta): docked and couch presets, a TV-size HUD, a docked charge limit, and more.
 - **Diagnostics**: every permission at a glance, and **Export log file** for bug reports.
 - **Safe mode** and **Reset everything to stock** put your device back if anything goes wrong.
 

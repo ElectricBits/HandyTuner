@@ -89,6 +89,10 @@ fun ControllerPage(ctx: Context) {
                     Modifier.glowFocus(RoundedCornerShape(50))) { Text("Open") }
             }
         }
+        ConnectedPadsCard(ctx)
+        ButtonTestCard(ctx)
+        PadActionsCard(ctx)
+        PadSetupCard(ctx)
         KeyMappingCard(ctx)
     }
 }
@@ -105,11 +109,13 @@ private fun KeyMappingCard(ctx: Context) {
     HandCard(Modifier.fillMaxWidth()) {
         Text("Key mapping", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
         Text("Buttons to screen taps for Android touch games. Make a layout from the Quick Menu while the game is open: " +
-            "press a placed button again to switch tap → hold → auto-fire.", color = Hand.Muted, fontSize = 14.sp)
+            "press a placed button again to switch tap → hold → auto-fire. A layout made while an external controller is " +
+            "connected is saved for the controller, so it can differ from the Odin's own.", color = Hand.Muted, fontSize = 14.sp)
         if (maps.isEmpty()) Text("No layouts yet.", color = Hand.Muted, fontSize = 14.sp, modifier = Modifier.padding(top = 8.dp))
         maps.forEach { (pkg, spots) ->
             Row(Modifier.padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text("${label(pkg)}: ${spots.size} button${if (spots.size == 1) "" else "s"}", color = Color.White, fontSize = 16.sp,
+                val pad = pkg.endsWith(KeyMapper.PAD)
+                Text("${label(pkg.removeSuffix(KeyMapper.PAD))}${if (pad) " (controller)" else ""}: ${spots.size} button${if (spots.size == 1) "" else "s"}", color = Color.White, fontSize = 16.sp,
                     modifier = Modifier.weight(1f))
                 Button(onClick = { KeyMapper.set(ctx, pkg, emptyList()); maps = KeyMapper.all(ctx) },
                     Modifier.glowFocus(RoundedCornerShape(50))) { Text("Delete") }
