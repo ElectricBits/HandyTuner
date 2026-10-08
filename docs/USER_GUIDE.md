@@ -173,7 +173,8 @@ PULSE separately; installing the separate PULSE app alongside HandyTuner would m
 - **Button layout:** **Xbox** (A at the bottom) or **Swapped** (A on the right).
 - **Key mapping:** make layouts that turn controller buttons into screen taps (or holds) for Android games without
   controller support. Buttons only: on Android 13 the sticks can't be mapped. Show the layout over the game while you set it up, and export or import layouts as files.
-- Shortcuts to the Odin's own **Deadzones, triggers & more** and **Key Test & stick calibration**.
+- Shortcuts to the **Odin's controller settings** (controller style, L2/R2 mode, M1/M2/Back mapping) and **Key Test &
+  stick calibration**.
 
 ### External controllers (beta)
 

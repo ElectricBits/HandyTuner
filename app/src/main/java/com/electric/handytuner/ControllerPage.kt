@@ -34,7 +34,7 @@ import kotlinx.coroutines.withContext
 
 /**
  * Controller settings. Only the button layout is set here: it is one system
- * setting. Calibration, deadzones, L2/R2 mode, invert and the key test already
+ * setting. Calibration, L2/R2 mode, button mapping and the key test already
  * live in AYN's own apps, which also tell the controller driver to apply them,
  * so HandyTuner opens those rather than half-copying them. Stick lights are
  * Pulse's.
@@ -81,8 +81,9 @@ fun ControllerPage(ctx: Context) {
         HandCard(Modifier.fillMaxWidth()) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
-                    Text("Deadzones, triggers & more", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
-                    Text("Stick and L2/R2 deadzones, trigger mode, invert axes, disable sticks: in Odin Settings.",
+                    Text("Odin's controller settings", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
+                    // What the Odin 2 Portal's firmware has there (2026-10-08); it has no deadzone or invert options.
+                    Text("Controller style, L2/R2 mode, and what M1, M2 and Back do: in Odin Settings, under Controller Settings.",
                         color = Hand.Muted, fontSize = 14.sp)
                 }
                 Button(onClick = { open("com.odin.settings", "com.ro.settings.activity.MainSettingsActivity") },
