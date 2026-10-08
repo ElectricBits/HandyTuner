@@ -132,7 +132,7 @@ fun ResolutionCard(ctx: Context) {
         FlowRow(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
             Resolution.TV_HEIGHTS.forEach { h ->
                 FilterChip(selected = r.tvHeight == h, onClick = { save(r.copy(tvHeight = h), screen = false, tv = true) },
-                    label = { Text(if (h == 0) "The TV's own" else "${h}p") }, modifier = Modifier.glowFocus(RoundedCornerShape(8.dp)))
+                    label = { Text(if (h == 0) "Default" else "${h}p") }, modifier = Modifier.glowFocus(RoundedCornerShape(8.dp)))
             }
         }
         SettingSwitch("Keep text and buttons the same size", "Off: everything gets bigger at a lower resolution.", r.keepSize) {
