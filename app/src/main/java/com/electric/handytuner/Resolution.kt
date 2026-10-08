@@ -44,7 +44,7 @@ data class Resolution(
 
     companion object {
         val SCALES = listOf(100, 90, 85, 80, 75, 67, 60, 50)
-        val TV_HEIGHTS = listOf(0, 1440, 1080, 720)
+        val TV_HEIGHTS = listOf(0, 2160, 1440, 1080, 720)
 
         /** [native] scaled to [pct]; null at 100 (native). */
         fun scaled(native: Spec, pct: Int, keepSize: Boolean): Spec? = if (pct >= 100) null else
@@ -113,6 +113,8 @@ data class Resolution(
 @Composable
 fun ResolutionCard(ctx: Context) {
     var r by remember { mutableStateOf(Resolution.load(ctx)) }
+    // The Odin's own lines: its short side (1080 on the Odin 2 Portal), so each choice can say what it is.
+    val lines = remember { ctx.getSystemService(DisplayManager::class.java).getDisplay(Display.DEFAULT_DISPLAY).mode.let { minOf(it.physicalWidth, it.physicalHeight) } }
     fun save(n: Resolution, screen: Boolean, tv: Boolean) {
         r = n; Resolution.save(ctx, n)
         thread { if (screen) Resolution.applyScreen(n); if (tv) Resolution.applyTv(ctx, n) }
@@ -125,14 +127,14 @@ fun ResolutionCard(ctx: Context) {
         FlowRow(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
             Resolution.SCALES.forEach { p ->
                 FilterChip(selected = r.screenPct == p, onClick = { save(r.copy(screenPct = p), screen = true, tv = false) },
-                    label = { Text(if (p == 100) "Native" else "$p%") }, modifier = Modifier.glowFocus(RoundedCornerShape(8.dp)))
+                    label = { Text("${if (p == 100) "Native " else ""}$p% · ${lines * p / 100}p") }, modifier = Modifier.glowFocus(RoundedCornerShape(8.dp)))
             }
         }
         Text("The TV, while docked", color = Color.White, fontSize = 16.sp, modifier = Modifier.padding(top = 10.dp))
         FlowRow(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
             Resolution.TV_HEIGHTS.forEach { h ->
                 FilterChip(selected = r.tvHeight == h, onClick = { save(r.copy(tvHeight = h), screen = false, tv = true) },
-                    label = { Text(if (h == 0) "Default" else "${h}p") }, modifier = Modifier.glowFocus(RoundedCornerShape(8.dp)))
+                    label = { Text(when (h) { 0 -> "Default"; 2160 -> "4K"; else -> "${h}p" }) }, modifier = Modifier.glowFocus(RoundedCornerShape(8.dp)))
             }
         }
         SettingSwitch("Keep text and buttons the same size", "Off: everything gets bigger at a lower resolution.", r.keepSize) {
