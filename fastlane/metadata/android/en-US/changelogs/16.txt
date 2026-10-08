@@ -1,0 +1,2 @@
+• Recording a controller button shortcut or a hotkey ignores stick movement: a nudge on a stick is no longer saved as a D-pad press.
+• A hotkey combo is saved as soon as you let the buttons go, instead of waiting for the timer.
