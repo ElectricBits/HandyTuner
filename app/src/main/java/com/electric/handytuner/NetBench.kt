@@ -62,7 +62,7 @@ object NetBench {
     fun verdict(router: Stats, internet: Stats, loaded: Stats?, band: String?, dnsMs: Int?): List<String> {
         val out = mutableListOf<String>()
         if (router.lossPct >= 2 || internet.lossPct >= 2) out += "Packets are being lost (${internet.lossPct.toInt()}%): games will rubber-band. Move closer to the router or use 5 GHz."
-        if (router.p95 > 20 || router.jitter > 3) out += "Your Wi-Fi has lag spikes (worst ${router.p99.toInt()} ms to the router). Low Latency fixes most of this — turn it on for online games."
+        if (router.p95 > 20 || router.jitter > 3) out += "Your Wi-Fi has lag spikes (worst 5%: ${"%.0f".format(router.p95)} ms to the router). Low Latency fixes most of this — turn it on for online games."
         if (band == "2.4G") out += "You're on 2.4 GHz Wi-Fi: slower and busier. Switch to your router's 5 GHz network if it has one."
         if (loaded != null && loaded.n > 0 && loaded.p95 - internet.median > 60)
             out += "Lag jumps by ${(loaded.p95 - internet.median).toInt()} ms while something downloads (bufferbloat). Avoid downloads while playing, or turn on QoS/SQM on your router."
