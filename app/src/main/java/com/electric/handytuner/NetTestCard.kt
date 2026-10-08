@@ -138,7 +138,7 @@ private fun lowLatencyAb(ctx: Context, say: (String) -> Unit): List<Pair<String,
     val a = NetBench.stats(off, sentOff); val b = NetBench.stats(on, sentOn)
     val better = b.p95 < a.p95 * 0.8 || b.jitter < a.jitter * 0.8
     return listOf("Off" to a.line, "On" to b.line,
-        "Result" to if (better) "Low Latency helps on your Wi-Fi: worst 5% %.0f → %.0f ms".format(a.p95, b.p95)
+        "Result" to if (better) "Low Latency helps on your Wi-Fi: worst 5%% %.0f → %.0f ms".format(a.p95, b.p95)
             else "No clear difference on your Wi-Fi right now")
 }
 
