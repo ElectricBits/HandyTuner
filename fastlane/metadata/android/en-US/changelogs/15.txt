@@ -1,0 +1,3 @@
+• Dock & Screen: resolution for the Odin and the TV in one place.
+• Docked: screenshots, recordings and the HUD's refresh rate are the TV's; presets follow the game on the TV.
+• Fixes: Test Low Latency could close the app; a game added while running is picked up at once; clearer Quick Menu hint for apps not on the Games list.
