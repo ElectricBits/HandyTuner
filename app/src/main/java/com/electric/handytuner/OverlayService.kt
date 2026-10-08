@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 package com.electric.handytuner
 
+import android.content.Intent
 import android.provider.Settings
 import android.accessibilityservice.AccessibilityService
 import android.graphics.PixelFormat
@@ -196,7 +197,28 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
             PadAction.SPEED_UP -> speedUpFromNotification()
             PadAction.AFK -> main.post { startAfk() }
             PadAction.NEXT_PRESET -> session?.pkg?.let { game -> bg.post { nextPreset(game) } }
+            PadAction.HOME -> goHome()
         }
+    }
+
+    /**
+     * Home on the Odin's screen and, docked, on the TV too: apps run there, and Android's Home only covers the
+     * built-in screen. The TV gets the home app's own TV screen (Cocoon has one), like Android picks it.
+     */
+    private fun goHome() {
+        performGlobalAction(GLOBAL_ACTION_HOME)
+        val tv = getSystemService(android.hardware.display.DisplayManager::class.java)
+            .getDisplays(android.hardware.display.DisplayManager.DISPLAY_CATEGORY_PRESENTATION)
+            .firstOrNull { it.displayId != android.view.Display.DEFAULT_DISPLAY } ?: return
+        val pm = packageManager
+        val home = pm.resolveActivity(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME), 0)?.activityInfo?.packageName
+        // A new task, or Android adds it to the home app's task on the Odin's screen and ignores the TV.
+        // ponytail: one more home task per press while docked; track it if Recents ever fills up with them.
+        val i = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_SECONDARY_HOME)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
+        if (home != null && pm.resolveActivity(Intent(i).setPackage(home), 0) != null) i.setPackage(home)
+        runCatching { startActivity(i, android.app.ActivityOptions.makeBasic().setLaunchDisplayId(tv.displayId).toBundle()) }
+            .onFailure { Log.w(TAG, "home on the TV: $it") }
     }
 
     /** Like the Quick Menu's Preset tile: the next built-in or own preset, saved for the game and applied. */
