@@ -147,6 +147,8 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
      * not. Marker files remember what was changed, so a restart or an undock while killed still puts it back.
      */
     private fun dockExtras(s: Setup, r: SetupRules) {
+        tvSize(s.docked && r.tv1080)
+
         val dimmed = java.io.File(filesDir, DOCK_DIMMED)
         if (s.docked && r.dimScreen) { if (!dimmed.exists()) { actions.setBrightnessPct(1); dimmed.writeText("1") } }
         else if (dimmed.exists()) { Originals.restore(this, listOf("screen_brightness_mode", "screen_brightness")); dimmed.delete() }
@@ -169,6 +171,21 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
             }
             if (!awake) awakeView?.let { runCatching { wm.removeView(it) }; awakeView = null }
         }
+    }
+
+    /**
+     * Apps on the TV draw at 1080p ([SetupRules.tv1080]): a size override on the TV, in its own orientation
+     * ("Physical size: 2160x3840"). Android keeps it per TV, so turning the setting off clears it the next time
+     * that TV is connected. Changing it mid-game pauses GameNative once, which is why it happens on a dock change.
+     */
+    private fun tvSize(want: Boolean) {
+        val tv = tv() ?: return
+        val now = PServer.run("wm size -d ${tv.displayId}") ?: return
+        val (w, h) = Regex("""Physical size: (\d+)x(\d+)""").find(now)?.destructured?.let { (a, b) -> a.toInt() to b.toInt() } ?: return
+        val overridden = "Override size" in now
+        if (want && !overridden && maxOf(w, h) > 1920) {
+            PServer.run("wm size ${if (w < h) "1080x1920" else "1920x1080"} -d ${tv.displayId}"); Log.i(TAG, "TV drawn at 1080p")
+        } else if (!want && overridden) { PServer.run("wm size reset -d ${tv.displayId}"); Log.i(TAG, "TV back to its own size") }
     }
 
     /** A controller that disconnected mid-game, or whose battery fell to 20% and then 10%: said once each. */

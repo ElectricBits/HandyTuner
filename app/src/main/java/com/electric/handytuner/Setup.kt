@@ -149,6 +149,8 @@ data class SetupRules(
     val keepAwake: Boolean = false,
     /** Pause PULSE's sleep underclock while docked; it comes back when undocked. */
     val sleepOff: Boolean = true,
+    /** Apps on a bigger-than-1080p TV draw at 1080p: a 4K game took 400 MB more, and Android closed HandyTuner. */
+    val tv1080: Boolean = true,
     /** Hold back the Odin's own buttons while an external controller is connected. */
     val ignoreBuiltIn: Boolean = false,
     /** Hide the key-mapping markers while an external controller is connected. */
@@ -177,7 +179,7 @@ data class SetupRules(
         fun put(k: String, v: Any?) { if (v != null) setProperty(k, v.toString()) }
         put("dockedPreset", dockedPreset); put("padPreset", padPreset); put("couchPreset", couchPreset)
         put("chargerIsDock", chargerIsDock); put("tvHud", tvHud); put("dimScreen", dimScreen); put("keepAwake", keepAwake)
-        put("sleepOff", sleepOff); put("ignoreBuiltIn", ignoreBuiltIn); put("hideMarkers", hideMarkers); put("padAlerts", padAlerts)
+        put("sleepOff", sleepOff); put("tv1080", tv1080); put("ignoreBuiltIn", ignoreBuiltIn); put("hideMarkers", hideMarkers); put("padAlerts", padAlerts)
         put("launchOnDock", launchOnDock)
         if (ignoredPads.isNotEmpty()) setProperty("ignoredPads", ignoredPads.joinToString("\n"))
     }
@@ -193,7 +195,8 @@ data class SetupRules(
                 dockedPreset = str("dockedPreset"), padPreset = str("padPreset"), couchPreset = str("couchPreset"),
                 chargerIsDock = flag("chargerIsDock", d.chargerIsDock), tvHud = flag("tvHud", d.tvHud),
                 dimScreen = flag("dimScreen", d.dimScreen), keepAwake = flag("keepAwake", d.keepAwake),
-                sleepOff = flag("sleepOff", d.sleepOff), ignoreBuiltIn = flag("ignoreBuiltIn", d.ignoreBuiltIn),
+                sleepOff = flag("sleepOff", d.sleepOff), tv1080 = flag("tv1080", d.tv1080),
+                ignoreBuiltIn = flag("ignoreBuiltIn", d.ignoreBuiltIn),
                 hideMarkers = flag("hideMarkers", d.hideMarkers), padAlerts = flag("padAlerts", d.padAlerts),
                 launchOnDock = str("launchOnDock")?.takeIf { it.matches(Regex("[A-Za-z0-9._]+")) },
                 ignoredPads = p.getProperty("ignoredPads")?.split("\n")?.map { it.trim() }?.filter { it.isNotEmpty() }?.toSet().orEmpty(),
