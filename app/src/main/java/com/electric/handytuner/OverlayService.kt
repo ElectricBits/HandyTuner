@@ -208,20 +208,21 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
 
     /**
      * Home on the Odin's screen and, docked, on the TV too: apps run there, and Android's Home only covers the
-     * built-in screen. The TV gets the home app's own TV screen (Cocoon has one), like Android picks it.
+     * built-in screen. The home app's TV screen (Cocoon's) is opened first; it lands on the Odin's screen whatever
+     * display is asked for, and Cocoon moves it to the TV when its own home screen comes back, so Home goes second.
      */
     private fun goHome() {
-        performGlobalAction(GLOBAL_ACTION_HOME)
-        val tv = tv() ?: return
+        val tv = tv() ?: run { performGlobalAction(GLOBAL_ACTION_HOME); return }
         val pm = packageManager
         val home = pm.resolveActivity(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME), 0)?.activityInfo?.packageName
-        // A new task, or Android adds it to the home app's task on the Odin's screen and ignores the TV.
+        // A new task, or Android adds it to the home app's task on the Odin's screen.
         // ponytail: one more home task per press while docked; track it if Recents ever fills up with them.
         val i = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_SECONDARY_HOME)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
         if (home != null && pm.resolveActivity(Intent(i).setPackage(home), 0) != null) i.setPackage(home)
         runCatching { startActivity(i, android.app.ActivityOptions.makeBasic().setLaunchDisplayId(tv.displayId).toBundle()) }
             .onFailure { Log.w(TAG, "home on the TV: $it") }
+        main.postDelayed({ performGlobalAction(GLOBAL_ACTION_HOME) }, 600)
     }
 
     /**
