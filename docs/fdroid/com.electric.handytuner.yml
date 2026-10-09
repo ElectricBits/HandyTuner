@@ -3,6 +3,7 @@ Categories:
   - System
 License: GPL-2.0-only
 AuthorName: ElectricBits
+AuthorEmail: electricgame.contact@gmail.com
 WebSite: https://github.com/ElectricBits/HandyTuner
 SourceCode: https://github.com/ElectricBits/HandyTuner
 IssueTracker: https://github.com/ElectricBits/HandyTuner/issues
@@ -16,16 +17,9 @@ Repo: https://github.com/ElectricBits/HandyTuner.git
 Binaries: https://github.com/ElectricBits/HandyTuner/releases/download/v%v/HandyTuner-%v.apk
 
 Builds:
-  - versionName: 0.9.3-beta
-    versionCode: 12
-    commit: b37e4d35640c184eea9d5982ef1d297f35b2ef23
-    subdir: app
-    gradle:
-      - yes
-
-  - versionName: 0.10.3-beta
-    versionCode: 16
-    commit: 28f35b76439ea38377c27e13657e0339cae716da
+  - versionName: 0.10.4-beta
+    versionCode: 17
+    commit: aae08ac4ce5f148e9dce0ae8d2916c8dca814aa6
     subdir: app
     gradle:
       - yes
@@ -34,5 +28,5 @@ AllowedAPKSigningKeys: 909c1d4f7376b8f0b2490b02f8426ebbaba8c480dd93e1d5ca6e8e24b
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
-CurrentVersion: 0.10.3-beta
-CurrentVersionCode: 16
+CurrentVersion: 0.10.4-beta
+CurrentVersionCode: 17
