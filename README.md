@@ -20,6 +20,21 @@ Made and tested on the **AYN Odin 2 Portal** first, with **support for more hand
 > exactly how support for more devices gets added. "Reset everything to stock" (Diagnostics) puts back what
 > HandyTuner changed.
 
+## Highlights
+
+- **Works with game frontends like [Cocoon](https://github.com/inssekt/CocoonFE).** Start a game from Cocoon and
+  HandyTuner knows exactly which game it is, even Windows games running through GameNative or Winlator, and switches
+  to that game's preset by itself.
+- **Works with your emulators too:** RetroArch, PPSSPP, Dolphin, DuckStation, AetherSX2, Citra, Yuzu, Eden and Cemu
+  are recognized as games, and each one switches to its own preset when it opens.
+- **Auto mode (AutoTDP):** pick an FPS target (30, 40, 60 or 120) and it uses the least power that still holds it.
+- **A Quick Menu over any game** (both sticks + R1): performance mode, FPS target, fan, HUD, screenshots and more,
+  without leaving the game.
+- **Per-game presets** (Battery, Optimal, Performance, Competitive, or your own) that apply when a game opens.
+- **One app instead of many:** HUD, performance, fan, battery, network and controller tools in one place, so they
+  don't fight over the same settings.
+- **No root, no ads, no tracking.** Free and open source (GPL-2.0).
+
 ## What it does
 
 <p align="center"><img src="docs/screenshots/home.png" width="640" alt="HandyTuner's Home page"></p>
