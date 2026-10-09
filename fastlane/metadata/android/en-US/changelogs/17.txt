@@ -1,0 +1,2 @@
+• Per-game presets in emulators: start a game from Cocoon and HandyTuner knows which game is running (for example The Wind Waker in Dolphin) and gives it its own preset, like Windows games in GameNative.
+• Quick Menu: the game's name has its own line at the top, and the Preset tile shows just the preset name.
