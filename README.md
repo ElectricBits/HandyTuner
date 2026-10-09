@@ -25,8 +25,10 @@ Made and tested on the **AYN Odin 2 Portal** first, with **support for more hand
 - **Works with game frontends like [Cocoon](https://github.com/inssekt/CocoonFE).** Start a game from Cocoon and
   HandyTuner knows exactly which game it is, even Windows games running through GameNative or Winlator, and switches
   to that game's preset by itself.
-- **Works with your emulators too:** RetroArch, PPSSPP, Dolphin, DuckStation, AetherSX2, Citra, Yuzu, Eden and Cemu
-  are recognized as games, and each one switches to its own preset when it opens.
+- **Per-game presets in your emulators too:** start a game from Cocoon (or another frontend that hands the emulator the
+  game file) and HandyTuner knows exactly which game it is, like "The Legend of Zelda - The Wind Waker" in Dolphin,
+  and switches to that game's own preset. Tested with Dolphin; works the same way for PPSSPP, RetroArch, DuckStation and
+  others. Started inside the emulator itself, the emulator gets one preset for all its games.
 - **Auto mode (AutoTDP):** pick an FPS target (30, 40, 60 or 120) and it uses the least power that still holds it.
 - **A Quick Menu over any game** (both sticks + R1): performance mode, FPS target, fan, HUD, screenshots and more,
   without leaving the game.

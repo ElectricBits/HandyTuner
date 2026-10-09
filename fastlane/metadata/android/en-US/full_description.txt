@@ -7,7 +7,7 @@
 <li><b>Quick Menu</b> (both sticks + R1): performance mode, AutoTDP and its FPS target, frame cap, fan, presets, brightness, volume, refresh rate, screenshots, screen recording, AFK mode and Speed Up.</li>
 <li><b>Per-game presets</b>, applied automatically when a game opens, including Windows games in GameNative.</li>
 <li><b>Works with game frontends like Cocoon</b>: start a game from Cocoon and HandyTuner knows exactly which game it is (even Windows games) and switches to its preset.</li>
-<li><b>Works with your emulators</b>: RetroArch, PPSSPP, Dolphin, DuckStation, AetherSX2, Citra, Yuzu, Eden and Cemu each switch to their own preset when they open.</li>
+<li><b>Per-game presets in emulators</b>: start a game from Cocoon and HandyTuner knows which game is running (for example Wind Waker in Dolphin) and switches to its own preset.</li>
 <li><b>PULSE engine</b>: power tiers, AutoTDP, frame caps, fan control with Hold temp, sleep underclock and stick lights.</li>
 <li><b>Battery</b>: charge limit and play-while-charging.</li>
 <li><b>Network</b>: connection test, Low Latency mode, DNS benchmark and one-tap Private DNS.</li>

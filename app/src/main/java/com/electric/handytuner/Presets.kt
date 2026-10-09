@@ -135,6 +135,9 @@ object GameStore {
         "dev.eden.eden_emulator", "info.cemu.cemu", "org.citra.emu", "com.antutu.ABenchMark",
     )
 
+    /** Emulators (not Windows hosts): their games are told apart by the file a frontend hands them (GameId.rom). */
+    internal val EMULATORS get() = LAUNCHERS - GameId.WINDOWS_HOSTS - "com.antutu.ABenchMark"
+
     /** Counts as a game for sessions and presets. */
     fun isGame(ctx: Context, id: String): Boolean {
         if (':' in id) return true                               // a GameId: a Windows game in its host

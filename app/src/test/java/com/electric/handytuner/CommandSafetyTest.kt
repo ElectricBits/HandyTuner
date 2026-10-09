@@ -72,10 +72,12 @@ class CommandSafetyTest {
             assertTrue("exes.sh can change things: $bad", bad !in sh)
     }
 
-    @Test fun topsScriptOnlyLists() {
-        val sh = com.kei.pulse.appwatch.ScreenTop.SCRIPT
-        for (node in PServer.NEVER_TOUCH) assertTrue("tops.sh mentions $node", node !in sh)
-        for (bad in listOf("kill", "rm ", "chmod", "pservice", ">")) assertTrue("tops.sh can change things: $bad", bad !in sh)
+    @Test fun romsScriptOnlyReads() {
+        val sh = romsScriptText()
+        for (node in PServer.NEVER_TOUCH) assertTrue("roms.sh mentions $node", node !in sh)
+        for (bad in listOf("kill", "rm ", "chmod", "pkill", "killall", ">", "settings put", "pm ", "am "))
+            assertTrue("roms.sh can change things: $bad", bad !in sh)
+        assertTrue("roms.sh reads the grants", sh.startsWith("dumpsys activity permissions"))
     }
 
     @Test fun killScriptKeepsTheGamePulseAndHandyTuner() {

@@ -110,6 +110,11 @@ class QuickMenu(
         addState(intArrayOf(), shape(fill, rest, dp(1), radius))
     }
 
+    /** A game's display name: "The Legend of Zelda - The Wind Waker", "SlimeRancher", or the app's own name. */
+    private fun gameLabel(id: String) = GameId.label(id) ?: runCatching {
+        svc.packageManager.getApplicationLabel(svc.packageManager.getApplicationInfo(id, 0)).toString()
+    }.getOrDefault(id.substringAfterLast('.'))
+
     private fun text(s: String, size: Float = 15f, color: Int = WHITE, bold: Boolean = true) = TextView(svc).apply {
         text = s; textSize = size * 0.86f; setTextColor(color); typeface = if (bold) nunito else Typeface.create(nunito, 600, false)
         if (bold) setShadowLayer(10f, 0f, 0f, 0x660389FB)       // the board's faint glow on titles
@@ -304,7 +309,7 @@ class QuickMenu(
             val all = Preset.entries.map { it.def } + CustomPresets.all(svc)
             val next = all[(all.indexOfFirst { it.key == saved.preset.key } + 1) % all.size]
             doThen { GameStore.set(svc, game, GameSettings.of(next)); host.applyGameNow(game) }
-        }, heading(R.drawable.ic_person, "Preset", "${GameId.label(game) ?: game.substringAfterLast('.')} · ${saved.label}"))
+        }, heading(R.drawable.ic_person, "Preset", saved.label))  // the game's name has its own line at the top
         val hudOn = host.hudShown()
         val hudTile = tile({ host.toggleHud(); hide(); open() },
             heading(R.drawable.ic_desktop_windows, "HUD", if (hudOn) "On" else "Off", if (hudOn) CYAN else MUTED, switch(hudOn)))
@@ -363,7 +368,15 @@ class QuickMenu(
 
         val gap = { v: View -> v.apply { (layoutParams as? LinearLayout.LayoutParams ?: lp()).also { it.topMargin = dp(2); layoutParams = it } } }
         // Two tabs (owner's call, docs/decisions.md D8): Game for play, Device for the handheld. L1/R1 switch.
+        // The game in front, on its own line above Performance & Fan: long names ("The Legend of Zelda - The Wind
+        // Waker") didn't fit in the Preset tile.
+        val gameTitle = game?.let { g ->
+            text(gameLabel(g), 16f, WHITE).apply {
+                maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END; setPadding(dp(4), 0, dp(4), dp(4))
+            }
+        }
         val gameTab = vbox(
+            *listOfNotNull(gameTitle).toTypedArray(),
             gap(perfTile),
             gap(hbox(half(profileTile), half(hudTile))),
             gap(hbox(half(afkTile), half(captureRow))),
