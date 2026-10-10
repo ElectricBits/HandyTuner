@@ -82,7 +82,8 @@ private fun ChargeCard(ctx: Context) {
         Slider(value = s.limit.toFloat(), onValueChange = { set(s.copy(limit = (it / 5).roundToInt() * 5)) }, valueRange = 50f..100f, steps = 9)
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text("Skip the battery while gaming", color = Color.White, fontSize = 16.sp, modifier = Modifier.weight(1f))
-            Switch(checked = s.gamingBypass, onCheckedChange = { set(s.copy(gamingBypass = it)) })
+            // Off until the feature is on: the switch reads the saved value, which is on by default.
+            Switch(checked = on && s.gamingBypass, onCheckedChange = { set(s.copy(gamingBypass = it)) })
         }
     }
 }

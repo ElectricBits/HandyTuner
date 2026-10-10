@@ -107,6 +107,8 @@ class CommandSafetyTest {
             "settings delete global window_animation_scale",
             "pm disable-user --user 0 com.google.android.gms",
             "pm enable com.google.android.gms",
+            "pm disable-user --user 0 com.odin.gameassistant",
+            "pm enable com.odin.gameassistant",
             "am kill-all",
             "am stack remove",
             "pidof com.kei.pulse",

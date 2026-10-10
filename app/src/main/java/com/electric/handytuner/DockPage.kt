@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -30,7 +31,7 @@ import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 
 /**
- * Dock & Screen: what changes while the Odin is docked (Setup.kt). The :overlay watcher does the switching;
+ * Dock: what changes while the Odin is docked (Setup.kt). The :overlay watcher does the switching;
  * this page only writes setup.properties and the docked charge limit.
  */
 @OptIn(ExperimentalLayoutApi::class)
@@ -38,6 +39,7 @@ import kotlin.math.roundToInt
 fun DockPage(ctx: Context) {
     var r by remember { mutableStateOf(SetupRules.load(ctx)) }
     fun save(n: SetupRules) { r = n; SetupRules.save(ctx, n) }
+    var tab by remember { mutableStateOf(0) }
 
     // What HandyTuner sees right now, refreshed every two seconds.
     var now by remember { mutableStateOf<Pair<Setup, String>?>(null) }
@@ -55,52 +57,58 @@ fun DockPage(ctx: Context) {
         }
     }
 
-    Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        ResolutionCard(ctx)   // the screens first: the Odin's own, and the TV's
-        HandCard(Modifier.fillMaxWidth()) {
-            Text("Right now: ${now?.first?.label ?: "…"} mode", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
-            Text(now?.second ?: "Checking…", color = Hand.Blue, fontSize = 14.sp)
-            Text("Docked means a TV or monitor is plugged in. Docked with a controller is Couch mode.", color = Hand.Muted, fontSize = 14.sp,
-                modifier = Modifier.padding(top = 4.dp))
-            SettingSwitch("Count any charger as docked", "For a dock without a TV, so a desk stand counts too.", r.chargerIsDock) {
-                save(r.copy(chargerIsDock = it))
-            }
-        }
-
-        HandCard(Modifier.fillMaxWidth()) {
-            Text("Presets", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
-            Text("Goes over each game's own preset while docked, and the game's own comes back when you undock. Docked, " +
-                "you're on power, so Performance is a good pick.", color = Hand.Muted, fontSize = 14.sp)
-            PresetPicker("Docked", r.dockedPreset, "Each game's own", ctx) { save(r.copy(dockedPreset = it)) }
-            PresetPicker("Couch (docked + controller)", r.couchPreset, "Same as docked", ctx) { save(r.copy(couchPreset = it)) }
-        }
-
-        HandCard(Modifier.fillMaxWidth()) {
-            Text("While docked", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
-            SettingSwitch("TV-size HUD", "A bigger HUD, readable from the sofa.", r.tvHud) { save(r.copy(tvHud = it)) }
-            SettingSwitch("Dim the Odin's screen", "The TV keeps its picture. Brightness comes back when you undock.", r.dimScreen) {
-                save(r.copy(dimScreen = it))
-            }
-            SettingSwitch("Keep the screen awake", "No screen timeout while docked.", r.keepAwake) { save(r.copy(keepAwake = it)) }
-            SettingSwitch("Pause sleep underclock", "PULSE's sleep underclock stays off while docked, and comes back on when you undock.",
-                r.sleepOff) { save(r.copy(sleepOff = it)) }
-        }
-
-        DockChargeCard(ctx)
-
-        HandCard(Modifier.fillMaxWidth()) {
-            Text("Open an app when docked", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
-            Text("Opens when you dock, not when the Odin starts up already docked.", color = Hand.Muted, fontSize = 14.sp)
-            val apps = remember { launchable(ctx) }
-            FlowRow(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilterChip(selected = r.launchOnDock == null, onClick = { save(r.copy(launchOnDock = null)) }, label = { Text("Nothing") },
-                    modifier = Modifier.glowFocus(RoundedCornerShape(8.dp)))
-                apps.forEach { (pkg, label) ->
-                    FilterChip(selected = r.launchOnDock == pkg, onClick = { save(r.copy(launchOnDock = pkg)) }, label = { Text(label) },
-                        modifier = Modifier.glowFocus(RoundedCornerShape(8.dp)))
+    // Sub-tabs: how the dock behaves, what the screen does, and charging.
+    Column(Modifier.fillMaxSize()) {
+        SubTabs(listOf("Setup", "Display", "Charging"), tab) { tab = it }
+        Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            when (tab) {
+                0 -> {
+                    HandCard(Modifier.fillMaxWidth()) {
+                        Text("Right now: ${now?.first?.label ?: "…"} mode", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
+                        Text(now?.second ?: "Checking…", color = Hand.Blue, fontSize = 14.sp)
+                        Text("Docked means a TV or monitor is plugged in. Docked with a controller is Couch mode.", color = Hand.Muted, fontSize = 14.sp,
+                            modifier = Modifier.padding(top = 4.dp))
+                        SettingSwitch("Count any charger as docked", "For a dock without a TV, so a desk stand counts too.", r.chargerIsDock) {
+                            save(r.copy(chargerIsDock = it))
+                        }
+                    }
+                    HandCard(Modifier.fillMaxWidth()) {
+                        Text("Presets", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
+                        Text("Goes over each game's own preset while docked, and the game's own comes back when you undock. Docked, " +
+                            "you're on power, so Performance is a good pick.", color = Hand.Muted, fontSize = 14.sp)
+                        PresetPicker("Docked", r.dockedPreset, "Each game's own", ctx) { save(r.copy(dockedPreset = it)) }
+                        PresetPicker("Couch (docked + controller)", r.couchPreset, "Same as docked", ctx) { save(r.copy(couchPreset = it)) }
+                    }
+                    HandCard(Modifier.fillMaxWidth()) {
+                        Text("Open an app when docked", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
+                        Text("Opens when you dock, not when the Odin starts up already docked.", color = Hand.Muted, fontSize = 14.sp)
+                        val apps = remember { launchable(ctx) }
+                        FlowRow(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            FilterChip(selected = r.launchOnDock == null, onClick = { save(r.copy(launchOnDock = null)) }, label = { Text("Nothing") },
+                                modifier = Modifier.glowFocus(RoundedCornerShape(8.dp)))
+                            apps.forEach { (pkg, label) ->
+                                FilterChip(selected = r.launchOnDock == pkg, onClick = { save(r.copy(launchOnDock = pkg)) }, label = { Text(label) },
+                                    modifier = Modifier.glowFocus(RoundedCornerShape(8.dp)))
+                            }
+                        }
+                        if (apps.isEmpty()) Text("Play a game once and it shows up here.", color = Hand.Muted, fontSize = 13.sp)
+                    }
                 }
+                1 -> {
+                    ResolutionCard(ctx)   // the screens first: the Odin's own, and the TV's
+                    HandCard(Modifier.fillMaxWidth()) {
+                        Text("While docked", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
+                        SettingSwitch("TV-size HUD", "A bigger HUD, readable from the sofa.", r.tvHud) { save(r.copy(tvHud = it)) }
+                        SettingSwitch("Dim the Odin's screen", "The TV keeps its picture. Brightness comes back when you undock.", r.dimScreen) {
+                            save(r.copy(dimScreen = it))
+                        }
+                        SettingSwitch("Keep the screen awake", "No screen timeout while docked.", r.keepAwake) { save(r.copy(keepAwake = it)) }
+                        SettingSwitch("Pause sleep underclock", "PULSE's sleep underclock stays off while docked, and comes back on when you undock.",
+                            r.sleepOff) { save(r.copy(sleepOff = it)) }
+                    }
+                }
+                else -> DockChargeCard(ctx)
             }
-            if (apps.isEmpty()) Text("Play a game once and it shows up here.", color = Hand.Muted, fontSize = 13.sp)
         }
     }
 }

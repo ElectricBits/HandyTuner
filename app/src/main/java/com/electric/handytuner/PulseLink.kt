@@ -112,6 +112,9 @@ class PulseLink(private val ctx: Context, private val publishes: Boolean = true)
         PulseStatus.write(ctx, state)
     }
 
+    /** Called from the overlay's tick: the note has to be rewritten on a quiet stretch, or Diagnostics reads it as stale. */
+    fun refresh() = publish()
+
     @Volatile private var lastPublished: PulseStatus.State? = null
 
     /** null when the fork isn't there or the call failed (it never throws into the caller). */

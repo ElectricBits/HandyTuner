@@ -80,6 +80,18 @@ fun HandCard(modifier: Modifier = Modifier, content: @Composable ColumnScope.() 
     content = content,
 )
 
+/** Sub-page tabs inside one rail page: one chip per group; [pick] gets the index. */
+@Composable
+fun SubTabs(labels: List<String>, selected: Int, pick: (Int) -> Unit) {
+    androidx.compose.foundation.layout.Row(Modifier.padding(bottom = 12.dp),
+        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
+        labels.forEachIndexed { i, label ->
+            androidx.compose.material3.FilterChip(selected = i == selected, onClick = { pick(i) }, label = { Text(label) },
+                modifier = Modifier.glowFocus(RoundedCornerShape(8.dp)))
+        }
+    }
+}
+
 /** A titled row of choices (presets editor, Tuning page); [pick] gets the index. */
 @Composable
 fun chips(title: String, options: List<Pair<String, Boolean>>, enabled: Boolean = true, pick: (Int) -> Unit) {

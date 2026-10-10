@@ -216,7 +216,7 @@ class QuickMenu(
 
     /** A Pulse fork command: Pulse applies it on its own coroutine, so give it a moment before re-reading. */
     private fun pulseThen(cmd: (com.kei.pulse.control.IPulseControl) -> Boolean) = doThen {
-        if (host.pulse().call(cmd) == true) Thread.sleep(350) else main.post { toast("Pulse didn't take that") }
+        if (host.pulse().call(cmd) == true) Thread.sleep(350) else main.post { toast("PULSE didn't take that") }
     }
 
     private fun toast(s: String) = Toast.makeText(svc, s, Toast.LENGTH_SHORT).show()
@@ -274,10 +274,8 @@ class QuickMenu(
             *liveRows, text((link.problem() ?: "PULSE isn't answering").replaceFirstChar { it.uppercase() },
                 12f, MUTED, bold = false).apply { setPadding(0, dp(8), 0, 0) })
 
-        // Brightness, volume, refresh rate.
-        val refresh = hbox(*listOf(60, 120).map { hz ->
-            segment("$hz Hz", s.hz == hz) { if (s.pulseInstalled) toast("Refresh rate is set by Pulse") else doThen { actions.setRefreshHz(hz) } }
-        }.toTypedArray(), gap = 0)
+        // Brightness, volume, refresh rate. PULSE owns the refresh rate, so show it as a readout rather than offer buttons that only toast.
+        val refresh = text("Managed by PULSE", 13f, MUTED)
         val screenTile = tile(null,
             slider(R.drawable.ic_light_mode, "Brightness", s.brightness) { actions.setBrightnessPct(it) },
             slider(R.drawable.ic_volume_up, "Volume", s.volume) { actions.setVolumePct(it) },
@@ -339,7 +337,7 @@ class QuickMenu(
             layoutParams = LinearLayout.LayoutParams(dp(40), dp(40))
         }
         val status = when { !s.pulseInstalled -> "Not installed"; s.pulseRunning -> "Running"; else -> "Not running" }
-        val openPulse = text("Pulse settings", 16f).apply {
+        val openPulse = text("Engine settings", 16f).apply {
             gravity = Gravity.CENTER; setPadding(dp(18) + g, dp(7) + g, dp(18) + g, dp(7) + g)
             background = focusBg(BLUE, rest = BLUE, focused = WHITE, radius = 10)
             isFocusable = true; isClickable = true; setOnClickListener { hide(); actions.openPulse() }
@@ -347,7 +345,7 @@ class QuickMenu(
         val pulseTile = tile(null, LinearLayout(svc).apply {
             orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
             addView(fanCircle)
-            addView(vbox(text("Pulse Status", 16f), text("", 13f).apply {
+            addView(vbox(text("PULSE status", 16f), text("", 13f).apply {
                 isSingleLine = true
                 text = android.text.SpannableStringBuilder(status).apply {
                     setSpan(android.text.style.ForegroundColorSpan(if (s.pulseRunning) GOOD else MUTED), 0, length, 0)
@@ -517,7 +515,7 @@ class QuickMenu(
         } else null
         val fans = listOf(Actions.FAN_QUIET, Actions.FAN_SMART, Actions.FAN_SPORT, Actions.FAN_CUSTOM)
         val fanRow = row(*fans.map { v -> segment(Actions.FAN_NAMES.getValue(v), fan == v) { tweak({ it.setFanMode(v) }) { p -> p.copy(fan = v) } } }.toTypedArray())
-        val fanName = fan?.let { Actions.FAN_NAMES[it] } ?: "Pulse's fan"
+        val fanName = fan?.let { Actions.FAN_NAMES[it] } ?: "PULSE's fan"
         // Mode and FPS are saved for the game in front, so without a game they'd land on the home screen.
         if (!gameOpen) return tile(null, heading(R.drawable.ic_speed, "Performance & Fan", "${noGame().replace("Open a game first", "Open a game")} to change its mode • $fanName"),
             fanRow, *liveRows)

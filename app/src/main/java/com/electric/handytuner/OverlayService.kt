@@ -498,6 +498,7 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
                 }
                 ensureTweaks()
                 chargeTick()
+                pulse.refresh()                            // keep :overlay's status note fresh, so Diagnostics never reads a live engine as absent
                 Unit
             }.onFailure { Log.w(TAG, "watch: $it") }
             bg.postDelayed(this, 3_000)
@@ -598,6 +599,8 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
     private fun enterSafeMode() {
         runCatching { actions.setPlayServices(true) }.onFailure { Log.w(TAG, "safemode: play services", it) }
         if (java.io.File(filesDir, "gms_off").exists()) java.io.File(filesDir, "gms_off").delete()
+        runCatching { actions.setOdinMenu(true) }.onFailure { Log.w(TAG, "safemode: odin menu", it) }
+        if (java.io.File(filesDir, "odin_menu_off").exists()) java.io.File(filesDir, "odin_menu_off").delete()
         runCatching { runner.clear() }.onFailure { Log.w(TAG, "safemode: profile", it) }
         runCatching { pulse.call { it.clearFrameCaps() } }.onFailure { Log.w(TAG, "safemode: caps", it) }
         runCatching { restorePulseDefault() }.onFailure { Log.w(TAG, "safemode: all-games default", it) }

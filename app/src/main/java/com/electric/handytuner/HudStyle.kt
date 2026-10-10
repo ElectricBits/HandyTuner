@@ -26,7 +26,7 @@ data class HudStyle(
         FPS("FPS"), HZ("Refresh rate (Hz)"), GAME("Game ping"), NET("Net test"), WIFI("Wi-Fi"), RAM("Free RAM"),
         SESSION("Battery time left"), CLOCK("Clock"), BOTTLENECK("Bottleneck line"), PAD("Controller battery"),
         // From the Pulse fork (its own HUD is off, so these replace it; docs/feature-registry.md F4).
-        TEMPS("CPU/GPU °C (Pulse)"), WATTS("Watts (Pulse)"), LOAD("CPU/GPU load (Pulse)"), MODE("Pulse mode"),
+        TEMPS("CPU/GPU °C (PULSE)"), WATTS("Watts (PULSE)"), LOAD("CPU/GPU load (PULSE)"), MODE("PULSE mode"),
     }
 
     companion object {

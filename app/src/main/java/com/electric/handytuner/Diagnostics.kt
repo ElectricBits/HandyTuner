@@ -23,7 +23,7 @@ object Diagnostics {
             val on = Grants.granted(ctx, g.kind)
             Check(g.title, if (on) "On" else "Needed so I can ${g.why}", if (on) Status.OK else Status.GRANT,
                 Grants.intent(ctx, g.kind))
-        } + Check("System access", if (root) "AYN's built-in service answers" else "AYN's built-in service isn't answering",
+        } + Check("System access", if (root) "On: I can change the Odin's system settings" else "I can't reach the service that changes system settings",
             if (root) Status.OK else Status.MISSING)
     }
 

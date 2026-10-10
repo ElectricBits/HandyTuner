@@ -79,12 +79,12 @@ object Applied {
     /** One thing we wanted that the device isn't doing, and the reason we can honestly give. */
     data class Problem(val what: String, val wanted: String, val got: String, val why: String) {
         /** One line in plain words, for a notification or the HUD (Pulse's "tier:MAX" becomes "Max"). */
-        val message get() = "Wanted $what, but Pulse is on ${plain(got)} (${plain(why)})"
+        val message get() = "Wanted $what, but PULSE is on ${plain(got)} (${plain(why)})"
 
         companion object {
             fun plain(s: String) = s.replace("auto:tdp", "AutoTDP").replace("auto:off", "stock")
                 .replace(Regex("tier:([A-Z_]+)")) { m -> TIER_WORDS[m.groupValues[1]] ?: m.groupValues[1] }
-                .replace("the fork", "Pulse")
+                .replace("the fork", "PULSE")
             private val TIER_WORDS = mapOf("MAX" to "Max", "BALANCED" to "Balanced", "POWER_SAVING" to "Saver", "CUSTOM" to "Custom")
         }
     }

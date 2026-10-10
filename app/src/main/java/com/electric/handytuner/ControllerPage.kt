@@ -10,6 +10,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -57,44 +58,56 @@ fun ControllerPage(ctx: Context) {
         ctx.startActivity(Intent().setComponent(ComponentName(pkg, cls)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
     }
 
-    Column(Modifier.verticalScroll(androidx.compose.foundation.rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        HandCard(Modifier.fillMaxWidth()) {
-            Text("Button layout", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
-            Text("Which face button is A. Try it in the Key Test below.", color = Hand.Muted, fontSize = 14.sp)
-            Row(Modifier.padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                FilterChip(selected = flipped == 1, onClick = { setLayout(1) }, label = { Text("Xbox (A bottom)") },
-                    modifier = Modifier.glowFocus(RoundedCornerShape(8.dp)))
-                FilterChip(selected = flipped == 0, onClick = { setLayout(0) }, label = { Text("Swapped (A right)") },
-                    modifier = Modifier.glowFocus(RoundedCornerShape(8.dp)))
-            }
-        }
-        HandCard(Modifier.fillMaxWidth()) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f)) {
-                    Text("Key Test & stick calibration", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
-                    Text("AYN's own test screen: see every press, and recalibrate drifting sticks.", color = Hand.Muted, fontSize = 14.sp)
+    var tab by remember { mutableStateOf(0) }
+
+    // Sub-tabs: the layout setting, the pads & test tools, and the key-mapping housekeeping.
+    Column(Modifier.fillMaxSize()) {
+        SubTabs(listOf("Layout", "Gamepads", "Mapping"), tab) { tab = it }
+        Column(Modifier.verticalScroll(androidx.compose.foundation.rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            when (tab) {
+                0 -> {
+                    HandCard(Modifier.fillMaxWidth()) {
+                        Text("Button layout", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
+                        Text("Which face button is A. Try it in the Key Test.", color = Hand.Muted, fontSize = 14.sp)
+                        Row(Modifier.padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            FilterChip(selected = flipped == 1, onClick = { setLayout(1) }, label = { Text("Xbox (A bottom)") },
+                                modifier = Modifier.glowFocus(RoundedCornerShape(8.dp)))
+                            FilterChip(selected = flipped == 0, onClick = { setLayout(0) }, label = { Text("Swapped (A right)") },
+                                modifier = Modifier.glowFocus(RoundedCornerShape(8.dp)))
+                        }
+                    }
+                    HandCard(Modifier.fillMaxWidth()) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Column(Modifier.weight(1f)) {
+                                Text("Odin's controller settings", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
+                                // What the Odin 2 Portal's firmware has there (2026-10-08); it has no deadzone or invert options.
+                                Text("Controller style, L2/R2 mode, and what M1, M2 and Back do: in Odin Settings, under Controller Settings.",
+                                    color = Hand.Muted, fontSize = 14.sp)
+                            }
+                            Button(onClick = { open("com.odin.settings", "com.ro.settings.activity.MainSettingsActivity") },
+                                Modifier.glowFocus(RoundedCornerShape(50))) { Text("Open Odin settings") }
+                        }
+                    }
                 }
-                Button(onClick = { open("com.odin.gameassistant", "com.ro.gameassistant.activity.GamepadTestActivity") },
-                    Modifier.glowFocus(RoundedCornerShape(50))) { Text("Open") }
-            }
-        }
-        HandCard(Modifier.fillMaxWidth()) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f)) {
-                    Text("Odin's controller settings", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
-                    // What the Odin 2 Portal's firmware has there (2026-10-08); it has no deadzone or invert options.
-                    Text("Controller style, L2/R2 mode, and what M1, M2 and Back do: in Odin Settings, under Controller Settings.",
-                        color = Hand.Muted, fontSize = 14.sp)
+                1 -> {
+                    HandCard(Modifier.fillMaxWidth()) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Column(Modifier.weight(1f)) {
+                                Text("Key Test & stick calibration", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
+                                Text("AYN's own test screen: see every press, and recalibrate drifting sticks.", color = Hand.Muted, fontSize = 14.sp)
+                            }
+                            Button(onClick = { open("com.odin.gameassistant", "com.ro.gameassistant.activity.GamepadTestActivity") },
+                                Modifier.glowFocus(RoundedCornerShape(50))) { Text("Open Key Test") }
+                        }
+                    }
+                    ConnectedPadsCard(ctx)
+                    ButtonTestCard(ctx)
+                    PadActionsCard(ctx)
+                    PadSetupCard(ctx)
                 }
-                Button(onClick = { open("com.odin.settings", "com.ro.settings.activity.MainSettingsActivity") },
-                    Modifier.glowFocus(RoundedCornerShape(50))) { Text("Open") }
+                else -> KeyMappingCard(ctx)
             }
         }
-        ConnectedPadsCard(ctx)
-        ButtonTestCard(ctx)
-        PadActionsCard(ctx)
-        PadSetupCard(ctx)
-        KeyMappingCard(ctx)
     }
 }
 

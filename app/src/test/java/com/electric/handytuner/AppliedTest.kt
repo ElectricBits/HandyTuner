@@ -34,7 +34,7 @@ class AppliedTest {
     @Test fun `a tier the fork refused is reported with what it has instead`() {
         val p = Applied.problems(maxSport, actual(binding = "auto:tdp"), accepted = false)
         assertEquals(1, p.size)
-        assertTrue(p.single().message, p.single().message.contains("Pulse is on AutoTDP"))
+        assertTrue(p.single().message, p.single().message.contains("PULSE is on AutoTDP"))
         assertTrue(p.single().message, !p.single().message.contains("tier:"))
     }
 

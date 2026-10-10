@@ -100,6 +100,21 @@ class Actions(private val ctx: Context) {
         else { flag.writeText("1"); PServer.run("pm disable-user --user 0 $GMS") }
     }
 
+    /**
+     * Odin's swipe-in game panel (the GameAssistant system app). Off disables the package, which is
+     * all that can be done: it is a PERSISTENT system app, so a switching-off only takes effect from
+     * the next boot — the live process keeps drawing the panel until then, and neither `am force-stop`
+     * nor a kill changes that (the system just starts it again). Remembered in a file, so "Reset
+     * everything to stock" turns it back on. The package is reused from [Grants.ODIN_ASSISTANT], whose
+     * accessibility service is the separate "game detection" switch on the same page.
+     */
+    fun odinMenuOn() = runCatching { ctx.packageManager.getApplicationInfo(Grants.ODIN_ASSISTANT, 0).enabled }.getOrDefault(true)
+    fun setOdinMenu(on: Boolean) {
+        val flag = java.io.File(ctx.filesDir, "odin_menu_off")
+        if (on) { PServer.run("pm enable ${Grants.ODIN_ASSISTANT}"); flag.delete() }
+        else { flag.writeText("1"); PServer.run("pm disable-user --user 0 ${Grants.ODIN_ASSISTANT}") }
+    }
+
     /** The fan's duty as a percent of its PWM period (read-only: the fan is Pulse's and AYN's). */
     fun fanPct(): Int? {
         val d = PServer.run("cat /sys/class/gpio5_pwm2/duty")?.toLongOrNull() ?: return null

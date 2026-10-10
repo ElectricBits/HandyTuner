@@ -217,7 +217,7 @@ fun PadSetupCard(ctx: Context) {
     fun save(n: SetupRules) { r = n; SetupRules.save(ctx, n) }
     HandCard(Modifier.fillMaxWidth()) {
         CardTitle("When a controller is connected", "HandyTuner notices a controller within a few seconds and switches back when it's gone. " +
-            "Docked and a controller together is Couch mode, set on the Dock & Screen page.")
+            "Docked and a controller together is Couch mode, set on the Dock page.")
         PresetPicker("Preset for every game", r.padPreset, "Each game's own", ctx) { save(r.copy(padPreset = it)) }
         SettingSwitch("Ignore the Odin's own buttons", "So a bump on the Odin doesn't press anything. Buttons only (Android doesn't " +
             "let HandyTuner hold back the sticks). The hotkeys still work.", r.ignoreBuiltIn) { save(r.copy(ignoreBuiltIn = it)) }

@@ -7,11 +7,16 @@ import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -36,6 +41,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -120,10 +126,14 @@ class MainActivity : ComponentActivity() {
 
     private enum class Page(val label: String, val icon: Int) {
         HOME("Home", R.drawable.ic_home), GAMES("Games", R.drawable.ic_sports_esports), HUD("HUD", R.drawable.ic_desktop_windows),
-        BATTERY("Battery", R.drawable.ic_battery_horiz_075), NETWORK("Network", R.drawable.ic_wifi), TWEAKS("Tweaks", R.drawable.ic_tune), CONTROLLER("Controller", R.drawable.ic_sports_esports),
-        DOCK("Dock & Screen", R.drawable.ic_desktop_windows),
+        BATTERY("Battery", R.drawable.ic_battery_horiz_075), NETWORK("Network", R.drawable.ic_wifi), TWEAKS("General Tweaks", R.drawable.ic_tune), CONTROLLER("Controller", R.drawable.ic_sports_esports),
+        DOCK("Dock & Display", R.drawable.ic_desktop_windows),
         DIAGNOSTICS("Diagnostics", R.drawable.ic_build),
     }
+
+    /** Folded under the Tweaks rail button, which expands to show them (owner's call, 2026-10-10).
+     *  TWEAKS itself is in here: the rail button is only a folder, "General Tweaks" is the page. */
+    private val TWEAK_CHILDREN = listOf(Page.TWEAKS, Page.BATTERY, Page.NETWORK, Page.DOCK)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -137,16 +147,32 @@ class MainActivity : ComponentActivity() {
                     return@HandyTheme
                 }
                 var page by remember { mutableStateOf(Page.entries.firstOrNull { it.name == intent.getStringExtra(PAGE) } ?: Page.HOME) }
+                var tweaksOpen by remember { mutableStateOf(page in TWEAK_CHILDREN) }
                 Row(Modifier.fillMaxSize().background(Color.Black)) {
                     // The board's left icon rail. Battery, Network and Controller join it as they're built.
                     Column(
-                        // Scrolls, and items are compact: seven pages didn't fit a 1080p screen, and Diagnostics was cut off.
-                        Modifier.fillMaxHeight().width(112.dp).verticalScroll(androidx.compose.foundation.rememberScrollState())
-                            .padding(vertical = 12.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(2.dp),
+                        // Battery, Network and Dock sit under Tweaks: six buttons until that one opens.
+                        Modifier.fillMaxHeight().width(112.dp).padding(vertical = 8.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
-                        Image(painterResource(R.drawable.mascot), "HandyHelper", Modifier.width(60.dp).padding(bottom = 2.dp))
-                        Page.values().forEach { p -> RailItem(p.label, p.icon, page == p) { page = p } }
+                        Image(painterResource(R.drawable.mascot), "HandyHelper", Modifier.width(52.dp).padding(bottom = 6.dp))
+                        listOf(Page.HOME, Page.GAMES, Page.HUD).forEach { p ->
+                            RailSlot(Modifier.weight(1f), p, page == p) { page = p }
+                        }
+                        // Tweaks is only the folder now: tapping it opens the group, it is not a page.
+                        RailSlot(Modifier.weight(1f), Page.TWEAKS, false, expand = tweaksOpen, label = "Tweaks") { tweaksOpen = !tweaksOpen }
+                        // The group slides open under Tweaks, with a bracket line so it reads as nested.
+                        AnimatedVisibility(tweaksOpen, enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
+                            Column(Modifier.fillMaxWidth()) {
+                                TWEAK_CHILDREN.forEach { p ->
+                                    Row(Modifier.fillMaxWidth().height(40.dp), verticalAlignment = Alignment.CenterVertically) {
+                                        Box(Modifier.width(2.dp).height(28.dp).background(Hand.Blue.copy(alpha = 0.55f)))
+                                        RailSlot(Modifier.weight(1f), p, page == p, child = true) { page = p }
+                                    }
+                                }
+                            }
+                        }
+                        listOf(Page.CONTROLLER, Page.DIAGNOSTICS).forEach { p -> RailSlot(Modifier.weight(1f), p, page == p) { page = p } }
                     }
                     Column(Modifier.fillMaxSize().padding(start = 8.dp, top = 20.dp, end = 24.dp)) {
                         // Explicit white: with no Surface around it, Text's default content color is black.
@@ -169,18 +195,43 @@ class MainActivity : ComponentActivity() {
     }
 
     @Composable
-    private fun RailItem(label: String, icon: Int, selected: Boolean, onClick: () -> Unit) {
+    private fun RailItem(label: String, icon: Int, selected: Boolean, child: Boolean = false, onClick: () -> Unit) {
         val shape = RoundedCornerShape(16.dp)
         Column(
-            Modifier.width(88.dp).glowFocus(shape)
+            Modifier.width(if (child) 80.dp else 88.dp).glowFocus(shape)
                 .background(if (selected) Hand.Blue.copy(alpha = 0.22f) else Color.Transparent, shape)
-                .clickable(onClick = onClick).padding(vertical = 5.dp),
+                .clickable(onClick = onClick).padding(vertical = 2.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Icon(painterResource(icon), null, tint = if (selected) Hand.Blue else Hand.Muted, modifier = Modifier.size(24.dp))
-            Text(label, fontSize = 11.sp, color = if (selected) Color.White else Hand.Muted)
+            Icon(painterResource(icon), null, tint = if (selected) Hand.Blue else Hand.Muted, modifier = Modifier.size(if (child) 16.dp else 20.dp))
+            Text(label, fontSize = if (child) 10.sp else 11.sp, color = if (selected) Color.White else Hand.Muted)
         }
     }
+
+    /** One rail button in a weight slot; [modifier] carries the weight from whichever scope calls it. */
+    @Composable
+    private fun RailSlot(modifier: Modifier, p: Page, selected: Boolean, child: Boolean = false, expand: Boolean? = null, label: String = p.label, onPick: () -> Unit) =
+        Box(
+            modifier.fillMaxWidth().drawBehind {
+                if (expand == null) return@drawBehind
+                // Glowing blue markers either side of the folder button: "there is more under here".
+                val half = (if (child) 80.dp else 88.dp).toPx() / 2f
+                val gap = 3.dp.toPx()
+                val h = 44.dp.toPx()
+                val top = (size.height - h) / 2f
+                val cap = androidx.compose.ui.graphics.StrokeCap.Round
+                for (x in listOf(size.width / 2f - half - gap, size.width / 2f + half + gap)) {
+                    val a = androidx.compose.ui.geometry.Offset(x, top)
+                    val b = androidx.compose.ui.geometry.Offset(x, top + h)
+                    drawLine(Hand.Blue.copy(alpha = 0.12f), a, b, 7.dp.toPx(), cap)
+                    drawLine(Hand.Blue.copy(alpha = 0.30f), a, b, 3.dp.toPx(), cap)
+                    drawLine(Color(0xFF9FD8FF), a, b, 1.4.dp.toPx(), cap)
+                }
+            },
+            contentAlignment = Alignment.Center,
+        ) {
+            RailItem(label, p.icon, selected, child, onPick)
+        }
 
     @Composable
     private fun HotkeyCard() = HandCard(Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
@@ -273,7 +324,7 @@ class MainActivity : ComponentActivity() {
         HandCard(Modifier.fillMaxWidth().padding(top = 16.dp)) {
             Text("Reset everything to stock", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 17.sp)
             Text(done?.let { "Done: $it setting${if (it == 1) "" else "s"} put back." }
-                ?: "Puts back every setting HandyTuner changed: brightness, refresh rate, scanning, Private DNS, button layout, stick lights, sleep underclock, frame caps, resolution.",
+                ?: "Puts back every setting HandyTuner changed: brightness, refresh rate, scanning, Private DNS, button layout, stick lights, sleep underclock, frame caps, resolution, the Odin swipe-in menu.",
                 color = Hand.Muted, fontSize = 14.sp)
             Row(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 if (!confirm) Button(onClick = { confirm = true }, Modifier.glowFocus(RoundedCornerShape(50))) { Text("Reset…") }
@@ -284,6 +335,7 @@ class MainActivity : ComponentActivity() {
                             val n = Originals.saved(this@MainActivity).size
                             Originals.restore(this@MainActivity)
                             if (java.io.File(filesDir, "gms_off").exists()) actions.setPlayServices(true)
+                            if (java.io.File(filesDir, "odin_menu_off").exists()) actions.setOdinMenu(true)
                             Resolution.save(this@MainActivity, Resolution()); Resolution.putBack(this@MainActivity)
                             java.io.File(filesDir, "reset").writeText(System.currentTimeMillis().toString())
                             android.util.Log.i("HandyTuner", "reset to stock: $n settings")

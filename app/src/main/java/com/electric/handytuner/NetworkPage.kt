@@ -56,7 +56,7 @@ fun NetworkPage(ctx: Context) {
             last?.let { (ip, pkg) -> "Last game (${GameId.label(pkg) ?: pkg.substringAfterLast('.')})" to ip },
         )
     }
-    var target by remember { mutableStateOf(targets.last().second) }
+    var target by remember { mutableStateOf(targets.first().second) }   // Cloudflare, so it matches the ping shown on Home
     val samples = remember { mutableStateListOf<Double?>() }     // last 60, null = lost
     val net = remember { Net(ctx) }
     var testing by remember { mutableStateOf(false) }            // the Network test runs: its numbers need a quiet line
