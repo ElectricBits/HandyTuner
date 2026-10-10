@@ -60,7 +60,7 @@ fun TweaksPage(ctx: Context) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
                             Text("Low Latency mode", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
-                            Text("Network only: it never changes Pulse or a game's preset.", color = Hand.Muted, fontSize = 14.sp)
+                            Text("Network only: it never changes PULSE or a game's preset.", color = Hand.Muted, fontSize = 14.sp)
                         }
                         Switch(checked = lowLatency, onCheckedChange = { lowLatency = it; Tweaks.setLowLatency(ctx, it) },
                             modifier = Modifier.glowFocus(RoundedCornerShape(50)))
@@ -130,7 +130,7 @@ private fun SpeedUpCard(ctx: Context) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
                 Text("Speed Up", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
-                Text("Closes background apps and clears their cards from Recents. Never your last game, Pulse or HandyTuner, " +
+                Text("Closes background apps and clears their cards from Recents. Never your last game, PULSE or HandyTuner, " +
                     "and never an app that's downloading.", color = Hand.Muted, fontSize = 14.sp)
             }
             androidx.compose.material3.Button(enabled = !busy, onClick = {

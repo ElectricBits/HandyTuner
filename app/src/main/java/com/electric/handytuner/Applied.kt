@@ -138,7 +138,7 @@ object Applied {
     /** The cap has its own reasons, and "fork too old" is the one most worth naming. */
     private fun capWhy(want: PulsePart, got: Actual, accepted: Boolean): String = when {
         got.version > 0 && got.version < CAPS_VERSION ->
-            "the installed Pulse is v${got.version}, and caps need v$CAPS_VERSION"
+            "the installed PULSE is v${got.version}, and caps need v$CAPS_VERSION"
         want.cap != 0 && got.binding == "auto:tdp" ->
             "AutoTDP is pacing the frames, so a cap would fight it"
         got.game == null -> "no game in front"
@@ -165,7 +165,7 @@ object Applied {
         val wanted = if (autoFdp != null) "AutoTDP $autoFdp fps" else TIER_LABELS.getOrNull(tier) ?: "$tier"
         if (got.version > 0 && got.version < DEFAULT_VERSION) return listOf(Problem(
             "Default for other apps", wanted, "not offered",
-            "the installed Pulse is v${got.version}, and the all-games default needs v$DEFAULT_VERSION"))
+            "the installed PULSE is v${got.version}, and the all-games default needs v$DEFAULT_VERSION"))
         if (autoFdp != null && !got.autoTdpDefault) return listOf(Problem(
             "Default AutoTDP", "$autoFdp fps", "off", "the fork refused"))
         return emptyList()

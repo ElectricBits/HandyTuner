@@ -14,7 +14,7 @@ import java.util.Properties
  */
 enum class Profile(val label: String, val what: String) {
     NORMAL("Normal", "Changes nothing"),
-    BATTERY_SAVER("Battery Saver", "Screen ≤35%, 60 Hz without Pulse, no background scans, background apps cleared"),
+    BATTERY_SAVER("Battery Saver", "Screen ≤35%, 60 Hz without PULSE, no background scans, background apps cleared"),
     LOW_PING("Low Latency", "Wi-Fi low-latency mode, no background scans"),
 }
 

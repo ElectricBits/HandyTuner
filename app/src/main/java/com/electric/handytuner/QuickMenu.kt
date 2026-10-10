@@ -501,7 +501,7 @@ class QuickMenu(
             // The fork gained setFrameCap in v3. Against an older one the call fails inside Pulse and
             // looks exactly like the cap not working, so the row is greyed with the reason instead.
             if (!link.supports(Applied.Feature.FRAME_CAP))
-                text("Frame cap needs the HandyTuner Pulse fork v${Applied.needsVersion(Applied.Feature.FRAME_CAP)}+ — ${link.problem() ?: "this one is v${link.version}"}", 13f).apply {
+                text("Frame cap needs the HandyTuner PULSE fork v${Applied.needsVersion(Applied.Feature.FRAME_CAP)}+ — ${link.problem() ?: "this one is v${link.version}"}", 13f).apply {
                     setTextColor(MUTED); setPadding(0, dp(6), 0, dp(2))
                 }
             else {
