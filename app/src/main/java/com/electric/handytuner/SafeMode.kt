@@ -25,6 +25,7 @@ object SafeMode {
     private const val WINDOW_MS = 10 * 60_000L
     private const val LIMIT = 3
     private const val STARTS = "service_starts"
+    private const val PID = "pid"
     private const val FLAG = "safe_mode"
     private const val SINCE = "safe_mode_since"
 
@@ -55,16 +56,26 @@ object SafeMode {
         // stopped HandyTuner mid-game. Those starts don't count; a crash still does.
         if (diedForMemory(ctx)) return false
         val now = System.currentTimeMillis()
+        val pid = android.os.Process.myPid()
         val p = Properties()
         runCatching { File(ctx.filesDir, STARTS).inputStream().use { p.load(it) } }
+        // A reconnect is not a restart: another accessibility client (a UI dump, another assistant app,
+        // a settings rewrite) makes Android hand the service back, and onServiceConnected runs again in
+        // the same process. Counting those tripped safe mode from nothing but a handset being inspected.
+        // A crash loop always comes back as a new process, so the pid is what tells the two apart.
+        if (!isNewProcess(p.getProperty(PID), pid)) return false
         val installed = runCatching { ctx.packageManager.getPackageInfo(ctx.packageName, 0).lastUpdateTime }.getOrDefault(0L).toString()
         val starts = startsToCount(p.getProperty("t").orEmpty().split(',').mapNotNull { it.toLongOrNull() }, p.getProperty("u"), installed)
         val trip = tripAfter(starts, now)
         p.setProperty("t", (recent(starts, now) + now).joinToString(","))
+        p.setProperty(PID, pid.toString())
         p.setProperty("u", installed)
         runCatching { File(ctx.filesDir, STARTS).storeAtomic(p) }
         return trip
     }
+
+    /** Whether this connect comes from a process we haven't counted yet: only a new process is a restart. */
+    internal fun isNewProcess(storedPid: String?, pid: Int) = storedPid != pid.toString()
 
     /** Whether the overlay's last death was Android freeing memory (the low-memory killer). */
     private fun diedForMemory(ctx: Context) = runCatching {

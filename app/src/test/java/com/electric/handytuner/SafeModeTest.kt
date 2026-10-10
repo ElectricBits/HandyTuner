@@ -71,4 +71,12 @@ class SafeModeTest {
         assertEquals(emptyList<Long>(), SafeMode.startsToCount(starts, "111", "222"))   // reinstalled since
         assertEquals(emptyList<Long>(), SafeMode.startsToCount(starts, null, "222"))    // first run of this rule
     }
+
+    @Test fun aReconnectInTheSameProcessIsNotARestart() {
+        // Another accessibility client (a UI dump, another assistant app) makes Android hand the service
+        // back without the process ever dying. That isn't the crash loop this watches for.
+        assertFalse(SafeMode.isNewProcess("4711", 4711))
+        assertTrue(SafeMode.isNewProcess("4711", 4712))
+        assertTrue(SafeMode.isNewProcess(null, 4712))
+    }
 }
