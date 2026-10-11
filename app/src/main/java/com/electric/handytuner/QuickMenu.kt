@@ -274,8 +274,10 @@ class QuickMenu(
             *liveRows, text((link.problem() ?: "PULSE isn't answering").replaceFirstChar { it.uppercase() },
                 12f, MUTED, bold = false).apply { setPadding(0, dp(8), 0, 0) })
 
-        // Brightness, volume, refresh rate. PULSE owns the refresh rate, so show it as a readout rather than offer buttons that only toast.
-        val refresh = text("Managed by PULSE", 13f, MUTED)
+        // Brightness, volume, refresh rate. PULSE owns the refresh rate, so with it installed this is a readout
+        // showing the rate; the buttons only exist where they would do something.
+        val refresh = if (s.pulseInstalled) text(s.hz?.let { "$it Hz · set by PULSE" } ?: "Set by PULSE", 13f, MUTED)
+        else hbox(*listOf(60, 120).map { hz -> segment("$hz Hz", s.hz == hz) { doThen { actions.setRefreshHz(hz) } } }.toTypedArray(), gap = 0)
         val screenTile = tile(null,
             slider(R.drawable.ic_light_mode, "Brightness", s.brightness) { actions.setBrightnessPct(it) },
             slider(R.drawable.ic_volume_up, "Volume", s.volume) { actions.setVolumePct(it) },

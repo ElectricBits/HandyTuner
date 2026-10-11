@@ -13,8 +13,8 @@ android {
         applicationId = "com.electric.handytuner"
         minSdk = 33
         targetSdk = 33
-        versionCode = 18
-        versionName = "0.10.5-beta"
+        versionCode = 19
+        versionName = "0.10.6-beta"
     }
     // Release key lives outside the repo; its path and password are in local.properties (git-ignored).
     val local = Properties().apply { rootProject.file("local.properties").takeIf { it.isFile }?.inputStream()?.use(::load) }

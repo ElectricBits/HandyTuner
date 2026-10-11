@@ -1,0 +1,2 @@
+• Quick Menu → Refresh Rate now shows the rate the screen is set to, for example "120 Hz · set by PULSE", instead of a line that left you guessing.
+• The 60 Hz and 120 Hz buttons are back on devices that don't run PULSE, where they actually do something.
