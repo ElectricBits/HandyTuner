@@ -1,0 +1,2 @@
+• Light mode: HUD → Layout → Theme, then Dark or Light. It changes the app, the HUD and the Quick Menu together.
+• AutoTDP now says when it is still learning a game — at the bottom of the HUD, and in the Quick Menu's Performance & Fan tile.
