@@ -1,0 +1,1 @@
+• Quick Menu: picking Auto (or any other mode) while a Controller or Dock preset is set now sticks. Before, that preset put it back to Max a second later, so the only way to keep Auto was to leave the game.
