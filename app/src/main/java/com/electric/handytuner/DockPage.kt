@@ -74,8 +74,9 @@ fun DockPage(ctx: Context) {
                     }
                     HandCard(Modifier.fillMaxWidth()) {
                         Text("Presets", color = Hand.Text, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
-                        Text("Goes over each game's own preset while docked, and the game's own comes back when you undock. Docked, " +
-                            "you're on power, so Performance is a good pick.", color = Hand.Muted, fontSize = 14.sp)
+                        Text("Goes over each game's own preset while docked, and the game's own comes back when you undock. A game you " +
+                            "change in the Quick Menu keeps your change. Docked, you're on power, so Performance is a good pick.",
+                            color = Hand.Muted, fontSize = 14.sp)
                         PresetPicker("Docked", r.dockedPreset, "Each game's own", ctx) { save(r.copy(dockedPreset = it)) }
                         PresetPicker("Couch (docked + controller)", r.couchPreset, "Same as docked", ctx) { save(r.copy(couchPreset = it)) }
                     }

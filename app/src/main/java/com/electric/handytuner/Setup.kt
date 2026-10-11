@@ -173,8 +173,16 @@ data class SetupRules(
         Setup.COUCH -> couchPreset ?: dockedPreset ?: padPreset
     }
 
-    /** The settings a game really gets in [setup]: its own, or the setup's preset over them. */
+    /**
+     * The settings a game really gets in [setup]: its own, or the setup's preset over them. A game the owner
+     * changed in the Quick Menu keeps its own ([GameSettings.tweaked]) — the setup preset is the default for
+     * games nobody touched, and it must not undo a change just made by hand (owner, 2026-10-10: picking Auto
+     * put the mode back to Max a second later, because every settings write re-applied the controller preset).
+     */
     fun effective(g: GameSettings, setup: Setup, presets: List<PresetDef>): GameSettings {
+        // A pick that lands exactly on the game's own preset values isn't a change, so the setup preset still
+        // wins there — that only happens when the pick was the game's own preset's mode to begin with.
+        if (g.tweaked) return g
         val key = presetFor(setup) ?: return g
         return presets.firstOrNull { it.key == key }?.let { GameSettings.of(it) } ?: g
     }

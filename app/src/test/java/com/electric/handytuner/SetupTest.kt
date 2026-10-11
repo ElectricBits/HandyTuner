@@ -75,6 +75,11 @@ class SetupTest {
         assertEquals(GameSettings.of(Preset.PERFORMANCE), r.effective(own, Setup.DOCKED, presets))
         // A preset that no longer exists (a deleted custom one) leaves the game's own.
         assertEquals(own, SetupRules(dockedPreset = "custom:gone").effective(own, Setup.DOCKED, presets))
+        // Changed by hand in the Quick Menu: the game keeps it, the setup's preset doesn't go over it.
+        val mine = GameSettings.of(Preset.BALANCED).copy(pulse = PulsePart(null, 0, 0, 5))
+        assertTrue(mine.tweaked)
+        assertEquals(mine, r.effective(mine, Setup.DOCKED, presets))
+        assertEquals(mine, r.effective(mine, Setup.PAD, presets))
     }
 
     @Test fun rulesRoundTrip() {
