@@ -1,0 +1,3 @@
+• Safe mode only stops HandyTuner changing anything. It no longer puts your settings back — Diagnostics → Reset everything to stock is the one that does that.
+• Safe mode no longer trips on a reconnect: it takes three real restarts in ten minutes, so a connection hiccup won't park the app.
+• Clearer pages: dense ones split into sub-tabs, Battery, Network and Dock moved into a Tweaks folder, better names for Gamepads, Display and Dock & Display, and a switch for the Odin's swipe-in menu.
