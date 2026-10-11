@@ -106,13 +106,13 @@ object Notifier {
         .setAutoCancel(true).setContentIntent(openApp(ctx)).build())
 
     /**
-     * Safe mode: the overlay restarted too often, so the device was put back and the overlay is now
-     * read-only until the owner clears it. Says where to clear it, because a notification that only
-     * reports a problem leaves the device looking fine and staying stuck.
+     * Safe mode: the overlay restarted too often, so it has stopped changing anything until the owner
+     * clears it. Says where to clear it, because a notification that only reports a problem leaves the
+     * device looking fine and staying stuck.
      */
     fun safeMode(ctx: Context) = nm(ctx).notify(ID_APPLIED, base(ctx, EVENTS)
         .setContentTitle("HandyTuner: safe mode")
-        .setContentText("It restarted too often. Everything it changed was put back and changes are off until you clear it in the app → Diagnostics.")
+        .setContentText("It restarted too often, so it has stopped changing anything. Clear this in the app → Diagnostics.")
         .setTimeoutAfter(20_000).setAutoCancel(true).setContentIntent(openApp(ctx)).build())
 
     /** The setup changed (docked, controller connected…) and what it switched to. */

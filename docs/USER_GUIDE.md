@@ -237,8 +237,9 @@ undock.
 
 - **Reset everything to stock** (Diagnostics) puts back every setting HandyTuner changed: brightness, refresh rate,
   scanning, Private DNS, button layout, charging, stick lights, sleep underclock, frame caps and the engine's defaults.
-- **Safe mode** turns on by itself if HandyTuner's overlay keeps crashing (3 restarts in 10 minutes). It puts your
-  device back and stops HandyTuner changing anything until you clear it on the Diagnostics page.
+- **Safe mode** turns on by itself if HandyTuner's overlay keeps crashing (3 restarts in 10 minutes). It stops HandyTuner
+  changing anything until you clear it on the Diagnostics page. It doesn't put anything back: whatever it changed stays
+  until you run **Reset everything to stock**.
 - **Uninstalling:** run **Reset everything to stock first**. Uninstalling skips the clean-up, so settings like the
   charge limit would stay on.
 

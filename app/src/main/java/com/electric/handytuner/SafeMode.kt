@@ -10,16 +10,19 @@ import java.util.Properties
  * Watchdog for an overlay that keeps dying.
  *
  * HandyTuner writes system settings and Pulse commands continuously, so an overlay in a crash loop is
- * worse than one that isn't running: it can leave the device half-configured on the way down. Three
- * starts inside ten minutes is the shape of a loop (the accessibility service being restarted; not
- * low-memory kills, see [recordStart]), never of normal use — the overlay runs for hours at a time once started.
+ * worse than one that isn't running: it goes on applying half-changes to an already unhappy device.
+ * Three starts inside ten minutes is the shape of a loop (the accessibility service being restarted;
+ * not low-memory kills, see [recordStart]), never of normal use — the overlay runs for hours at a
+ * time once started.
  *
- * On the third start it puts everything back ([trip]) and then the overlay stops writing altogether
- * ([active]) until the owner clears it by hand. Sticky on purpose: a watchdog that clears itself on
- * the next start would re-arm itself during the very crash loop it exists to stop, and a setting
- * somebody has to go and find is the only kind worth trusting here.
+ * On the third start the overlay stops writing altogether ([active]) until the owner clears it by hand.
+ * It puts nothing back: a trip that undid settings fought the owner, re-enabling what they had
+ * deliberately turned off (2026-10-10), and **Reset everything to stock** is the honest way to ask for
+ * that. Sticky on purpose: a watchdog that clears itself on the next start would re-arm itself during
+ * the very crash loop it exists to stop, and a setting somebody has to go and find is the only kind
+ * worth trusting here.
  *
- * Everything it does is undoing work, never new work — see docs/BUGS.md #7.
+ * Everything it does is stopping work, never undoing it — see docs/BUGS.md #7.
  */
 object SafeMode {
     private const val WINDOW_MS = 10 * 60_000L
@@ -34,9 +37,9 @@ object SafeMode {
      *
      * The window is `[now - windowMs, now]`, closed at both ends. The upper bound is not paranoia:
      * without it a timestamp from the future — the clock corrected backwards, or a corrupted file —
-     * has a negative age, passes "is it recent?", and counts towards the limit. Since tripping safe
-     * mode puts the device back and then refuses to touch it until the owner clears it, a false trip
-     * costs the owner a good deal more than a missed one.
+     * has a negative age, passes "is it recent?", and counts towards the limit. Since a false trip
+     * stops the app changing anything until the owner goes and clears it, a missed trip is the
+     * cheaper mistake.
      */
     fun tripAfter(starts: List<Long>, now: Long, windowMs: Long = WINDOW_MS, limit: Int = LIMIT) =
         starts.filter { it <= now && now - it < windowMs }.plus(now).size >= limit

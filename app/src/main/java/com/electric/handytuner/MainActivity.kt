@@ -305,7 +305,7 @@ class MainActivity : ComponentActivity() {
         val scope = androidx.compose.runtime.rememberCoroutineScope()
         HandCard(Modifier.fillMaxWidth().padding(top = 16.dp)) {
             Text("Safe mode", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 17.sp)
-            Text("On since ${when0?.let { java.text.SimpleDateFormat("d MMM HH:mm", java.util.Locale.getDefault()).format(java.util.Date(it)) } ?: "unknown"} — ${SafeMode.why(this@MainActivity)}. Everything HandyTuner changed was put back, and the overlay isn't changing anything until you clear this.",
+            Text("On since ${when0?.let { java.text.SimpleDateFormat("d MMM HH:mm", java.util.Locale.getDefault()).format(java.util.Date(it)) } ?: "unknown"} — ${SafeMode.why(this@MainActivity)}. HandyTuner isn't changing anything until you clear this. What it changed before is still on the Odin; Reset everything to stock below puts that back.",
                 color = Hand.Muted, fontSize = 14.sp)
             Button(onClick = {
                 SafeMode.set(this@MainActivity, false)

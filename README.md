@@ -54,7 +54,7 @@ Made and tested on the **AYN Odin 2 Portal** first, with **support for more hand
   button shortcuts, per-controller layouts and a controller preset.
 - **Dock & Screen** (beta): resolution for the Odin's screen and the TV, docked and couch presets, a TV-size HUD, a docked charge limit, and more.
 - **Diagnostics**: every permission at a glance, and **Export log file** for bug reports.
-- **Safe mode** and **Reset everything to stock** put your device back if anything goes wrong.
+- **Safe mode** stops HandyTuner changing anything if the overlay keeps crashing; **Reset everything to stock** puts your device back.
 
 📖 **[Read the full user guide](docs/USER_GUIDE.md)**: every page and feature explained, plus FAQ and troubleshooting.
 

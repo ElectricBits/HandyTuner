@@ -590,32 +590,20 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
     }
 
     /**
-     * Safe mode: undo everything and then change nothing. Runs on the worker.
+     * Safe mode: stop writing, put nothing back. Runs on the worker.
      *
-     * Each step is wrapped separately, because a watchdog that stops at the first failure leaves the
-     * device in exactly the half-applied state it was called to avoid. The watcher is not restarted
-     * afterwards — nothing is going to be applied again until the owner clears safe mode.
+     * It used to undo every setting as well, which fought the owner: a trip re-enabled the Odin
+     * Assistant and Play services that had deliberately been turned off (2026-10-10). Their call was
+     * "stop writing, don't undo" — whatever HandyTuner had already changed stays on the Odin, and
+     * **Reset everything to stock** is the deliberate way to take it back.
      */
     private fun enterSafeMode() {
-        runCatching { actions.setPlayServices(true) }.onFailure { Log.w(TAG, "safemode: play services", it) }
-        if (java.io.File(filesDir, "gms_off").exists()) java.io.File(filesDir, "gms_off").delete()
-        runCatching { actions.setOdinMenu(true) }.onFailure { Log.w(TAG, "safemode: odin menu", it) }
-        if (java.io.File(filesDir, "odin_menu_off").exists()) java.io.File(filesDir, "odin_menu_off").delete()
-        runCatching { runner.clear() }.onFailure { Log.w(TAG, "safemode: profile", it) }
-        runCatching { pulse.call { it.clearFrameCaps() } }.onFailure { Log.w(TAG, "safemode: caps", it) }
-        runCatching { restorePulseDefault() }.onFailure { Log.w(TAG, "safemode: all-games default", it) }
-        runCatching { Originals.restore(this) }.onFailure { Log.w(TAG, "safemode: settings", it) }
-        java.io.File(filesDir, DOCK_DIMMED).delete()
-        runCatching { Resolution.putBack(this) }.onFailure { Log.w(TAG, "safemode: resolution", it) }
-        runCatching {
-            val sleepWasOn = java.io.File(filesDir, DOCK_SLEEP_WAS_ON)
-            if (sleepWasOn.exists() && pulse.call { it.setEngineSetting("sleep", "on") } == true) sleepWasOn.delete()
-        }.onFailure { Log.w(TAG, "safemode: sleep underclock", it) }
-        main.post { awakeView?.let { runCatching { getSystemService(WindowManager::class.java).removeView(it) } }; awakeView = null }
-        val off = java.io.File(filesDir, PULSE_HUD_OFF)
-        if (off.exists() && pulse.call { it.setOverlayEnabled(true) } == true) off.delete()
+        // Tell the runner to forget what it applied, so clearing safe mode can't put it back either.
         java.io.File(filesDir, "reset").writeText(System.currentTimeMillis().toString())
-        Log.w(TAG, "safe mode on: ${SafeMode.why(this)}; device put back, overlay read-only")
+        // Ours, not a device setting: a black screen left stuck up while everything else is read-only
+        // would be a bug of its own.
+        main.post { awakeView?.let { runCatching { getSystemService(WindowManager::class.java).removeView(it) } }; awakeView = null }
+        Log.w(TAG, "safe mode on: ${SafeMode.why(this)}; overlay read-only, device left as it is")
         Notifier.safeMode(this)
     }
 

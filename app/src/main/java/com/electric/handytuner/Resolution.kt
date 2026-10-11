@@ -29,7 +29,7 @@ import kotlin.concurrent.thread
 /**
  * Resolution, like PULSE's render scale (`wm size` + `wm density` through PServer), with more choices: the Odin's
  * own screen by percent, and the TV by height while docked. Fewer pixels is less GPU work and, on a 4K TV, about
- * 300 MB less memory. Android keeps an override per screen; Reset and safe mode put both back.
+ * 300 MB less memory. Android keeps an override per screen; Reset everything to stock puts both back.
  */
 data class Resolution(
     /** Percent of the Odin's own screen; 100 is native. */
@@ -101,7 +101,7 @@ data class Resolution(
             set(tv.displayId, if (docked) atHeight(n, r.tvHeight, r.keepSize) else null)
         }
 
-        /** Reset to stock and safe mode: both screens back to their own size and density. */
+        /** Reset to stock: both screens back to their own size and density. */
         fun putBack(ctx: Context) {
             set(Display.DEFAULT_DISPLAY, null)
             tv(ctx)?.let { set(it.displayId, null) }

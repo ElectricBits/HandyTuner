@@ -399,7 +399,7 @@ class QuickMenu(
         val safeNote = vbox(
             tile(null,
                 heading(R.drawable.ic_build, "Safe mode", SafeMode.why(svc).replaceFirstChar { it.uppercase() }, MUTED),
-                text("Everything HandyTuner changed has been put back, and it won't change anything else until you clear this.\n\nClear it in the app: Diagnostics → Safe mode.",
+                text("HandyTuner has stopped changing anything. What it changed before this is still on the Odin: clear this to let it write again, or use Reset everything to stock to put those back.\n\nClear it in the app: Diagnostics → Safe mode.",
                     13f).apply { setTextColor(WHITE_DIM) })
         ).apply { layoutParams = lp().apply { topMargin = dp(8) } }
         val content = if (safe) vbox(header, safeNote, footer) else vbox(header, tabBar, *tabs.toTypedArray(), footer)
