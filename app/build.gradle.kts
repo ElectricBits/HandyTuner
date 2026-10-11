@@ -46,6 +46,11 @@ android {
     lint { checkReleaseBuilds = false }
     // Compose is for the app's own screens only; the always-on :overlay process uses plain Views.
     buildFeatures { compose = true }
+    // F-Droid: don't embed dependency metadata in the APK/AAB.
+    dependenciesInfo {
+        includeInApk = false
+        includeInBundle = false
+    }
 }
 
 dependencies {
@@ -67,3 +72,4 @@ val legalAssets = tasks.register<Copy>("legalAssets") {
 }
 android.sourceSets["main"].assets.srcDir(layout.buildDirectory.dir("generated/legal").get().asFile)
 tasks.matching { it.name.startsWith("merge") && it.name.endsWith("Assets") }.configureEach { dependsOn(legalAssets) }
+
