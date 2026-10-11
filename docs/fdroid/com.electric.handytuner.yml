@@ -17,9 +17,9 @@ Repo: https://github.com/ElectricBits/HandyTuner.git
 Binaries: https://github.com/ElectricBits/HandyTuner/releases/download/v%v/HandyTuner-%v.apk
 
 Builds:
-  - versionName: 0.10.7-beta
-    versionCode: 20
-    commit: 1f6c46f94a5e8026b6560495d2be6d9e61bbca42
+  - versionName: 0.11.0-beta
+    versionCode: 21
+    commit: e1e4332370105e3b775ce17b9d3e2efc041aa107
     subdir: app
     gradle:
       - yes
@@ -28,5 +28,5 @@ AllowedAPKSigningKeys: 909c1d4f7376b8f0b2490b02f8426ebbaba8c480dd93e1d5ca6e8e24b
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
-CurrentVersion: 0.10.7-beta
-CurrentVersionCode: 20
+CurrentVersion: 0.11.0-beta
+CurrentVersionCode: 21
