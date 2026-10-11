@@ -1,0 +1,2 @@
+• Quick Menu → Refresh Rate is a control again: 60 Hz and 120 Hz buttons, with a highlight on the rate you are on.
+• While AutoTDP is pacing a game that row shows the rate instead, because AutoTDP holds the panel at 120 Hz for its frame pacing.

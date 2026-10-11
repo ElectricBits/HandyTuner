@@ -274,9 +274,12 @@ class QuickMenu(
             *liveRows, text((link.problem() ?: "PULSE isn't answering").replaceFirstChar { it.uppercase() },
                 12f, MUTED, bold = false).apply { setPadding(0, dp(8), 0, 0) })
 
-        // Brightness, volume, refresh rate. PULSE's AutoTDP is what moves the panel rate, so this is a readout:
-        // 60/120 buttons here would be a manual pin that AutoTDP overrides on the next game.
-        val refresh = text(s.hz?.let { "$it Hz · managed by PULSE" } ?: "Managed by PULSE", 13f, MUTED)
+        // Brightness, volume, refresh rate. The chips pin the panel rate. AutoTDP needs the panel at 120 Hz to hold
+        // its frame cap (60 Hz floors a 40 fps cap to 30), so while it is pacing the row is a readout instead.
+        // shortcut: only the fork reports AutoTDP; against a stock PULSE the chips stay visible.
+        val autoTdpPacing = fork?.optString("binding") == "auto:tdp"
+        val refresh = if (autoTdpPacing) text(s.hz?.let { "$it Hz · AutoTDP is pacing" } ?: "AutoTDP is pacing", 13f, MUTED)
+        else hbox(*listOf(60, 120).map { hz -> segment("$hz Hz", s.hz == hz) { doThen { actions.setRefreshHz(hz) } } }.toTypedArray(), gap = 0)
         val screenTile = tile(null,
             slider(R.drawable.ic_light_mode, "Brightness", s.brightness) { actions.setBrightnessPct(it) },
             slider(R.drawable.ic_volume_up, "Volume", s.volume) { actions.setVolumePct(it) },
