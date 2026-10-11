@@ -40,9 +40,12 @@ import androidx.compose.ui.unit.sp
 fun HudSettings(ctx: Context, hotkeyRow: @Composable () -> Unit) {
     var style by remember { mutableStateOf(HudStyle.load(ctx)) }
     fun set(s: HudStyle) { style = s; HudStyle.save(ctx, s) }
+    // The theme reaches the overlay too, so it goes through the file with everything else; this process
+    // reads it straight off Hand.
+    fun theme(light: Boolean) { set(style.copy(light = light)); Hand.light = light }
     var tab by remember { mutableStateOf(0) }
     @Composable fun heading(t: String) =
-        Text(t, color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 17.sp, modifier = Modifier.padding(top = 16.dp, bottom = 6.dp))
+        Text(t, color = Hand.Text, fontWeight = FontWeight.SemiBold, fontSize = 17.sp, modifier = Modifier.padding(top = 16.dp, bottom = 6.dp))
 
     // Sub-tabs: only one group of controls is on screen at a time.
     Column(Modifier.fillMaxSize()) {
@@ -50,6 +53,13 @@ fun HudSettings(ctx: Context, hotkeyRow: @Composable () -> Unit) {
         Column(Modifier.verticalScroll(rememberScrollState())) {
             when (tab) {
                 0 -> {
+                    heading("Theme")
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        FilterChip(selected = !style.light, onClick = { theme(false) }, label = { Text("Dark") })
+                        FilterChip(selected = style.light, onClick = { theme(true) }, label = { Text("Light") })
+                    }
+                    Text("The app, the HUD and the Quick Menu.", color = Hand.Muted, fontSize = 13.sp)
+
                     heading("Layout")
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         FilterChip(selected = !style.compact, onClick = { set(style.copy(compact = false)) }, label = { Text("Full") })
@@ -78,13 +88,16 @@ fun HudSettings(ctx: Context, hotkeyRow: @Composable () -> Unit) {
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         HudStyle.ACCENTS.forEach { (name, argb) ->
                             Box(
-                                Modifier.size(40.dp).background(Color(argb), CircleShape)
-                                    .border(3.dp, if (style.accent == argb) Color.White else Color.Transparent, CircleShape)
+                                // The swatch is the colour the HUD will actually use on this theme.
+                                Modifier.size(40.dp).background(Color(Hand.accent(argb)), CircleShape)
+                                    .border(3.dp, if (style.accent == argb) Hand.Text else Color.Transparent, CircleShape)
                                     .clickable { set(style.copy(accent = argb)) },
                             )
                         }
                     }
-                    Text(HudStyle.ACCENTS.firstOrNull { it.second == style.accent }?.first ?: "", color = Color.Gray, fontSize = 13.sp)
+                    // On the light theme "White" comes out as the text colour, so call it that.
+                    val accentName = HudStyle.ACCENTS.firstOrNull { it.second == style.accent }?.first ?: ""
+                    Text(if (Hand.light && accentName == "White") "Text" else accentName, color = Hand.Muted, fontSize = 13.sp)
                 }
                 1 -> {
                     heading("What the HUD shows")
@@ -93,7 +106,7 @@ fun HudSettings(ctx: Context, hotkeyRow: @Composable () -> Unit) {
                         fun flip(on: Boolean) { val next = if (on) style.shown + item else style.shown - item; if (next.isNotEmpty()) set(style.copy(shown = next)) }
                         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { flip(item !in style.shown) }) {
                             Checkbox(checked = item in style.shown, onCheckedChange = { flip(it) })
-                            Text(item.label, color = Color.White)
+                            Text(item.label, color = Hand.Text)
                         }
                     }
                 }

@@ -120,17 +120,17 @@ fun ResolutionCard(ctx: Context) {
         thread { if (screen) Resolution.applyScreen(n); if (tv) Resolution.applyTv(ctx, n) }
     }
     HandCard(Modifier.fillMaxWidth()) {
-        Text("Resolution", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
+        Text("Resolution", color = Hand.Text, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
         Text("Fewer pixels: less work for the graphics chip, and on a 4K TV about 300 MB less memory. A running game may " +
             "pause once when it changes. Reset everything to stock puts both back.", color = Hand.Muted, fontSize = 14.sp)
-        Text("The Odin's screen", color = Color.White, fontSize = 16.sp, modifier = Modifier.padding(top = 10.dp))
+        Text("The Odin's screen", color = Hand.Text, fontSize = 16.sp, modifier = Modifier.padding(top = 10.dp))
         FlowRow(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
             Resolution.SCALES.forEach { p ->
                 FilterChip(selected = r.screenPct == p, onClick = { save(r.copy(screenPct = p), screen = true, tv = false) },
                     label = { Text("${if (p == 100) "Native " else ""}$p% · ${lines * p / 100}p") }, modifier = Modifier.glowFocus(RoundedCornerShape(8.dp)))
             }
         }
-        Text("The TV, while docked", color = Color.White, fontSize = 16.sp, modifier = Modifier.padding(top = 10.dp))
+        Text("The TV, while docked", color = Hand.Text, fontSize = 16.sp, modifier = Modifier.padding(top = 10.dp))
         FlowRow(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
             Resolution.TV_HEIGHTS.forEach { h ->
                 FilterChip(selected = r.tvHeight == h, onClick = { save(r.copy(tvHeight = h), screen = false, tv = true) },

@@ -64,7 +64,7 @@ fun DockPage(ctx: Context) {
             when (tab) {
                 0 -> {
                     HandCard(Modifier.fillMaxWidth()) {
-                        Text("Right now: ${now?.first?.label ?: "…"} mode", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
+                        Text("Right now: ${now?.first?.label ?: "…"} mode", color = Hand.Text, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
                         Text(now?.second ?: "Checking…", color = Hand.Blue, fontSize = 14.sp)
                         Text("Docked means a TV or monitor is plugged in. Docked with a controller is Couch mode.", color = Hand.Muted, fontSize = 14.sp,
                             modifier = Modifier.padding(top = 4.dp))
@@ -73,14 +73,14 @@ fun DockPage(ctx: Context) {
                         }
                     }
                     HandCard(Modifier.fillMaxWidth()) {
-                        Text("Presets", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
+                        Text("Presets", color = Hand.Text, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
                         Text("Goes over each game's own preset while docked, and the game's own comes back when you undock. Docked, " +
                             "you're on power, so Performance is a good pick.", color = Hand.Muted, fontSize = 14.sp)
                         PresetPicker("Docked", r.dockedPreset, "Each game's own", ctx) { save(r.copy(dockedPreset = it)) }
                         PresetPicker("Couch (docked + controller)", r.couchPreset, "Same as docked", ctx) { save(r.copy(couchPreset = it)) }
                     }
                     HandCard(Modifier.fillMaxWidth()) {
-                        Text("Open an app when docked", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
+                        Text("Open an app when docked", color = Hand.Text, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
                         Text("Opens when you dock, not when the Odin starts up already docked.", color = Hand.Muted, fontSize = 14.sp)
                         val apps = remember { launchable(ctx) }
                         FlowRow(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -97,7 +97,7 @@ fun DockPage(ctx: Context) {
                 1 -> {
                     ResolutionCard(ctx)   // the screens first: the Odin's own, and the TV's
                     HandCard(Modifier.fillMaxWidth()) {
-                        Text("While docked", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
+                        Text("While docked", color = Hand.Text, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
                         SettingSwitch("TV-size HUD", "A bigger HUD, readable from the sofa.", r.tvHud) { save(r.copy(tvHud = it)) }
                         SettingSwitch("Dim the Odin's screen", "The TV keeps its picture. Brightness comes back when you undock.", r.dimScreen) {
                             save(r.copy(dimScreen = it))
@@ -119,12 +119,12 @@ private fun DockChargeCard(ctx: Context) {
     var s by remember { mutableStateOf(ChargeRule.load(ctx)) }
     fun set(n: ChargeRule.Settings) { s = n; ChargeRule.save(ctx, n) }
     HandCard(Modifier.fillMaxWidth()) {
-        Text("Charging while docked", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
+        Text("Charging while docked", color = Hand.Text, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
         Text("A docked Odin sits on the charger for hours, and a battery kept full wears faster.", color = Hand.Muted, fontSize = 14.sp)
         SettingSwitch("Own limit while docked", "Off: the Battery page's limit (${if (s.limit >= 100) "no limit" else "${s.limit}%"}).",
             s.dockedLimit != null) { set(s.copy(dockedLimit = if (it) 80 else null)) }
         s.dockedLimit?.let { lim ->
-            Text(if (lim >= 100) "No limit" else "Stop at $lim%", color = Color.White, fontSize = 16.sp, modifier = Modifier.padding(top = 8.dp))
+            Text(if (lim >= 100) "No limit" else "Stop at $lim%", color = Hand.Text, fontSize = 16.sp, modifier = Modifier.padding(top = 8.dp))
             Slider(value = lim.toFloat(), onValueChange = { set(s.copy(dockedLimit = (it / 5).roundToInt() * 5)) }, valueRange = 50f..100f, steps = 9)
         }
     }

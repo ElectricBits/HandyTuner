@@ -50,7 +50,7 @@ fun AboutCard(ctx: Context) {
     var licenses by remember { mutableStateOf(false) }
     fun open(url: String) = runCatching { ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
     HandCard(Modifier.fillMaxWidth().padding(top = 12.dp)) {
-        Text("HandyTuner $version", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
+        Text("HandyTuner $version", color = Hand.Text, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
         Text("Copyright (C) 2026 ElectricBits. Includes the PULSE engine, copyrighted by keiretrogaming and its " +
             "contributors (built on ClusterTune by AurelioB and O2P Tweaks by FeralAI). Free software under the GNU " +
             "General Public License version 2: you may share and change it under its terms. It comes with ABSOLUTELY " +

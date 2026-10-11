@@ -203,13 +203,13 @@ fun SpeechBubble(line: String, full: Boolean, onLetter: () -> Unit, onTyped: () 
         Box(
             Modifier.fillMaxWidth()
                 .shadow(18.dp, RoundedCornerShape(22.dp), ambientColor = Hand.Blue, spotColor = Hand.Blue)
-                .background(Color(0xFF0A1428), RoundedCornerShape(22.dp))
+                .background(Hand.Card, RoundedCornerShape(22.dp))
                 .border(2.dp, Hand.Blue, RoundedCornerShape(22.dp))
                 .padding(horizontal = 26.dp, vertical = 20.dp),
         ) {
             // The full line, invisible, holds the bubble's size so it doesn't grow as letters appear.
             Text(line, fontSize = 22.sp, color = Color.Transparent)
-            Text(line.take(shown), fontSize = 22.sp, color = Color.White)
+            Text(line.take(shown), fontSize = 22.sp, color = Hand.Text)
         }
     }
 }
@@ -247,7 +247,7 @@ fun SpeechTail(bubbleTopLeft: Offset, bubbleHeight: Float, mouth: Offset, modifi
         val dir = Offset(m.x - x, m.y - cy).let { d -> val l = kotlin.math.hypot(d.x, d.y).coerceAtLeast(1f); Offset(d.x / l, d.y / l) }
         val tip = Offset(x + dir.x * reach, cy + dir.y * reach)
         val top = Offset(x, cy - half); val bottom = Offset(x, cy + half)
-        drawPath(Path().apply { moveTo(top.x, top.y); lineTo(tip.x, tip.y); lineTo(bottom.x, bottom.y); close() }, Color(0xFF0A1428))
+        drawPath(Path().apply { moveTo(top.x, top.y); lineTo(tip.x, tip.y); lineTo(bottom.x, bottom.y); close() }, Hand.Card)
         val stroke = 2.dp.toPx()
         drawLine(Hand.Blue, top, tip, stroke, cap = androidx.compose.ui.graphics.StrokeCap.Round)
         drawLine(Hand.Blue, bottom, tip, stroke, cap = androidx.compose.ui.graphics.StrokeCap.Round)
@@ -264,7 +264,7 @@ fun HelperStage(width: androidx.compose.ui.unit.Dp, modifier: Modifier = Modifie
             listOf(Hand.Blue.copy(alpha = 0.55f), Hand.Blue.copy(alpha = 0.18f), Color.Transparent), c, r * 1.25f), r * 1.25f, c)
         drawCircle(Hand.Blue.copy(alpha = 0.85f), r * 0.78f, c)
         val floorY = size.height * 0.985f
-        drawOval(androidx.compose.ui.graphics.Brush.radialGradient(listOf(Color.Black.copy(alpha = 0.7f), Color.Transparent),
+        drawOval(androidx.compose.ui.graphics.Brush.radialGradient(listOf(Color.Black.copy(alpha = if (Hand.light) 0.18f else 0.7f), Color.Transparent),
             Offset(size.width * 0.48f, floorY), size.width * 0.28f),
             topLeft = Offset(size.width * 0.20f, floorY - size.height * 0.05f),
             size = androidx.compose.ui.geometry.Size(size.width * 0.56f, size.height * 0.10f))

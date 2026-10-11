@@ -41,7 +41,7 @@ import kotlinx.coroutines.delay
 
 @Composable
 private fun CardTitle(name: String, what: String) {
-    Text(name, color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
+    Text(name, color = Hand.Text, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
     Text(what, color = Hand.Muted, fontSize = 14.sp)
 }
 
@@ -50,7 +50,7 @@ private fun CardTitle(name: String, what: String) {
 fun SettingSwitch(name: String, what: String?, checked: Boolean, onChange: (Boolean) -> Unit) {
     Row(Modifier.padding(top = 10.dp), verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.weight(1f)) {
-            Text(name, color = Color.White, fontSize = 16.sp)
+            Text(name, color = Hand.Text, fontSize = 16.sp)
             what?.let { Text(it, color = Hand.Muted, fontSize = 13.sp) }
         }
         Switch(checked = checked, onCheckedChange = onChange, modifier = Modifier.glowFocus(RoundedCornerShape(50)))
@@ -62,7 +62,7 @@ fun SettingSwitch(name: String, what: String?, checked: Boolean, onChange: (Bool
 @Composable
 fun PresetPicker(title: String, key: String?, none: String, ctx: Context, onPick: (String?) -> Unit) {
     val presets = remember { SetupRules.presets(ctx) }
-    Text(title, color = Color.White, fontSize = 15.sp, modifier = Modifier.padding(top = 10.dp))
+    Text(title, color = Hand.Text, fontSize = 15.sp, modifier = Modifier.padding(top = 10.dp))
     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         FilterChip(selected = key == null, onClick = { onPick(null) }, label = { Text(none) },
             modifier = Modifier.glowFocus(RoundedCornerShape(8.dp)))
@@ -93,7 +93,7 @@ fun ConnectedPadsCard(ctx: Context) {
             val brand = Pads.brand(d.vendorId, d.name)
             val battery = runCatching { d.batteryState.takeIf { it.isPresent }?.capacity?.takeIf { !it.isNaN() } }.getOrNull()
             Column(Modifier.padding(top = 12.dp)) {
-                Text(d.name, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Text(d.name, color = Hand.Text, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 Text(listOfNotNull(
                     when { ignored -> "Marked as not a controller"; external -> "External controller"; else -> "The Odin's own controls" },
                     brand, battery?.let { "battery ${Math.round(it * 100)}%" },
@@ -149,11 +149,11 @@ fun ButtonTestCard(ctx: Context) {
             "they should read close to 0.00; more than 0.10 at rest means drift.")
         if (presses.isEmpty()) Text("Waiting for a button…", color = Hand.Muted, fontSize = 14.sp, modifier = Modifier.padding(top = 8.dp))
         presses.forEachIndexed { i, p ->
-            Text(p, color = if (i == 0) Color.White else Hand.Muted, fontFamily = Hand.Mono, fontSize = 14.sp,
+            Text(p, color = if (i == 0) Hand.Text else Hand.Muted, fontFamily = Hand.Mono, fontSize = 14.sp,
                 modifier = Modifier.padding(top = if (i == 0) 8.dp else 0.dp))
         }
         if (axes.isNotEmpty()) {
-            Text("Sticks · ${from ?: ""}", color = Color.White, fontSize = 15.sp, modifier = Modifier.padding(top = 10.dp))
+            Text("Sticks · ${from ?: ""}", color = Hand.Text, fontSize = 15.sp, modifier = Modifier.padding(top = 10.dp))
             axes.entries.chunked(2).forEach { row ->
                 Text(row.joinToString("    ") { (k, v) -> "$k ${"%+.2f".format(v)}" }, fontFamily = Hand.Mono, fontSize = 14.sp,
                     color = if (row.any { kotlin.math.abs(it.value) > 0.1f && !it.key.startsWith("L2") && !it.key.startsWith("R2") }) Hand.Warn else Hand.Muted)
@@ -189,7 +189,7 @@ fun PadActionsCard(ctx: Context) {
             "then does the action and the game doesn't see it. Works for any controller, the Odin's own too.")
         map.forEach { (code, a) ->
             Row(Modifier.padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text("${KeyMapper.label(code)} → ${a.label}", color = Color.White, fontSize = 16.sp, modifier = Modifier.weight(1f))
+                Text("${KeyMapper.label(code)} → ${a.label}", color = Hand.Text, fontSize = 16.sp, modifier = Modifier.weight(1f))
                 Button(onClick = { save(map - code) }, Modifier.glowFocus(RoundedCornerShape(50))) { Text("Remove") }
             }
         }
@@ -199,7 +199,7 @@ fun PadActionsCard(ctx: Context) {
                 Text(if (listening) "Press the button now…" else "Add a shortcut")
             }
         } else {
-            Text("Button: ${KeyMapper.label(p)}. What should it do?", color = Color.White, fontSize = 15.sp, modifier = Modifier.padding(top = 10.dp))
+            Text("Button: ${KeyMapper.label(p)}. What should it do?", color = Hand.Text, fontSize = 15.sp, modifier = Modifier.padding(top = 10.dp))
             if (p in hotkeyButtons) Text("This button is part of a hotkey. Giving it an action keeps it from the game, but the hotkey still works.",
                 color = Hand.Warn, fontSize = 13.sp)
             PadAction.entries.forEach { a ->

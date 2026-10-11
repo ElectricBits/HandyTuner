@@ -19,6 +19,11 @@ data class HudStyle(
     val shown: Set<Item> = Item.values().toSet(),
     /** One line: FPS, the ping that matters (game if online, else net), Wi-Fi. */
     val compact: Boolean = false,
+    /**
+     * Light theme for the app, the HUD and the Quick Menu. It lives here rather than in the app's own
+     * prefs because the :overlay process already watches this file and redraws when it changes.
+     */
+    val light: Boolean = false,
 ) {
     enum class Corner(val label: String) { TOP_LEFT("Top left"), TOP_RIGHT("Top right"), BOTTOM_LEFT("Bottom left"), BOTTOM_RIGHT("Bottom right") }
     enum class Size(val label: String, val scale: Float) { S("Small", 0.8f), M("Medium", 1f), L("Large", 1.25f), XL("TV", 1.7f) }
@@ -48,6 +53,7 @@ data class HudStyle(
                 accent = p.getProperty("accent")?.toLongOrNull()?.toInt() ?: d.accent,
                 shown = p.getProperty("shown")?.split(",")?.mapNotNull { runCatching { Item.valueOf(it) }.getOrNull() }?.toSet()?.takeIf { it.isNotEmpty() } ?: d.shown,   // nothing ticked = an empty box: show all
                 compact = p.getProperty("compact")?.toBoolean() ?: d.compact,
+                light = p.getProperty("light")?.toBoolean() ?: d.light,
             )
         }.getOrDefault(HudStyle())
 
@@ -57,6 +63,7 @@ data class HudStyle(
                 setProperty("opacity", s.opacity.toString()); setProperty("accent", s.accent.toUInt().toString())
                 setProperty("shown", s.shown.joinToString(",") { i -> i.name })
                 setProperty("compact", s.compact.toString())
+                setProperty("light", s.light.toString())
             })
     }
 }

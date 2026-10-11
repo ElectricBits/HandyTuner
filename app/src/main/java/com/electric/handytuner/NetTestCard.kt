@@ -49,7 +49,7 @@ fun NetTestCard(ctx: Context, onRunning: (Boolean) -> Unit) {
     }
 
     HandCard(Modifier.fillMaxWidth()) {
-        Text("Network test", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
+        Text("Network test", color = Hand.Text, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
         Text("Measures lag to your router and the internet, lag while something downloads, and website lookups, then says " +
             "what's wrong and how to fix it. Uses about 25 MB, on Wi-Fi only.", color = Hand.Muted, fontSize = 14.sp)
         Row(Modifier.padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -65,10 +65,10 @@ fun NetTestCard(ctx: Context, onRunning: (Boolean) -> Unit) {
         lines.forEach { (k, v) ->
             Row(Modifier.padding(top = 6.dp)) {
                 Text(k, color = Hand.Muted, fontSize = 14.sp, modifier = Modifier.weight(0.35f))
-                Text(v, color = Color.White, fontFamily = Hand.Mono, fontSize = 14.sp, modifier = Modifier.weight(0.65f))
+                Text(v, color = Hand.Text, fontFamily = Hand.Mono, fontSize = 14.sp, modifier = Modifier.weight(0.65f))
             }
         }
-        verdict.forEach { Text("• $it", color = Color.White, fontSize = 15.sp, modifier = Modifier.padding(top = 8.dp)) }
+        verdict.forEach { Text("• $it", color = Hand.Text, fontSize = 15.sp, modifier = Modifier.padding(top = 8.dp)) }
     }
 }
 

@@ -224,14 +224,14 @@ fun Onboarding(ctx: Context, resumes: Int, hudHeld: Boolean, menuHeld: Boolean, 
     // The finale: a moonwalk once "You're all set!" has been said.
     LaunchedEffect(step, typed) { if (step == steps.lastIndex && typed && line == 0) dance++ }
 
-    Box(Modifier.fillMaxSize().background(Brush.radialGradient(listOf(Color(0xFF06214A), Color.Black), radius = 1400f))) {
+    Box(Modifier.fillMaxSize().background(Brush.radialGradient(listOf(Hand.Grad, Hand.Bg), radius = 1400f))) {
         // Top right: progress dots and the mute switch.
         Row(Modifier.align(Alignment.TopEnd).padding(24.dp), verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             // Done steps blue, this one a wider pill, the rest dim.
             steps.indices.forEach { i ->
                 Box(Modifier.height(9.dp).width(if (i == step) 28.dp else 9.dp)
-                    .background(if (i <= step) Hand.Blue else Color(0xFF2A3654), CircleShape))
+                    .background(if (i <= step) Hand.Blue else Hand.Bar, CircleShape))
             }
             Text(if (muted) "🔇" else "🔊", fontSize = 22.sp, modifier = Modifier.padding(start = 14.dp).glowFocus(RoundedCornerShape(8.dp))
                 .clickable { sound.muted = !sound.muted; muted = sound.muted }.padding(6.dp))
@@ -311,7 +311,7 @@ private fun SetupSummary(s: SetupStatus) {
         Line("Usage access", s.usage),
         Line("Notifications", s.notif),
     )
-    Column(Modifier.background(Color(0xE0050510), RoundedCornerShape(16.dp))
+    Column(Modifier.background(Hand.Panel, RoundedCornerShape(16.dp))
         .border(3.dp, Hand.Blue.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
         .padding(horizontal = 20.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(3.dp)) {
         lines.forEach { (what, on) ->
@@ -329,13 +329,13 @@ private fun SetupSummary(s: SetupStatus) {
 private fun AccentPicker(style: HudStyle, onPick: (Int) -> Unit) {
     Row(horizontalArrangement = Arrangement.spacedBy(14.dp), verticalAlignment = Alignment.CenterVertically) {
         HudStyle.ACCENTS.forEach { (_, argb) ->
-            Box(Modifier.size(48.dp).glowFocus(CircleShape).background(Color(argb), CircleShape)
-                .border(4.dp, if (style.accent == argb) Color.White else Color.Transparent, CircleShape)
+            Box(Modifier.size(48.dp).glowFocus(CircleShape).background(Color(Hand.accent(argb)), CircleShape)
+                .border(4.dp, if (style.accent == argb) Hand.Text else Color.Transparent, CircleShape)
                 .clickable { onPick(argb) })
         }
     }
-    val c = Color(style.accent)
-    Column(Modifier.background(Color(0xE0050510), RoundedCornerShape(16.dp)).border(3.dp, c, RoundedCornerShape(16.dp))
+    val c = Color(Hand.accent(style.accent))
+    Column(Modifier.background(Hand.Panel, RoundedCornerShape(16.dp)).border(3.dp, c, RoundedCornerShape(16.dp))
         .padding(horizontal = 22.dp, vertical = 12.dp)) {
         Text("FPS 60   GAME 42ms   NET 24ms   5G ▂▄▆█", fontFamily = Hand.Mono, color = Hand.Good, fontSize = 17.sp)
         Text("RAM 1.9G   12m −3%   17:05", fontFamily = Hand.Mono, color = c, fontSize = 17.sp)

@@ -59,18 +59,18 @@ fun TweaksPage(ctx: Context) {
                 HandCard(Modifier.fillMaxWidth()) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
-                            Text("Low Latency mode", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
+                            Text("Low Latency mode", color = Hand.Text, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
                             Text("Network only: it never changes PULSE or a game's preset.", color = Hand.Muted, fontSize = 14.sp)
                         }
                         Switch(checked = lowLatency, onCheckedChange = { lowLatency = it; Tweaks.setLowLatency(ctx, it) },
                             modifier = Modifier.glowFocus(RoundedCornerShape(50)))
                     }
-                    Text("What it does", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 10.dp))
+                    Text("What it does", color = Hand.Text, fontSize = 15.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 10.dp))
                     listOf(
                         "Wi-Fi low-latency mode" to "Stops the Wi-Fi radio napping between packets.",
                         "Background Wi-Fi and Bluetooth scans off" to "Scans pause the radio and cause spikes.",
                     ).forEach { (what, why) -> Text("• $what: $why", color = Hand.Muted, fontSize = 14.sp, modifier = Modifier.padding(top = 4.dp)) }
-                    Text("Measured on this Odin", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 10.dp))
+                    Text("Measured on this Odin", color = Hand.Text, fontSize = 15.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 10.dp))
                     Text("Lag spikes to the router: 62 → 9 ms (worst 1%). Internet: worst 5% 81 → 44 ms, jitter 9.5 → 2.5 ms. " +
                         "800 pings each way, 2026-09-30.", color = Hand.Muted, fontSize = 14.sp)
                     Text("Try it on your own Wi-Fi: Network → Network test → Test Low Latency.", color = Hand.Blue, fontSize = 14.sp,
@@ -84,7 +84,7 @@ fun TweaksPage(ctx: Context) {
                     var busy by remember { mutableStateOf(false) }
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
-                            Text("Remove Odin's swipe-in menu", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
+                            Text("Remove Odin's swipe-in menu", color = Hand.Text, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
                             Text("Swiping in from the right edge opens Odin's own game panel. On disables the GameAssistant " +
                                 "app behind it — but Odin keeps that app running, so the panel only goes away after you " +
                                 "restart the Odin. Off turns it back on, again after a restart. Reset everything to stock " +
@@ -104,7 +104,7 @@ fun TweaksPage(ctx: Context) {
                     var off by remember { mutableStateOf(Tweaks.assistantOff(ctx)) }
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
-                            Text("Keep Odin Assistant's game detection off", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
+                            Text("Keep Odin Assistant's game detection off", color = Hand.Text, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
                             Text("Odin Assistant can change performance and fan per game, which fights HandyTuner. This switches off " +
                                 "only its game detection (an accessibility service); the app and its gamepad test stay. Turning this " +
                                 "off leaves it alone; switch it back on in Settings › Accessibility if you want it.", color = Hand.Muted, fontSize = 14.sp)
@@ -129,7 +129,7 @@ private fun SpeedUpCard(ctx: Context) {
     HandCard(Modifier.fillMaxWidth()) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
-                Text("Speed Up", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
+                Text("Speed Up", color = Hand.Text, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
                 Text("Closes background apps and clears their cards from Recents. Never your last game, PULSE or HandyTuner, " +
                     "and never an app that's downloading.", color = Hand.Muted, fontSize = 14.sp)
             }

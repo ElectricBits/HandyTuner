@@ -124,6 +124,6 @@ private val SWATCHES = listOf("FF0000", "FF8000", "FFFF00", "00FF40", "00E5FF", 
 
 @Composable
 private fun Title(name: String, what: String) {
-    Text(name, color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
+    Text(name, color = Hand.Text, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
     Text(what, color = Hand.Muted, fontSize = 14.sp)
 }

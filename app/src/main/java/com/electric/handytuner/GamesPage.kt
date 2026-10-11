@@ -86,7 +86,7 @@ fun GamesPage(ctx: Context) {
             HandCard(Modifier.fillMaxWidth()) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
-                        Text(label(id), color = Color.White, fontWeight = FontWeight.Bold, fontSize = 17.sp, maxLines = 1)
+                        Text(label(id), color = Hand.Text, fontWeight = FontWeight.Bold, fontSize = 17.sp, maxLines = 1)
                         Text(s.describe() + if (s.tweaked) "  (tweaked)" else "", color = Hand.Muted, fontSize = 13.sp, maxLines = 1)
                     }
                     Button(onClick = { set(id, null) }, Modifier.padding(start = 10.dp).glowFocus(RoundedCornerShape(50))) { Text("Remove") }
@@ -107,7 +107,7 @@ fun GamesPage(ctx: Context) {
         if (picking) items(apps, key = { "add-" + it.first }) { (id, name) ->
             HandCard(Modifier.fillMaxWidth().glowFocus().clickable { set(id, GameSettings.of(Preset.NEW_GAME)); apps = apps.filter { it.first != id } }) {
                 Row {
-                    Text(name, color = Color.White, fontSize = 16.sp, modifier = Modifier.weight(1f))
+                    Text(name, color = Hand.Text, fontSize = 16.sp, modifier = Modifier.weight(1f))
                     if (GameStore.isGame(ctx, id)) Text("game", color = Hand.Blue, fontSize = 13.sp)
                 }
             }

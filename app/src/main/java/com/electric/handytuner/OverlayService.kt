@@ -517,9 +517,9 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
         prefs.edit().putBoolean(KEY_AFK, true).apply()
         bg.post { actions.setBrightnessPct(1) }
         val v = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER; setBackgroundColor(0xFF000000.toInt())
+            orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER; setBackgroundColor(if (Hand.light) Palette.AFK_BG_L else Palette.AFK_BG_D)
             addView(TextView(this@OverlayService).apply {
-                text = "AFK — press A three times to come back"; textSize = 18f; typeface = nunito; setTextColor(0xFF3A4A60.toInt())
+                text = "AFK — press A three times to come back"; textSize = 18f; typeface = nunito; setTextColor(if (Hand.light) Palette.AFK_TEXT_L else Palette.AFK_TEXT_D)
             })
             setOnTouchListener { _, _ -> true }                     // touches are held back too
         }
@@ -668,11 +668,15 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
         Notifier.status(this, hud != null)
     }
 
+    /** The accent the HUD actually paints with: the picked colour, darkened on the light theme. */
+    private val accent get() = Hand.accent(style.accent)
+
     private fun neonText(size: Float) = TextView(this).apply {
         typeface = mono
         textSize = size * style.size.scale
         isSingleLine = true
-        setShadowLayer(10f, 0f, 0f, style.accent)    // the glow
+        setTextColor(if (Hand.light) Palette.TEXT_L else Palette.TEXT_D)
+        setShadowLayer(10f, 0f, 0f, Hand.accent(style.accent))    // the glow
     }
 
     /**
@@ -689,6 +693,7 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
         val gen = ++hudGeneration
         // Docked to a TV: the TV size, readable from the sofa.
         style = HudStyle.load(this).let { if (setup?.docked == true && rules.tvHud) it.copy(size = HudStyle.Size.XL) else it }
+        Hand.light = style.light
         styleStamp = HudStyle.file(this).lastModified()
         linePerf = neonText(15f)
         lineNet = neonText(15f)
@@ -699,7 +704,8 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
             orientation = LinearLayout.VERTICAL
             setPadding(28, 14, 28, 14)
             background = GradientDrawable().apply {
-                setColor((style.opacity * 255 / 100 shl 24) or 0x050510); cornerRadius = 28f; setStroke(3, style.accent)
+                setColor((style.opacity * 255 / 100 shl 24) or (if (Hand.light) Palette.HUD_L else Palette.HUD_D))
+                cornerRadius = 28f; setStroke(3, Hand.accent(style.accent))
             }
             addView(linePerf); addView(lineNet); addView(lineTemp); addView(lineSys); addView(line3)
         }
@@ -939,16 +945,16 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
                 part("CPU ", num("cpuLoad")?.let { "${it.toInt()}%" }, load(num("cpuLoad")))
                 part("GPU ", num("gpuLoad")?.let { "${it.toInt()}%" }, load(num("gpuLoad")))
             }
-            if (HudStyle.Item.MODE in want) part("", hudMode(p.optString("mode")), style.accent)
+            if (HudStyle.Item.MODE in want) part("", hudMode(p.optString("mode")), Hand.accent(style.accent))
         }
-        linePerf.text = group("PERF ", R.drawable.ic_speed, 0xFF39FF14.toInt(), s)          // lime
+        linePerf.text = group("PERF ", R.drawable.ic_speed, GOOD, s)                        // lime
 
         // NET: the two pings and the Wi-Fi under them.
         s = SpannableStringBuilder()
         if (HudStyle.Item.GAME in want) ping(R.drawable.ic_sports_esports, f.game, "no server")
         if (HudStyle.Item.NET in want) ping(R.drawable.ic_public, f.net, "testing…")
         if (HudStyle.Item.WIFI in want) part("", f.band?.let { "$it " + "▂▄▆█".take(f.bars.coerceIn(1, 4)) }, if (f.bars >= 3) GOOD else if (f.bars == 2) WARN else BAD)
-        lineNet.text = group("NET  ", R.drawable.ic_wifi, 0xFF00E5FF.toInt(), s)           // cyan
+        lineNet.text = group("NET  ", R.drawable.ic_wifi, CYAN, s)                          // cyan
 
         // TEMP: the readings, with draw next to them - it is what makes heat.
         s = SpannableStringBuilder()
@@ -960,9 +966,9 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
                 part("GPU ", num("gpuC")?.let { "${it.toInt()}°" }, temp(num("gpuC")))
             }
             // Pulse has no draw figure while plugged in, so say what's happening instead of a dash.
-            if (HudStyle.Item.WATTS in want) part("", num("watts")?.let { "%.1fW".format(it) } ?: "charging".takeIf { p.optBoolean("charging") }, style.accent)
+            if (HudStyle.Item.WATTS in want) part("", num("watts")?.let { "%.1fW".format(it) } ?: "charging".takeIf { p.optBoolean("charging") }, Hand.accent(style.accent))
         }
-        lineTemp.text = group("TEMP ", R.drawable.ic_thermostat, 0xFFFF8A00.toInt(), s)    // orange, for heat
+        lineTemp.text = group("TEMP ", R.drawable.ic_thermostat, ORANGE, s)                 // orange, for heat
 
         // SYS: the device itself.
         s = SpannableStringBuilder()
@@ -974,16 +980,22 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
             val m = f.batLeftMin
             val left = m?.let { if (it >= 60) "${it / 60}h${if (it % 60 > 0) "${it % 60}m" else ""}" else "${it}m" }
             val text = when { f.charging -> "${f.batPct}% ⚡"; left != null -> "${f.batPct}% · $left"; else -> "${f.batPct}%" }
-            partIcon(R.drawable.ic_battery_horiz_075, style.accent, text.takeIf { f.batPct > 0 }, style.accent)
+            partIcon(R.drawable.ic_battery_horiz_075, accent, text.takeIf { f.batPct > 0 }, accent)
         }
         f.padBat?.takeIf { HudStyle.Item.PAD in want }?.let { b ->
-            partIcon(R.drawable.ic_sports_esports, style.accent, "$b%", if (b <= 10) BAD else if (b <= 20) WARN else style.accent)
+            partIcon(R.drawable.ic_sports_esports, accent, "$b%", if (b <= 10) BAD else if (b <= 20) WARN else accent)
         }
-        if (HudStyle.Item.CLOCK in want) part("", java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault()).format(java.util.Date()), 0xFFFFFFFF.toInt())
-        lineSys.text = group("SYS  ", R.drawable.ic_memory, 0xFFFF2BD6.toInt(), s)         // magenta
+        if (HudStyle.Item.CLOCK in want) part("", java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault()).format(java.util.Date()), CLOCK)
+        lineSys.text = group("SYS  ", R.drawable.ic_memory, MAGENTA, s)                     // magenta
 
         // Calm on purpose (owner, 2026-10-07): gray for information, amber only for low memory and real heat.
-        line3.text = "▸ " + verdict.text(f.r)
+        // AutoTDP spends the first minute of a game measuring it, and the fps keeps climbing after that: say
+        // so rather than "running smoothly", which reads as "this is all it does". A warning still wins.
+        // shortcut: the note rides on the PULSE items, since f.pulse is only fetched when one is on — the mode
+        // item is one of them, so anyone watching AutoTDP has it. Fetch stats directly if that stops being true.
+        val learning = f.pulse?.let { if (it.optString("mode") == "AutoTDP" && !it.optBoolean("learned", true)) it.optInt("learningPercent") else null }
+        line3.text = if (learning != null && !verdict.warn) "▸ AutoTDP is still learning this game ($learning%)"
+        else "▸ " + verdict.text(f.r)
         line3.setTextColor(if (verdict.warn) WARN else DIM)
         for (l in listOf(linePerf, lineNet, lineTemp, lineSys)) {
             l.visibility = if (l.text.isEmpty()) android.view.View.GONE else android.view.View.VISIBLE
@@ -1066,10 +1078,14 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
         private const val DOCK_DIMMED = "dock_dimmed"               // the screen was dimmed for the dock; undock puts it back
         private const val DOCK_SLEEP_WAS_ON = "dock_sleep_was_on"   // sleep underclock was paused for the dock
         private val PAD_LOW_STEPS = listOf(10, 20)                  // controller battery warnings, lowest first
-        private const val MAGENTA = 0xFFFF2BD6.toInt()
-        private const val GOOD = 0xFF39FF14.toInt()
-        private const val WARN = 0xFFFFB300.toInt()
-        private const val BAD = 0xFFFF3B3B.toInt()
-        private const val DIM = 0xFF7A8BA0.toInt()
+        // The HUD's own colours: neon on the dark theme, the same hues darkened for a white box.
+        private val MAGENTA get() = if (Hand.light) Palette.MAGENTA_L else Palette.MAGENTA_D
+        private val GOOD get() = if (Hand.light) Palette.GOOD_L else Palette.GOOD_D
+        private val WARN get() = if (Hand.light) Palette.WARN_L else Palette.WARN_D
+        private val BAD get() = if (Hand.light) Palette.BAD_L else Palette.BAD_D
+        private val DIM get() = if (Hand.light) Palette.MUTED_L else Palette.MUTED_D
+        private val CYAN get() = if (Hand.light) Palette.CYAN_L else Palette.CYAN_D
+        private val ORANGE get() = if (Hand.light) Palette.ORANGE_L else Palette.ORANGE_D
+        private val CLOCK get() = if (Hand.light) Palette.TEXT_L else Palette.TEXT_D
     }
 }

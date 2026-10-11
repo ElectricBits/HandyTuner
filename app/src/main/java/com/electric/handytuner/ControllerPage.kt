@@ -67,7 +67,7 @@ fun ControllerPage(ctx: Context) {
             when (tab) {
                 0 -> {
                     HandCard(Modifier.fillMaxWidth()) {
-                        Text("Button layout", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
+                        Text("Button layout", color = Hand.Text, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
                         Text("Which face button is A. Try it in the Key Test.", color = Hand.Muted, fontSize = 14.sp)
                         Row(Modifier.padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             FilterChip(selected = flipped == 1, onClick = { setLayout(1) }, label = { Text("Xbox (A bottom)") },
@@ -79,7 +79,7 @@ fun ControllerPage(ctx: Context) {
                     HandCard(Modifier.fillMaxWidth()) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Column(Modifier.weight(1f)) {
-                                Text("Odin's controller settings", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
+                                Text("Odin's controller settings", color = Hand.Text, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
                                 // What the Odin 2 Portal's firmware has there (2026-10-08); it has no deadzone or invert options.
                                 Text("Controller style, L2/R2 mode, and what M1, M2 and Back do: in Odin Settings, under Controller Settings.",
                                     color = Hand.Muted, fontSize = 14.sp)
@@ -93,7 +93,7 @@ fun ControllerPage(ctx: Context) {
                     HandCard(Modifier.fillMaxWidth()) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Column(Modifier.weight(1f)) {
-                                Text("Key Test & stick calibration", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
+                                Text("Key Test & stick calibration", color = Hand.Text, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
                                 Text("AYN's own test screen: see every press, and recalibrate drifting sticks.", color = Hand.Muted, fontSize = 14.sp)
                             }
                             Button(onClick = { open("com.odin.gameassistant", "com.ro.gameassistant.activity.GamepadTestActivity") },
@@ -121,7 +121,7 @@ private fun KeyMappingCard(ctx: Context) {
     fun save(n: KeyMapper.Settings) { set = n; KeyMapper.saveSettings(ctx, n) }
     fun label(pkg: String) = runCatching { ctx.packageManager.getApplicationLabel(ctx.packageManager.getApplicationInfo(pkg, 0)).toString() }.getOrDefault(pkg)
     HandCard(Modifier.fillMaxWidth()) {
-        Text("Key mapping", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
+        Text("Key mapping", color = Hand.Text, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
         Text("Buttons to screen taps for Android touch games. Make a layout from the Quick Menu while the game is open: " +
             "press a placed button again to switch tap → hold → auto-fire. A layout made while an external controller is " +
             "connected is saved for the controller, so it can differ from the Odin's own.", color = Hand.Muted, fontSize = 14.sp)
@@ -129,7 +129,7 @@ private fun KeyMappingCard(ctx: Context) {
         maps.forEach { (pkg, spots) ->
             Row(Modifier.padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                 val pad = pkg.endsWith(KeyMapper.PAD)
-                Text("${label(pkg.removeSuffix(KeyMapper.PAD))}${if (pad) " (controller)" else ""}: ${spots.size} button${if (spots.size == 1) "" else "s"}", color = Color.White, fontSize = 16.sp,
+                Text("${label(pkg.removeSuffix(KeyMapper.PAD))}${if (pad) " (controller)" else ""}: ${spots.size} button${if (spots.size == 1) "" else "s"}", color = Hand.Text, fontSize = 16.sp,
                     modifier = Modifier.weight(1f))
                 Button(onClick = { KeyMapper.set(ctx, pkg, emptyList()); maps = KeyMapper.all(ctx) },
                     Modifier.glowFocus(RoundedCornerShape(50))) { Text("Delete") }
@@ -151,13 +151,13 @@ private fun KeyMappingCard(ctx: Context) {
         note?.let { Text(it, color = Hand.Blue, fontSize = 14.sp) }
 
         Row(Modifier.padding(top = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text("Show the layout in games", color = Color.White, fontSize = 16.sp, modifier = Modifier.weight(1f))
+            Text("Show the layout in games", color = Hand.Text, fontSize = 16.sp, modifier = Modifier.weight(1f))
             androidx.compose.material3.Switch(checked = set.show, onCheckedChange = { save(set.copy(show = it)) },
                 modifier = Modifier.glowFocus(RoundedCornerShape(50)))
         }
         @Composable fun slider(label: String, value: Int, range: IntRange, unit: String, onDone: (Int) -> Unit) {
             var v by remember(value) { mutableStateOf(value.toFloat()) }
-            Text("$label: ${v.toInt()}$unit", color = Color.White, fontSize = 15.sp, modifier = Modifier.padding(top = 8.dp))
+            Text("$label: ${v.toInt()}$unit", color = Hand.Text, fontSize = 15.sp, modifier = Modifier.padding(top = 8.dp))
             androidx.compose.material3.Slider(value = v, onValueChange = { v = it }, onValueChangeFinished = { onDone(v.toInt()) },
                 valueRange = range.first.toFloat()..range.last.toFloat(), modifier = Modifier.fillMaxWidth(0.6f))
         }

@@ -56,7 +56,7 @@ fun PresetsEditor(ctx: Context, onDone: () -> Unit) {
     LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         item {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("My presets", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 19.sp, modifier = Modifier.weight(1f))
+                Text("My presets", color = Hand.Text, fontWeight = FontWeight.ExtraBold, fontSize = 19.sp, modifier = Modifier.weight(1f))
                 Button(onClick = onDone, Modifier.glowFocus(RoundedCornerShape(50))) { Text("Back") }
             }
         }
@@ -65,7 +65,7 @@ fun PresetsEditor(ctx: Context, onDone: () -> Unit) {
             HandCard(Modifier.fillMaxWidth()) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
-                        Text(d.label, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 17.sp)
+                        Text(d.label, color = Hand.Text, fontWeight = FontWeight.Bold, fontSize = 17.sp)
                         Text(GameSettings.of(d).describe(), color = Hand.Muted, fontSize = 13.sp)
                     }
                     Button(onClick = { edit = d }, Modifier.glowFocus(RoundedCornerShape(50))) { Text("Edit") }

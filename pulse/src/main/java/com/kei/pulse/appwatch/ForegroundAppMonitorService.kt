@@ -167,7 +167,10 @@ class ForegroundAppMonitorService : Service() {
         val t = lastTelemetry ?: return ""
         return org.json.JSONObject().put("cpuC", t.cpuTempC).put("gpuC", t.gpuTempC).put("cpuLoad", t.cpuLoadPercent)
             .put("gpuLoad", t.gpuLoadPercent).put("gpuMhz", t.gpuMhz).put("watts", t.batteryDrawW?.toDouble())
-            .put("charging", !t.isDischarging).put("mode", overlayProfileLabel).toString()
+            .put("charging", !t.isDischarging).put("mode", overlayProfileLabel)
+            // AutoTDP measures a game before it settles, and the HUD has no other way to know: while
+            // learningPercent is under 100 the overlay says so instead of looking like it isn't working.
+            .put("learningPercent", autoTune.learnedPercent()).put("learned", autoTune.powerModel.hasSplit()).toString()
     }
 
     data class RemoteState(

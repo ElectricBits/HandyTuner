@@ -90,7 +90,7 @@ fun HomePage(ctx: Context, actions: Actions) {
             HelperAvatar(talking = false, mood = Mood.IDLE, hops = 0, width = 160.dp, dance = dance)
         }
         Column(Modifier.padding(start = 16.dp)) {
-            Text(greeting, color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 24.sp)
+            Text(greeting, color = Hand.Text, fontWeight = FontWeight.ExtraBold, fontSize = 24.sp)
             Text("Here's your Odin right now.", color = Hand.Muted, fontSize = 15.sp)
         }
     }
@@ -99,11 +99,11 @@ fun HomePage(ctx: Context, actions: Actions) {
     @Composable fun card(icon: Int, title: String, modifier: Modifier, body: @Composable () -> Unit) = HandCard(modifier) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(painterResource(icon), null, tint = Hand.Blue, modifier = Modifier.size(28.dp))
-            Text("  $title", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
+            Text("  $title", color = Hand.Text, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
         }
         Column(Modifier.padding(top = 8.dp)) { body() }
     }
-    @Composable fun big(t: String, c: Color = Color.White) = Text(t, color = c, fontFamily = Hand.Mono, fontSize = 26.sp)
+    @Composable fun big(t: String, c: Color = Hand.Text) = Text(t, color = c, fontFamily = Hand.Mono, fontSize = 26.sp)
     @Composable fun line(t: String, c: Color = Hand.Muted) = Text(t, color = c, fontSize = 14.sp)
 
     UntestedDeviceCard()
@@ -123,7 +123,7 @@ fun HomePage(ctx: Context, actions: Actions) {
                 when { s.ping == null -> Hand.Bad; s.ping < 50 -> Hand.Good; s.ping < 100 -> Hand.Warn; else -> Hand.Bad })
             line(if (s.band != null) "${s.band} · ${s.rssi} dBm · ${s.linkMbps} Mbps" else "Not on Wi-Fi")
             val tip = Net.tip(s.band, s.rssi, s.ping)
-            line(tip, Color.White)
+            line(tip, Hand.Text)
         }
         card(R.drawable.ic_mode_fan, "PULSE engine", Modifier.weight(1f)) {
             big(if (s.pulseRunning) "Running" else "Stopped",
@@ -132,7 +132,7 @@ fun HomePage(ctx: Context, actions: Actions) {
         }
     }
     HandCard(Modifier.fillMaxWidth().padding(top = 12.dp)) {
-        Text("In any game", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
+        Text("In any game", color = Hand.Text, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
         line("HUD: both back buttons + both sticks.   Quick Menu: both sticks + R1.   Change them on the HUD page.")
     }
     AboutCard(ctx)

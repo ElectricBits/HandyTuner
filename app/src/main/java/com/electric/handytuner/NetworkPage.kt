@@ -72,7 +72,7 @@ fun NetworkPage(ctx: Context) {
     Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         HandCard(Modifier.fillMaxWidth()) {
             Row {
-                Text("Ping", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp, modifier = Modifier.weight(1f))
+                Text("Ping", color = Hand.Text, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp, modifier = Modifier.weight(1f))
                 targets.forEach { (name, ip) ->
                     FilterChip(selected = target == ip, onClick = { target = ip }, label = { Text(name) },
                         modifier = Modifier.padding(start = 8.dp).glowFocus(RoundedCornerShape(8.dp)))
@@ -87,7 +87,7 @@ fun NetworkPage(ctx: Context) {
                     Text(label, color = Hand.Muted, fontSize = 13.sp); Text(v, color = c, fontFamily = Hand.Mono, fontSize = 22.sp)
                 }
                 stat("Now", now?.let { "%.0f ms".format(it) } ?: "–", if ((now ?: 999.0) < 50) Hand.Good else if ((now ?: 999.0) < 100) Hand.Warn else Hand.Bad)
-                stat("Average", ok.takeIf { it.isNotEmpty() }?.average()?.let { "%.0f ms".format(it) } ?: "–", Color.White)
+                stat("Average", ok.takeIf { it.isNotEmpty() }?.average()?.let { "%.0f ms".format(it) } ?: "–", Hand.Text)
                 stat("Jitter", jitter?.let { "±%.0f ms".format(it) } ?: "–", if ((jitter ?: 0.0) < 15) Hand.Good else Hand.Warn)
                 stat("Lost", "$loss%", if (loss == 0) Hand.Good else Hand.Bad)
             }
@@ -124,9 +124,9 @@ private fun WifiCard(ctx: Context, ping: Int?) {
     val f = info?.frequency ?: 0
     val band = when (f) { in 2400..2500 -> "2.4 GHz"; in 4900..5900 -> "5 GHz"; in 5925..7125 -> "6 GHz"; else -> null }
     HandCard(Modifier.fillMaxWidth()) {
-        Text("Wi-Fi", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
+        Text("Wi-Fi", color = Hand.Text, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
         if (band == null) Text("Not connected", color = Hand.Muted, fontSize = 15.sp)
-        else Text("$band  ·  signal ${info.rssi} dBm  ·  link ${info.linkSpeed} Mbps", color = Color.White, fontFamily = Hand.Mono, fontSize = 15.sp)
+        else Text("$band  ·  signal ${info.rssi} dBm  ·  link ${info.linkSpeed} Mbps", color = Hand.Text, fontFamily = Hand.Mono, fontSize = 15.sp)
         Text(Net.tip(band, info?.rssi?.takeIf { f > 0 }, ping), color = Hand.Muted, fontSize = 14.sp)
     }
 }
@@ -163,7 +163,7 @@ private fun DnsCard(ctx: Context) {
     }
 
     HandCard(Modifier.fillMaxWidth()) {
-        Text("DNS benchmark", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
+        Text("DNS benchmark", color = Hand.Text, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
         Text("DNS turns names into addresses. A faster one makes games, stores and matchmaking connect sooner; " +
             "it doesn't change in-game ping.", color = Hand.Muted, fontSize = 14.sp)
         Row(Modifier.padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -183,7 +183,7 @@ private fun DnsCard(ctx: Context) {
             val worst = hi.toInt()
             r.forEachIndexed { i, x ->
                 Row(Modifier.padding(top = 6.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                    Text("${all.indexOf(x) + 1}. ${x.name}", color = if (i == 0) Hand.Good else Color.White, fontSize = 15.sp,
+                    Text("${all.indexOf(x) + 1}. ${x.name}", color = if (i == 0) Hand.Good else Hand.Text, fontSize = 15.sp,
                         maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.fillMaxWidth(0.3f))
                     // A bar per provider: shorter is faster.
                     androidx.compose.foundation.layout.Box(Modifier.fillMaxWidth(0.35f).height(14.dp)) {
@@ -204,7 +204,7 @@ private fun DnsCard(ctx: Context) {
             Text("Private DNS needs a server with an encrypted name; only the well-known providers have one, so the rest can be tested but not switched to here.",
                 color = Hand.Muted, fontSize = 13.sp, modifier = Modifier.padding(top = 6.dp))
         }
-        Text("Private DNS: $mode", color = Color.White, fontSize = 15.sp, modifier = Modifier.padding(top = 12.dp))
+        Text("Private DNS: $mode", color = Hand.Text, fontSize = 15.sp, modifier = Modifier.padding(top = 12.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             (listOf("Automatic" to null) + Net.DNS_PROVIDERS.filter { it.third != null }.map { it.first to it.third }).forEach { (n, host) ->
                 FilterChip(selected = mode.startsWith(n), onClick = { setPrivate(host) }, label = { Text(n) },

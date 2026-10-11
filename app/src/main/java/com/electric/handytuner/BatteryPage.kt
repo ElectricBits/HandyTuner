@@ -43,7 +43,7 @@ import java.util.Locale
 fun BatteryPage(ctx: Context) {
     val sessions = remember { Sessions.all(ctx) }
     @Composable fun heading(t: String, sub: String? = null) = Column(Modifier.padding(top = 8.dp)) {
-        Text(t, color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 19.sp)
+        Text(t, color = Hand.Text, fontWeight = FontWeight.ExtraBold, fontSize = 19.sp)
         sub?.let { Text(it, color = Hand.Muted, fontSize = 14.sp) }
     }
 
@@ -55,10 +55,10 @@ fun BatteryPage(ctx: Context) {
             HandCard(Modifier.fillMaxWidth()) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
-                        Text(s.label, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                        Text(s.label, color = Hand.Text, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                         Text(SimpleDateFormat("EEE d MMM, HH:mm", Locale.getDefault()).format(Date(s.start)), color = Hand.Muted, fontSize = 13.sp)
                     }
-                    Text("${s.minutes} min", color = Color.White, fontFamily = Hand.Mono, modifier = Modifier.padding(end = 20.dp))
+                    Text("${s.minutes} min", color = Hand.Text, fontFamily = Hand.Mono, modifier = Modifier.padding(end = 20.dp))
                     Text(if (s.charging) "charging" else "−${s.used}%", color = if (s.charging) Hand.Muted else Hand.Warn,
                         fontFamily = Hand.Mono, modifier = Modifier.padding(end = 20.dp))
                     Text(s.drainPerHour?.let { "%.0f%%/h".format(it) } ?: "", color = Hand.Muted, fontFamily = Hand.Mono)
@@ -75,13 +75,13 @@ private fun ChargeCard(ctx: Context) {
     var on by remember { mutableStateOf(ChargeRule.file(ctx).exists()) }
     fun set(n: ChargeRule.Settings) { s = n; ChargeRule.save(ctx, n); on = true }
     HandCard(Modifier.fillMaxWidth().padding(top = 8.dp)) {
-        Text("Charging", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 17.sp)
+        Text("Charging", color = Hand.Text, fontWeight = FontWeight.ExtraBold, fontSize = 17.sp)
         Text("Stops charging at the limit and starts again 5% below. While a game runs on the charger, the battery " +
             "is skipped so it stays cool." + if (on) "" else " Off until you change a setting here.", color = Hand.Muted, fontSize = 14.sp)
-        Text(if (s.limit >= 100) "No limit" else "Stop at ${s.limit}%", color = Color.White, fontSize = 16.sp, modifier = Modifier.padding(top = 8.dp))
+        Text(if (s.limit >= 100) "No limit" else "Stop at ${s.limit}%", color = Hand.Text, fontSize = 16.sp, modifier = Modifier.padding(top = 8.dp))
         Slider(value = s.limit.toFloat(), onValueChange = { set(s.copy(limit = (it / 5).roundToInt() * 5)) }, valueRange = 50f..100f, steps = 9)
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("Skip the battery while gaming", color = Color.White, fontSize = 16.sp, modifier = Modifier.weight(1f))
+            Text("Skip the battery while gaming", color = Hand.Text, fontSize = 16.sp, modifier = Modifier.weight(1f))
             // Off until the feature is on: the switch reads the saved value, which is on by default.
             Switch(checked = on && s.gamingBypass, onCheckedChange = { set(s.copy(gamingBypass = it)) })
         }
@@ -96,7 +96,7 @@ private fun PlayServicesCard(ctx: Context) {
     var on by remember { mutableStateOf(actions.playServicesOn()) }
     var confirm by remember { mutableStateOf(false) }
     HandCard(Modifier.fillMaxWidth().padding(top = 8.dp)) {
-        Text("Google Play services", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 17.sp)
+        Text("Google Play services", color = Hand.Text, fontWeight = FontWeight.ExtraBold, fontSize = 17.sp)
         Text(if (on) "On. Turning it off frees memory and background work while you play, but notifications, " +
             "Google sign-ins and the Play Store stop until you turn it back on." else "Off. Turn it back on for notifications, sign-ins and the Play Store.",
             color = Hand.Muted, fontSize = 14.sp)

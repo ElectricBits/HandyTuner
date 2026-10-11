@@ -138,6 +138,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         loadLabels()
+        Hand.light = HudStyle.load(this).light
         onboarded = prefs.getBoolean("onboarded", false)
         setContent {
             HandyTheme {
@@ -148,7 +149,7 @@ class MainActivity : ComponentActivity() {
                 }
                 var page by remember { mutableStateOf(Page.entries.firstOrNull { it.name == intent.getStringExtra(PAGE) } ?: Page.HOME) }
                 var tweaksOpen by remember { mutableStateOf(page in TWEAK_CHILDREN) }
-                Row(Modifier.fillMaxSize().background(Color.Black)) {
+                Row(Modifier.fillMaxSize().background(Hand.Bg)) {
                     // The board's left icon rail. Battery, Network and Controller join it as they're built.
                     Column(
                         // Battery, Network and Dock sit under Tweaks: six buttons until that one opens.
@@ -176,7 +177,7 @@ class MainActivity : ComponentActivity() {
                     }
                     Column(Modifier.fillMaxSize().padding(start = 8.dp, top = 20.dp, end = 24.dp)) {
                         // Explicit white: with no Surface around it, Text's default content color is black.
-                        if (page != Page.HOME) Text(page.label, style = MaterialTheme.typography.titleLarge, color = Color.White, modifier = Modifier.padding(bottom = 8.dp))
+                        if (page != Page.HOME) Text(page.label, style = MaterialTheme.typography.titleLarge, color = Hand.Text, modifier = Modifier.padding(bottom = 8.dp))
                         when (page) {
                             Page.HOME -> HomePage(this@MainActivity, actions)
                             Page.GAMES -> GamesPage(this@MainActivity)
@@ -204,7 +205,7 @@ class MainActivity : ComponentActivity() {
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Icon(painterResource(icon), null, tint = if (selected) Hand.Blue else Hand.Muted, modifier = Modifier.size(if (child) 16.dp else 20.dp))
-            Text(label, fontSize = if (child) 10.sp else 11.sp, color = if (selected) Color.White else Hand.Muted)
+            Text(label, fontSize = if (child) 10.sp else 11.sp, color = if (selected) Hand.Text else Hand.Muted)
         }
     }
 
@@ -242,7 +243,7 @@ class MainActivity : ComponentActivity() {
                 }
                 Column(Modifier.padding(start = 16.dp)) {
                     Text(name, color = Hand.Muted, fontSize = 13.sp)
-                    Text(label.replace("BUTTON_", ""), fontFamily = Hand.Mono, color = Color.White)
+                    Text(label.replace("BUTTON_", ""), fontFamily = Hand.Mono, color = Hand.Text)
                 }
             }
         }
@@ -266,9 +267,9 @@ class MainActivity : ComponentActivity() {
         val r = result
         if (r == null) { Text("Checking…", color = Hand.Muted); return }
         LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            item { Text("Permissions & access", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 19.sp) }
+            item { Text("Permissions & access", color = Hand.Text, fontWeight = FontWeight.ExtraBold, fontSize = 19.sp) }
             items(r.first) { CheckRow(it) }
-            item { Text("Apps HandyTuner works with", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 19.sp,
+            item { Text("Apps HandyTuner works with", color = Hand.Text, fontWeight = FontWeight.ExtraBold, fontSize = 19.sp,
                 modifier = Modifier.padding(top = 12.dp)) }
             items(r.second) { CheckRow(it) }
             item {
@@ -304,7 +305,7 @@ class MainActivity : ComponentActivity() {
         var when0 by remember { mutableStateOf(SafeMode.since(this@MainActivity)) }
         val scope = androidx.compose.runtime.rememberCoroutineScope()
         HandCard(Modifier.fillMaxWidth().padding(top = 16.dp)) {
-            Text("Safe mode", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 17.sp)
+            Text("Safe mode", color = Hand.Text, fontWeight = FontWeight.ExtraBold, fontSize = 17.sp)
             Text("On since ${when0?.let { java.text.SimpleDateFormat("d MMM HH:mm", java.util.Locale.getDefault()).format(java.util.Date(it)) } ?: "unknown"} — ${SafeMode.why(this@MainActivity)}. HandyTuner isn't changing anything until you clear this. What it changed before is still on the Odin; Reset everything to stock below puts that back.",
                 color = Hand.Muted, fontSize = 14.sp)
             Button(onClick = {
@@ -322,7 +323,7 @@ class MainActivity : ComponentActivity() {
         var done by remember { mutableStateOf<Int?>(null) }
         val scope = androidx.compose.runtime.rememberCoroutineScope()
         HandCard(Modifier.fillMaxWidth().padding(top = 16.dp)) {
-            Text("Reset everything to stock", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 17.sp)
+            Text("Reset everything to stock", color = Hand.Text, fontWeight = FontWeight.ExtraBold, fontSize = 17.sp)
             Text(done?.let { "Done: $it setting${if (it == 1) "" else "s"} put back." }
                 ?: "Puts back every setting HandyTuner changed: brightness, refresh rate, scanning, Private DNS, button layout, stick lights, sleep underclock, frame caps, resolution, the Odin swipe-in menu.",
                 color = Hand.Muted, fontSize = 14.sp)
@@ -354,7 +355,7 @@ class MainActivity : ComponentActivity() {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(c.status.mark, fontSize = 20.sp, modifier = Modifier.width(40.dp))
             Column(Modifier.weight(1f)) {
-                Text(c.name, color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 17.sp)
+                Text(c.name, color = Hand.Text, fontWeight = FontWeight.ExtraBold, fontSize = 17.sp)
                 Text(c.detail, color = Hand.Muted, fontSize = 14.sp)
             }
             if (c.status == Diagnostics.Status.GRANT && c.fix != null) {

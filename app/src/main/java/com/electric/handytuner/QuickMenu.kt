@@ -65,6 +65,8 @@ class QuickMenu(
         val brightness: Int, val volume: Int, val hz: Int?, val cpuC: Int?, val fanPct: Int?, val layout: Int,
         /** The Pulse fork's live state; null without the fork (stock Pulse, or none). */
         val fork: org.json.JSONObject?,
+        /** The fork's live stats (cpu temp, learning progress); null without the fork. */
+        val stats: org.json.JSONObject?,
     )
 
     fun toggle() = if (showing) hide() else open()
@@ -77,12 +79,13 @@ class QuickMenu(
             // thermal policy actually throttles on (AutoTuneController reads cpuss-0). Stats.cpuTemp()
             // is the hottest of four core zones instead, so the two moved independently and the menu
             // looked like it was contradicting the HUD. Ours is the fallback for no fork.
-            val pulseC = host.pulse().stats()?.optInt("cpuC", -1)?.takeIf { it > 0 }
+            val stats = host.pulse().stats()          // one read: cpu temp, and how far AutoTDP's learning got
+            val pulseC = stats?.optInt("cpuC", -1)?.takeIf { it > 0 }
             val cpuC = pulseC ?: Stats().cpuTemp()
             Log.i("HandyTuner", "menu cpuC=$cpuC from=${if (pulseC != null) "pulse" else "stats"}")
             val s = State(actions.pulseInstalled(), actions.pulseInstalled() && actions.pulseRunning(), actions.perfMode(), actions.fanMode(),
                 actions.brightnessPct(), actions.volumePct(), actions.refreshHz(), cpuC, actions.fanPct(), actions.buttonLayout(),
-                host.pulse().state())
+                host.pulse().state(), stats)
             main.post { if (!showing) build(s) }
         }
     }
@@ -115,9 +118,9 @@ class QuickMenu(
         svc.packageManager.getApplicationLabel(svc.packageManager.getApplicationInfo(id, 0)).toString()
     }.getOrDefault(id.substringAfterLast('.'))
 
-    private fun text(s: String, size: Float = 15f, color: Int = WHITE, bold: Boolean = true) = TextView(svc).apply {
+    private fun text(s: String, size: Float = 15f, color: Int = TEXT, bold: Boolean = true) = TextView(svc).apply {
         text = s; textSize = size * 0.86f; setTextColor(color); typeface = if (bold) nunito else Typeface.create(nunito, 600, false)
-        if (bold) setShadowLayer(10f, 0f, 0f, 0x660389FB)       // the board's faint glow on titles
+        if (bold) setShadowLayer(10f, 0f, 0f, GLOW)             // the board's faint glow on titles
     }
 
     /** GlowDrawable blurs, and blur needs a software layer. [color]/[elev] are kept for call-site readability. */
@@ -162,16 +165,16 @@ class QuickMenu(
     /** The board's toggle: blue track when on. Shown only; the tile around it is what's pressed. */
     private fun switch(on: Boolean) = Switch(svc).apply {
         isChecked = on; isFocusable = false; isClickable = false
-        thumbTintList = ColorStateList.valueOf(WHITE)
-        trackTintList = ColorStateList(arrayOf(intArrayOf(android.R.attr.state_checked), intArrayOf()), intArrayOf(BLUE, 0xFF3A4660.toInt()))
+        thumbTintList = ColorStateList.valueOf(0xFFFFFFFF.toInt())
+        trackTintList = ColorStateList(arrayOf(intArrayOf(android.R.attr.state_checked), intArrayOf()), intArrayOf(BLUE, TRACK))
     }
 
     /** Slider row: icon + label, then a blue bar. D-pad left/right moves it; applied a moment after it stops. */
     private fun slider(iconRes: Int, label: String, value: Int, apply: (Int) -> Unit): View {
         val bar = SeekBar(svc).apply {
             max = 100; progress = value; keyProgressIncrement = 5
-            progressTintList = ColorStateList.valueOf(BLUE); thumbTintList = ColorStateList.valueOf(WHITE)
-            progressBackgroundTintList = ColorStateList.valueOf(0xFF2A3654.toInt())
+            progressTintList = ColorStateList.valueOf(BLUE); thumbTintList = ColorStateList.valueOf(0xFFFFFFFF.toInt())
+            progressBackgroundTintList = ColorStateList.valueOf(BAR)
             background = focusBg(0x00000000, rest = 0x00000000, radius = 50)
             setPadding(dp(12), dp(4), dp(12), dp(4))
             val commit = Runnable { bg.post { apply(progress) } }
@@ -190,9 +193,9 @@ class QuickMenu(
     private fun preset(iconRes: Int, label: String, on: Boolean, onClick: () -> Unit) = LinearLayout(svc).apply {
         orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
         setPadding(dp(10) + g, dp(6) + g, dp(10) + g, dp(6) + g)
-        background = focusBg(if (on) 0x5539FF14 else 0x1A39FF14, rest = 0xB339FF14.toInt(), focused = GOOD, radius = 10)
+        background = focusBg(if (on) withAlpha(0x55, GOOD) else withAlpha(0x1A, GOOD), rest = withAlpha(0xB3, GOOD), focused = GOOD, radius = 10)
         isFocusable = true; isClickable = true; setOnClickListener { onClick() }
-        addView(icon(iconRes, 20, GOOD)); addView(text("  $label", 14f, GOOD).apply { isSingleLine = true }.apply { setShadowLayer(10f, 0f, 0f, 0x8839FF14.toInt()) })
+        addView(icon(iconRes, 20, GOOD)); addView(text("  $label", 14f, GOOD).apply { isSingleLine = true }.apply { setShadowLayer(10f, 0f, 0f, withAlpha(0x88, GOOD)) })
         layoutParams = lp().apply { topMargin = dp(2) }
         glow(GOOD, 4)
     }
@@ -200,14 +203,14 @@ class QuickMenu(
     /** One half of the 60 / 120 Hz segmented control. */
     private fun segment(label: String, selected: Boolean, onClick: () -> Unit) = text(label, 13f).apply {
         isSingleLine = true; gravity = Gravity.CENTER; setPadding(g, dp(6) + g, g, dp(6) + g)
-        background = focusBg(if (selected) 0x550389FB else TILE_2, rest = if (selected) BLUE else BLUE_DIM, radius = 8)
+        background = focusBg(if (selected) withAlpha(0x55, BLUE) else TILE_2, rest = if (selected) BLUE else BLUE_DIM, radius = 8)
         isFocusable = true; isClickable = true; setOnClickListener { onClick() }
         layoutParams = lp(0, weight = 1f)
         glow(elev = 4)
     }
 
     private fun circled(letter: String) = text(letter, 12f).apply {
-        gravity = Gravity.CENTER; background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setStroke(dp(2), WHITE) }
+        gravity = Gravity.CENTER; background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setStroke(dp(2), TEXT) }
         layoutParams = LinearLayout.LayoutParams(dp(24), dp(24))
     }
 
@@ -237,10 +240,10 @@ class QuickMenu(
 
         // Header: HandyHelper, the wordmark, and the close button.
         val close = FrameLayout(svc).apply {
-            background = focusBg(0x00000000, rest = WHITE_DIM, focused = BLUE, radius = 8)
+            background = focusBg(0x00000000, rest = TEXT_DIM, focused = BLUE, radius = 8)
             isFocusable = true; isClickable = true; setOnClickListener { hide() }
             glow()
-            addView(icon(R.drawable.ic_close, 22, WHITE).apply {
+            addView(icon(R.drawable.ic_close, 22, TEXT).apply {
                 layoutParams = FrameLayout.LayoutParams(dp(22), dp(22), Gravity.CENTER)
             })
             layoutParams = LinearLayout.LayoutParams(dp(34) + 2 * g, dp(34) + 2 * g)
@@ -260,16 +263,16 @@ class QuickMenu(
             addView(icon(icon, 20, MUTED)); addView(text("  $label", 13f, MUTED, bold = false).apply { layoutParams = lp(0, weight = 1f) })
             addView(TextView(svc).apply { text = value; textSize = 17f; typeface = mono; setTextColor(color) })
         }
-        val tempColor = s.cpuC?.let { if (it < 75) GOOD else if (it < 88) 0xFFFFB300.toInt() else 0xFFFF3B3B.toInt() } ?: MUTED
+        val tempColor = s.cpuC?.let { if (it < 75) GOOD else if (it < 88) WARN else BAD } ?: MUTED
         val liveRows = arrayOf<View>(
             live(R.drawable.ic_speed, "CPU", s.cpuC?.let { "$it °C" } ?: "–", tempColor),
-            live(R.drawable.ic_mode_fan, "Fan", s.fanPct?.let { "$it%" } ?: "–", WHITE),
+            live(R.drawable.ic_mode_fan, "Fan", s.fanPct?.let { "$it%" } ?: "–", TEXT),
         )
         val link = host.pulse()
         val fork = s.fork
         // No state from the engine: say why (not started yet, or its watcher is asleep) instead of offering controls.
         if (fork == null) Log.i("HandyTuner", "menu perf: connected=${link.connected} v${link.version} empty=${link.emptyState} problem=${link.problem()}")
-        val perfTile = if (fork != null) pulseControls(fork, liveRows, host.currentGame())
+        val perfTile = if (fork != null) pulseControls(fork, liveRows, host.currentGame(), s.stats)
         else tile(null, heading(R.drawable.ic_speed, "Performance & Fan", "$perfName • $fanName"),
             *liveRows, text((link.problem() ?: "PULSE isn't answering").replaceFirstChar { it.uppercase() },
                 12f, MUTED, bold = false).apply { setPadding(0, dp(8), 0, 0) })
@@ -335,15 +338,15 @@ class QuickMenu(
 
         // Pulse Status, with the only Open Pulse button.
         val fanCircle = FrameLayout(svc).apply {
-            background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setStroke(dp(2), BLUE); setColor(0x220389FB) }
+            background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setStroke(dp(2), BLUE); setColor(withAlpha(0x22, BLUE)) }
             glow(elev = 8)
             addView(icon(R.drawable.ic_mode_fan, 30).apply { layoutParams = FrameLayout.LayoutParams(dp(30), dp(30), Gravity.CENTER) })
             layoutParams = LinearLayout.LayoutParams(dp(40), dp(40))
         }
         val status = when { !s.pulseInstalled -> "Not installed"; s.pulseRunning -> "Running"; else -> "Not running" }
-        val openPulse = text("Engine settings", 16f).apply {
+        val openPulse = text("Engine settings", 16f, 0xFFFFFFFF.toInt()).apply {   // white on the blue button, either theme
             gravity = Gravity.CENTER; setPadding(dp(18) + g, dp(7) + g, dp(18) + g, dp(7) + g)
-            background = focusBg(BLUE, rest = BLUE, focused = WHITE, radius = 10)
+            background = focusBg(BLUE, rest = BLUE, focused = TEXT, radius = 10)
             isFocusable = true; isClickable = true; setOnClickListener { hide(); actions.openPulse() }
         }.glow(elev = 10)
         val pulseTile = tile(null, LinearLayout(svc).apply {
@@ -363,7 +366,7 @@ class QuickMenu(
         val footer = LinearLayout(svc).apply {
             orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
             setPadding(dp(4), dp(10), dp(4), 0)
-            addView(icon(R.drawable.ic_add_circle, 22, WHITE)); addView(text("  D-Pad: Navigate", 13f).apply { layoutParams = lp(0, weight = 1f) })
+            addView(icon(R.drawable.ic_add_circle, 22, TEXT)); addView(text("  D-Pad: Navigate", 13f).apply { layoutParams = lp(0, weight = 1f) })
             addView(circled("A")); addView(text(" : Select", 13f).apply { layoutParams = lp(0, weight = 1f) })
             addView(circled("B")); addView(text("  Back", 13f))
         }
@@ -373,7 +376,7 @@ class QuickMenu(
         // The game in front, on its own line above Performance & Fan: long names ("The Legend of Zelda - The Wind
         // Waker") didn't fit in the Preset tile.
         val gameTitle = game?.let { g ->
-            text(gameLabel(g), 16f, WHITE).apply {
+            text(gameLabel(g), 16f, TEXT).apply {
                 maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END; setPadding(dp(4), 0, dp(4), dp(4))
             }
         }
@@ -404,7 +407,7 @@ class QuickMenu(
             tile(null,
                 heading(R.drawable.ic_build, "Safe mode", SafeMode.why(svc).replaceFirstChar { it.uppercase() }, MUTED),
                 text("HandyTuner has stopped changing anything. What it changed before this is still on the Odin: clear this to let it write again, or use Reset everything to stock to put those back.\n\nClear it in the app: Diagnostics → Safe mode.",
-                    13f).apply { setTextColor(WHITE_DIM) })
+                    13f).apply { setTextColor(TEXT_DIM) })
         ).apply { layoutParams = lp().apply { topMargin = dp(8) } }
         val content = if (safe) vbox(header, safeNote, footer) else vbox(header, tabBar, *tabs.toTypedArray(), footer)
             .apply { setPadding(dp(14), dp(4), dp(14), dp(2)) }
@@ -427,7 +430,7 @@ class QuickMenu(
             }
         }.apply {
             orientation = LinearLayout.VERTICAL
-            background = GlowDrawable(0xF0040914.toInt(), BLUE, dp(2).toFloat(), dp(14).toFloat(), dp(10).toFloat(), 200)
+            background = GlowDrawable(PANEL, BLUE, dp(2).toFloat(), dp(14).toFloat(), dp(10).toFloat(), 200)
             setPadding(dp(10), dp(4), dp(10), dp(4))
             // Room around the tiles so their glow isn't clipped at the edges.
             addView(ScrollView(svc).apply { addView(content); isVerticalScrollBarEnabled = false; clipToPadding = false })
@@ -470,7 +473,7 @@ class QuickMenu(
      * Pulse controls through the fork (docs/feature-registry.md F2). Pulse treats AutoTDP and a fixed tier as
      * one choice per game, so they share one row; changes go to the game in front (Pulse's per-game scope).
      */
-    private fun pulseControls(f: org.json.JSONObject, liveRows: Array<View>, game: String?): View {
+    private fun pulseControls(f: org.json.JSONObject, liveRows: Array<View>, game: String?, stats: org.json.JSONObject?): View {
         val gameOpen = game != null
         // Every change is also saved to the game (D14: menu tweaks save on top of its preset).
         fun tweak(cmd: (com.kei.pulse.control.IPulseControl) -> Boolean, change: (PulsePart) -> PulsePart) = pulseThen { c ->
@@ -520,22 +523,40 @@ class QuickMenu(
         val fans = listOf(Actions.FAN_QUIET, Actions.FAN_SMART, Actions.FAN_SPORT, Actions.FAN_CUSTOM)
         val fanRow = row(*fans.map { v -> segment(Actions.FAN_NAMES.getValue(v), fan == v) { tweak({ it.setFanMode(v) }) { p -> p.copy(fan = v) } } }.toTypedArray())
         val fanName = fan?.let { Actions.FAN_NAMES[it] } ?: "PULSE's fan"
+        // AutoTDP measures a game before it settles: about the first minute, and the fps keeps climbing after
+        // this note is gone. Without a word the wait reads as Auto not working. It also remembers each game's
+        // converged caps, so the next run starts near the mark (that is why the first time feels slow).
+        val learning = stats?.let { if (auto && !it.optBoolean("learned", true)) it.optInt("learningPercent") else null }
+        val learningNote = learning?.let {
+            text("AutoTDP is still learning this game ($it%). Give it a minute — it settles on its own, and next time it remembers this game.", 12f, MUTED, bold = false)
+                .apply { setPadding(0, dp(8), 0, 0) }
+        }
         // Mode and FPS are saved for the game in front, so without a game they'd land on the home screen.
         if (!gameOpen) return tile(null, heading(R.drawable.ic_speed, "Performance & Fan", "${noGame().replace("Open a game first", "Open a game")} to change its mode • $fanName"),
             fanRow, *liveRows)
         return tile(null, heading(R.drawable.ic_speed, "Performance & Fan", "$mode • $fanName"),
-            modeRow, *listOfNotNull(fpsRow).toTypedArray(), fanRow, *liveRows)
+            modeRow, *listOfNotNull(fpsRow, learningNote).toTypedArray(), fanRow, *liveRows)
     }
 
     companion object {
-        private const val BLUE = 0xFF0389FB.toInt()
-        private const val BLUE_DIM = 0x800389FB.toInt()
-        private const val CYAN = 0xFF00E5FF.toInt()
-        private const val TILE = 0xCC0A1428.toInt()      // navy glass
-        private const val TILE_2 = 0xFF111E38.toInt()
-        private const val WHITE = 0xFFFFFFFF.toInt()
-        private const val WHITE_DIM = 0x99FFFFFF.toInt()
-        private const val MUTED = 0xFF7A8BA0.toInt()
-        private const val GOOD = 0xFF39FF14.toInt()
+        // Navy glass and neon on the dark theme, the same hues read on white glass in the light one.
+        private val BLUE get() = if (Hand.light) Palette.BLUE_L else Palette.BLUE_D
+        private val BLUE_DIM get() = if (Hand.light) Palette.BLUE_DIM_L else Palette.BLUE_DIM_D
+        private val CYAN get() = if (Hand.light) Palette.CYAN_L else Palette.CYAN_D
+        private val TILE get() = if (Hand.light) Palette.TILE_L else Palette.TILE_D      // navy glass; white glass
+        private val TILE_2 get() = if (Hand.light) Palette.TILE2_L else Palette.TILE2_D
+        private val PANEL get() = if (Hand.light) Palette.PANEL_L else Palette.PANEL_D
+        private val TEXT get() = if (Hand.light) Palette.TEXT_L else Palette.TEXT_D
+        private val TEXT_DIM get() = if (Hand.light) Palette.TEXT_DIM_L else Palette.TEXT_DIM_D
+        private val MUTED get() = if (Hand.light) Palette.MUTED_L else Palette.MUTED_D
+        private val GOOD get() = if (Hand.light) Palette.GOOD_L else Palette.GOOD_D
+        private val WARN get() = if (Hand.light) Palette.WARN_L else Palette.WARN_D
+        private val BAD get() = if (Hand.light) Palette.BAD_L else Palette.BAD_D
+        private val TRACK get() = if (Hand.light) Palette.TRACK_L else Palette.TRACK_D
+        private val BAR get() = if (Hand.light) Palette.BAR_L else Palette.BAR_D
+        private val GLOW get() = if (Hand.light) Palette.GLOW_L else Palette.GLOW_D
+
+        /** [rgb] under an alpha byte: withAlpha(0x55, BLUE). */
+        private fun withAlpha(a: Int, rgb: Int) = (a shl 24) or (rgb and 0xFFFFFF)
     }
 }
