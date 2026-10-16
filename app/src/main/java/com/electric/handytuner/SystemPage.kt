@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 package com.electric.handytuner
 
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.background
@@ -16,6 +17,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Article
+import androidx.compose.material.icons.rounded.Cloud
 import androidx.compose.material.icons.rounded.Code
 import androidx.compose.material.icons.rounded.DarkMode
 import androidx.compose.material.icons.rounded.Favorite
@@ -82,6 +84,8 @@ fun SystemPage(act: MainActivity) {
                     withContext(Dispatchers.Main) { freed = "Freed $mb MB"; busy = false }
                 }
             }
+
+            PlayServicesRow(act)
 
             var removed by remember { mutableStateOf(!actions.odinMenuOn()) }
             var menuBusy by remember { mutableStateOf(false) }
@@ -174,6 +178,26 @@ fun SystemPage(act: MainActivity) {
             ActionRow("Source code", hint = "github.com/ElectricBits/HandyTuner", icon = Icons.Rounded.Code) { web(About.SOURCE) }
             if (About.DISCORD.isNotEmpty()) ActionRow("Discord", hint = "Questions and ideas", icon = Icons.Rounded.Forum) { web(About.DISCORD) }
             if (About.KOFI.isNotEmpty()) ActionRow("Support on Ko-fi", hint = "If HandyTuner helps you", icon = Icons.Rounded.Favorite) { web(About.KOFI) }
+        }
+    }
+}
+
+/** Odin Assistant's Google Play services switch, with what it costs spelled out. Reset turns it back on. */
+@Composable
+internal fun PlayServicesRow(ctx: Context) {
+    val actions = remember { Actions(ctx) }
+    val scope = rememberCoroutineScope()
+    var on by remember { mutableStateOf(actions.playServicesOn()) }
+    var busy by remember { mutableStateOf(false) }
+    ToggleRow("Google Play services", on, enabled = !busy,
+        hint = if (on) "On: notifications, sign-ins and the Play Store work" else "Off: frees memory while you play",
+        help = if (on) null else "Turn it back on for notifications, Google sign-ins and the Play Store.",
+        confirmOff = "Off frees memory and background work while you play, but notifications, Google sign-ins and the Play Store stop until you turn it back on.",
+        icon = Icons.Rounded.Cloud) { want ->
+        busy = true
+        scope.launch(Dispatchers.IO) {
+            actions.setPlayServices(want); val now = actions.playServicesOn()
+            withContext(Dispatchers.Main) { on = now; busy = false }
         }
     }
 }
