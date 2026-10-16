@@ -43,6 +43,7 @@ import com.kei.pulse.model.CustomFanState
 import com.kei.pulse.model.DeviceProfiles
 import com.kei.pulse.model.FanAction
 import com.kei.pulse.model.FanArbiter
+import com.kei.pulse.model.FanHeatCap
 import com.kei.pulse.model.FanCurve
 import com.kei.pulse.model.FanTempController
 import com.kei.pulse.model.CpuPolicyInfo
@@ -170,7 +171,7 @@ class ForegroundAppMonitorService : Service() {
             .put("charging", !t.isDischarging).put("mode", overlayProfileLabel)
             // AutoTDP measures a game before it settles, and the HUD has no other way to know: while
             // learningPercent is under 100 the overlay says so instead of looking like it isn't working.
-            .put("learningPercent", autoTune.learnedPercent()).put("learned", autoTune.powerModel.hasSplit()).toString()
+            .put("fanCapped", fanHeatCapped).put("learningPercent", autoTune.learnedPercent()).put("learned", autoTune.powerModel.hasSplit()).toString()
     }
 
     data class RemoteState(
@@ -595,6 +596,8 @@ class ForegroundAppMonitorService : Service() {
     private var boundReassertTick = 0
     // Vendor QS-tile coexistence: armed when the managed fan changes, so the override notice fires once per value.
     @Volatile private var fanOverrideNotified = false
+    /** [FanHeatCap] latch: a Quiet fan is running as Smart because the chip got hot during AutoTDP. */
+    @Volatile private var fanHeatCapped = false
     @Volatile private var lastManagedFan: Int? = null
     // FanArbiter release latch: PULSE normalizes the fan ONCE on a managed→unmanaged edge, then goes hands-off.
     // Starts TRUE (= never-managed) so a fan PULSE wasn't managing is never touched — a user's deliberate system
@@ -1013,7 +1016,13 @@ class ForegroundAppMonitorService : Service() {
         // The DECISION lives in the pure, truth-table-tested FanArbiter (the imperative version's release path
         // silently assumed the fan was already at the vendor default — turning the Fan card OFF after managing
         // a vendor mode left that mode stuck forever). This is the thin executor.
+        val hotC = lastTelemetry?.let { listOfNotNull(it.cpuTempC, it.gpuTempC).maxOrNull() }
+        val wasCapped = fanHeatCapped
+        fanHeatCapped = autoActive && FanHeatCap.next(fanHeatCapped, hotC)
+        if (fanHeatCapped && !wasCapped && container.perAppConfigStorage.switchNotices.first())
+            showToast("HandyTuner · chip at ${hotC}°C — Quiet fan runs as Smart until it cools")
         val action = FanArbiter.decide(
+            heatCapped = fanHeatCapped,
             autoTdpActive = autoActive,
             boundFanMode = boundFan,
             managedFanMode = settings.managedFanMode,

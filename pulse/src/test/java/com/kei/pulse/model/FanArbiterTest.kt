@@ -26,8 +26,9 @@ class FanArbiterTest {
         releaseLatched: Boolean = false,
         releaseMode: Int = FanController.SMART,
         readLiveMode: () -> Int?,
+        heatCapped: Boolean = false,
     ) = FanArbiter.decide(
-        autoTdpActive, boundFanMode, managedFanMode, customFanSupported, releaseLatched, releaseMode, readLiveMode,
+        autoTdpActive, boundFanMode, managedFanMode, customFanSupported, releaseLatched, releaseMode, readLiveMode, heatCapped,
     )
 
     // ── AutoTDP owns the fan ────────────────────────────────────────────────────────────────────────
@@ -61,6 +62,34 @@ class FanArbiterTest {
         // Zelda under AutoTDP: picking Sport must reach the fan, not be ignored.
         assertEquals(FanAction.SetVendorMode(FanController.SPORT), decide(autoTdpActive = true, managedFanMode = FanController.SPORT, readLiveMode = { FanController.SMART }))
         assertEquals(FanAction.None, decide(autoTdpActive = true, managedFanMode = FanController.SPORT, readLiveMode = { FanController.SPORT }))
+    }
+
+    @Test
+    fun `autotdp heat cap swaps quiet for smart, only while capped`() {
+        assertEquals(FanAction.SetVendorMode(FanController.SMART),
+            decide(autoTdpActive = true, managedFanMode = FanController.SILENT, heatCapped = true, readLiveMode = { FanController.SILENT }))
+        assertEquals(FanAction.None,
+            decide(autoTdpActive = true, managedFanMode = FanController.SILENT, heatCapped = true, readLiveMode = { FanController.SMART }))
+        assertEquals(FanAction.None,
+            decide(autoTdpActive = true, managedFanMode = FanController.SILENT, heatCapped = false, readLiveMode = { FanController.SILENT }))
+    }
+
+    @Test
+    fun `heat cap leaves sport alone and ignores games without autotdp`() {
+        assertEquals(FanAction.None,
+            decide(autoTdpActive = true, managedFanMode = FanController.SPORT, heatCapped = true, readLiveMode = { FanController.SPORT }))
+        assertEquals(FanAction.None,
+            decide(autoTdpActive = false, managedFanMode = FanController.SILENT, heatCapped = true, readLiveMode = { FanController.SILENT }))
+    }
+
+    @Test
+    fun `heat cap latches at 90 and releases at 85`() {
+        assertEquals(false, FanHeatCap.next(false, 89))
+        assertEquals(true, FanHeatCap.next(false, 90))
+        assertEquals(true, FanHeatCap.next(true, 87))      // between the two: hold, no flapping
+        assertEquals(false, FanHeatCap.next(true, 85))
+        assertEquals(true, FanHeatCap.next(true, null))    // no reading keeps the last state
+        assertEquals(false, FanHeatCap.next(false, null))
     }
 
     @Test

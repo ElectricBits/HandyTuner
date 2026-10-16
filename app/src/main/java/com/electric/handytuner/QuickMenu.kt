@@ -534,11 +534,15 @@ class QuickMenu(
             text("AutoTDP is still learning this game ($it%). Give it a minute — it settles on its own, and next time it remembers this game.", 12f, MUTED, bold = false)
                 .apply { setPadding(0, dp(8), 0, 0) }
         }
+        // Quiet is held back at 90 °C during AutoTDP (PULSE swaps it for Smart); say so, or the tile lies.
+        val heatNote = if (stats?.optBoolean("fanCapped") == true)
+            text("The chip is hot, so Quiet is running as Smart. It switches back once it cools.", 12f, WARN, bold = false)
+                .apply { setPadding(0, dp(6), 0, 0) } else null
         // Mode and FPS are saved for the game in front, so without a game they'd land on the home screen.
         if (!gameOpen) return tile(null, heading(R.drawable.ic_speed, "Performance & Fan", "${noGame().replace("Open a game first", "Open a game")} to change its mode • $fanName"),
             fanRow, *liveRows)
         return tile(null, heading(R.drawable.ic_speed, "Performance & Fan", "$mode • $fanName"),
-            modeRow, *listOfNotNull(fpsRow, learningNote).toTypedArray(), fanRow, *liveRows)
+            modeRow, *listOfNotNull(fpsRow, learningNote).toTypedArray(), fanRow, *listOfNotNull(heatNote).toTypedArray(), *liveRows)
     }
 
     companion object {

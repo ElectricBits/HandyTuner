@@ -19,6 +19,24 @@ sealed interface FanAction {
 }
 
 /**
+ * The heat cap on a Quiet fan during AutoTDP, with hysteresis so the fan doesn't flap around the limit.
+ * Quiet cools least, and AutoTDP keeps the clocks high, so the owner's 90 °C ceiling needs a net: at
+ * [ON_C] the arbiter swaps Quiet for Smart, and Quiet comes back only once the chip is down to [OFF_C].
+ */
+object FanHeatCap {
+    const val ON_C = 90
+    const val OFF_C = 85
+
+    /** The next latch state; no reading keeps the last one. */
+    fun next(capped: Boolean, tempC: Int?): Boolean = when {
+        tempC == null -> capped
+        tempC >= ON_C -> true
+        tempC <= OFF_C -> false
+        else -> capped
+    }
+}
+
+/**
  * The fan arbitration as a pure, device-free resolver — the decision half of the service's
  * `reassertManagedFan` (the service gathers inputs, executes the returned [FanAction], and owns the
  * release latch + notify state). Extracted because this was the last big imperative fan decision, and its
@@ -41,6 +59,7 @@ object FanArbiter {
      * @param releaseLatched the managed→unmanaged release already ran; stay hands-off until managed again.
      * @param releaseMode the mode PULSE hands the fan to on release (vendor Smart everywhere today —
      *   the adaptive, thermally safe mode the rest of PULSE also restores).
+     * @param heatCapped [FanHeatCap] is latched: during AutoTDP a Quiet pick runs as Smart until the chip cools.
      * @param readLiveMode lazily reads the live `fan_mode` (invoked at most once, only when needed).
      */
     fun decide(
@@ -51,6 +70,7 @@ object FanArbiter {
         releaseLatched: Boolean,
         releaseMode: Int,
         readLiveMode: () -> Int?,
+        heatCapped: Boolean = false,
     ): FanAction {
         // AutoTDP keeps the clocks, but the fan follows the user's pick: Custom runs its loop where the node
         // exists; a vendor mode (Quiet/Smart/Sport) is enforced like any other. Without a pick, stand down.
@@ -73,6 +93,8 @@ object FanArbiter {
         // Custom: run the loop where the PWM node exists; else fall back to Smart (never sit on a phantom mode).
         val effective = if (desired == FanController.CUSTOM) {
             if (customFanSupported) return FanAction.RunCustomLoop
+            FanController.SMART
+        } else if (autoTdpActive && heatCapped && desired == FanController.SILENT) {
             FanController.SMART
         } else {
             desired
