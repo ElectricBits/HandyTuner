@@ -27,6 +27,7 @@ import androidx.compose.material.icons.rounded.Wifi
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
@@ -335,7 +336,11 @@ class MainActivity : ComponentActivity() {
         Column(
             Modifier.width(236.dp).fillMaxHeight().background(Hand.Card.copy(alpha = if (Hand.light) 0.7f else 0.55f))
                 .drawBehind { drawLine(edge, Offset(size.width, 0f), Offset(size.width, size.height), 1.dp.toPx()) }
-                .focusProperties { enter = { items.getValue(current) } }.focusGroup()
+                .focusProperties {
+                    // D-pad into the list lands on the current section. A jump made in code (L1/R1, B, a Home tile) asks
+                    // for its own target: redirecting that too sent R1 from a page straight back to where it started.
+                    enter = { dir -> if (dir == FocusDirection.Enter) FocusRequester.Default else items.getValue(current) }
+                }.focusGroup()
                 .verticalScroll(rememberScrollState()).padding(horizontal = 12.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
