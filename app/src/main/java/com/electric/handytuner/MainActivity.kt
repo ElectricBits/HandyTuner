@@ -25,6 +25,8 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -154,13 +156,17 @@ class MainActivity : ComponentActivity() {
                 var tweaksOpen by remember { mutableStateOf(page in TWEAK_CHILDREN) }
                 // Closed, the six buttons share the height evenly. Open, they and the four children do not fit
                 // the screen: give each a fixed height and let the rail scroll instead of squashing the labels.
+                // The scroll stays on in both states: adding it around the focused Tweaks button as the folder
+                // opened broke Compose's focus tree ("ActiveParent must have a focusedChild" on the next D-pad press).
                 val railScroll = rememberScrollState()
                 Row(Modifier.fillMaxSize().background(Hand.Bg)) {
                     // The board's left icon rail. Battery, Network and Controller join it as they're built.
+                    BoxWithConstraints(Modifier.fillMaxHeight().width(112.dp)) {
+                    // At least the screen's height, so the closed rail's weights still spread the buttons out.
+                    val railHeight = maxHeight
                     Column(
                         // Battery, Network and Dock sit under Tweaks: six buttons until that one opens.
-                        Modifier.fillMaxHeight().width(112.dp).then(if (tweaksOpen) Modifier.verticalScroll(railScroll) else Modifier)
-                            .padding(vertical = 8.dp),
+                        Modifier.fillMaxWidth().verticalScroll(railScroll).heightIn(min = railHeight).padding(vertical = 8.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         val slot = if (tweaksOpen) Modifier.height(52.dp) else Modifier.weight(1f)
@@ -182,6 +188,7 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                         listOf(Page.CONTROLLER, Page.DIAGNOSTICS).forEach { p -> RailSlot(slot, p, page == p) { page = p } }
+                    }
                     }
                     Column(Modifier.fillMaxSize().padding(start = 8.dp, top = 20.dp, end = 24.dp)) {
                         // Explicit white: with no Surface around it, Text's default content color is black.
