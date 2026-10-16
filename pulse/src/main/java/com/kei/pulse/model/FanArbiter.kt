@@ -52,13 +52,12 @@ object FanArbiter {
         releaseMode: Int,
         readLiveMode: () -> Int?,
     ): FanAction {
-        // AutoTDP owns the fan: cascade the user's Custom loop if chosen + supported, else stand down
-        // (startAutoTdp already forced vendor Smart for non-Custom).
+        // AutoTDP keeps the clocks, but the fan follows the user's pick: Custom runs its loop where the node
+        // exists; a vendor mode (Quiet/Smart/Sport) is enforced like any other. Without a pick, stand down.
         if (autoTdpActive) {
-            return if (managedFanMode == FanController.CUSTOM && customFanSupported) {
-                FanAction.RunCustomLoop
-            } else {
-                FanAction.None
+            if (managedFanMode == null) return FanAction.None
+            if (managedFanMode == FanController.CUSTOM) {
+                return if (customFanSupported) FanAction.RunCustomLoop else FanAction.None
             }
         }
         // The fan PULSE wants: a foreground app's per-app fan takes priority, else the global Fan-card mode.

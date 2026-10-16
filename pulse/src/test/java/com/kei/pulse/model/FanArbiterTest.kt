@@ -52,15 +52,20 @@ class FanArbiterTest {
     }
 
     @Test
-    fun `autotdp with non-custom fan stands down (vendor smart was set at session start)`() {
-        assertEquals(
-            FanAction.None,
-            decide(autoTdpActive = true, managedFanMode = FanController.SPORT, readLiveMode = mustNotRead),
-        )
-        assertEquals(
-            FanAction.None,
-            decide(autoTdpActive = true, managedFanMode = null, readLiveMode = mustNotRead),
-        )
+    fun `autotdp with no fan pick stands down, no mode read`() {
+        assertEquals(FanAction.None, decide(autoTdpActive = true, managedFanMode = null, readLiveMode = mustNotRead))
+    }
+
+    @Test
+    fun `autotdp enforces the user's vendor pick on drift`() {
+        // Zelda under AutoTDP: picking Sport must reach the fan, not be ignored.
+        assertEquals(FanAction.SetVendorMode(FanController.SPORT), decide(autoTdpActive = true, managedFanMode = FanController.SPORT, readLiveMode = { FanController.SMART }))
+        assertEquals(FanAction.None, decide(autoTdpActive = true, managedFanMode = FanController.SPORT, readLiveMode = { FanController.SPORT }))
+    }
+
+    @Test
+    fun `autotdp custom with unsupported node stands down`() {
+        assertEquals(FanAction.None, decide(autoTdpActive = true, managedFanMode = FanController.CUSTOM, customFanSupported = false, readLiveMode = mustNotRead))
     }
 
     // ── Managed vendor modes: write only on drift ───────────────────────────────────────────────────

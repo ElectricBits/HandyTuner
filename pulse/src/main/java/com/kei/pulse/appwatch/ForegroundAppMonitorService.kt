@@ -1520,9 +1520,9 @@ class ForegroundAppMonitorService : Service() {
         applyAutoTdpRegulation(pkg, config)
         autoTdpPackage = pkg
         autoTdpTick = 0
-        // Fan: force vendor Smart UNLESS the user runs the Custom fan — then reassertManagedFan keeps driving
-        // their (quieter) closed-loop Custom fan during AutoTDP instead.
-        if (settings.managedFanMode != FanController.CUSTOM) fanController.setMode(FanController.SMART)
+        // Fan: start on the user's vendor pick (Smart when none). Custom is left to reassertManagedFan, which
+        // keeps driving their closed-loop Custom fan during AutoTDP.
+        if (settings.managedFanMode != FanController.CUSTOM) fanController.setMode(settings.managedFanMode ?: FanController.SMART)
         GovernorController.OPTIONS.firstOrNull { it.label == "Balanced" }
             ?.let { governorController.setGovernor(policies, it) }
         overlayProfileLabel = "AutoTDP"
