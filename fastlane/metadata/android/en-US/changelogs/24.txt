@@ -1,0 +1,3 @@
+• Light theme fixes: dialogs, switches and sliders no longer turn purple or vanish, the HUD's magenta and orange show their real colors, and the Quick Menu follows the theme.
+• Fan modes in the Quick Menu now work in games that use AutoTDP. Before, Quiet, Smart and Sport were ignored. Quiet switches to Smart at 90 °C and returns at 85 °C.
+• The side menu scrolls when Tweaks is open instead of squashing its labels.
