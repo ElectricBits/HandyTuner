@@ -21,7 +21,6 @@ import androidx.compose.material.icons.rounded.DarkMode
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.Forum
 import androidx.compose.material.icons.rounded.HealthAndSafety
-import androidx.compose.material.icons.rounded.NetworkCheck
 import androidx.compose.material.icons.rounded.Replay
 import androidx.compose.material.icons.rounded.RestartAlt
 import androidx.compose.material.icons.rounded.RocketLaunch
@@ -72,12 +71,6 @@ fun SystemPage(act: MainActivity) {
         }
 
         RowGroup("Quick fixes") {
-            var lowLatency by remember { mutableStateOf(Tweaks.lowLatency(act)) }
-            ToggleRow("Low Latency mode", lowLatency, hint = "Steadier ping on Wi-Fi",
-                help = "Keeps the Wi-Fi radio awake between packets and stops background Wi-Fi and Bluetooth scans, which " +
-                    "pause the radio. Measured on this Odin: lag spikes to the router 62 → 9 ms. Network only: it never changes " +
-                    "PULSE or a game's preset.", icon = Icons.Rounded.NetworkCheck) { lowLatency = it; Tweaks.setLowLatency(act, it) }
-
             var freed by remember { mutableStateOf<String?>(null) }
             var busy by remember { mutableStateOf(false) }
             ActionRow("Speed Up", hint = "Closes background apps", value = if (busy) "Working…" else freed, enabled = !busy,

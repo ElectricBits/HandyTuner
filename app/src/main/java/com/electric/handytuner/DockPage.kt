@@ -3,43 +3,35 @@
 package com.electric.handytuner
 
 import android.content.Context
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.Slider
-import androidx.compose.material3.Text
+import android.hardware.display.DisplayManager
+import android.view.Display
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.BatteryChargingFull
+import androidx.compose.material.icons.rounded.Bedtime
+import androidx.compose.material.icons.rounded.BrightnessLow
+import androidx.compose.material.icons.rounded.Cable
+import androidx.compose.material.icons.rounded.Insights
+import androidx.compose.material.icons.rounded.Launch
+import androidx.compose.material.icons.rounded.LightMode
+import androidx.compose.material.icons.rounded.PhoneAndroid
+import androidx.compose.material.icons.rounded.SportsEsports
+import androidx.compose.material.icons.rounded.TextFields
+import androidx.compose.material.icons.rounded.Tv
+import androidx.compose.material.icons.rounded.Weekend
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
-import kotlin.math.roundToInt
+import kotlin.concurrent.thread
 
-/**
- * Dock: what changes while the Odin is docked (Setup.kt). The :overlay watcher does the switching;
- * this page only writes setup.properties and the docked charge limit.
- */
-@OptIn(ExperimentalLayoutApi::class)
+/** How the Odin behaves docked: what counts as docked, presets, apps, the screens, and charging. */
 @Composable
 fun DockPage(ctx: Context) {
     var r by remember { mutableStateOf(SetupRules.load(ctx)) }
     fun save(n: SetupRules) { r = n; SetupRules.save(ctx, n) }
-    var tab by remember { mutableStateOf(0) }
 
     // What HandyTuner sees right now, refreshed every two seconds.
     var now by remember { mutableStateOf<Pair<Setup, String>?>(null) }
@@ -49,7 +41,7 @@ fun DockPage(ctx: Context) {
             val pads = Pads.connected(r.ignoredPads)
             val setup = Setup.of(Dock.docked(ctx, r), pads.isNotEmpty())
             now = setup to listOfNotNull(
-                if (screens > 0) "TV or monitor connected" else "no TV or monitor",
+                if (screens > 0) "TV or monitor" else "no TV or monitor",
                 if (Dock.plugged(ctx)) "charging" else "on battery",
                 pads.firstOrNull()?.name?.let { "controller: $it" } ?: "no controller",
             ).joinToString(" · ")
@@ -57,76 +49,80 @@ fun DockPage(ctx: Context) {
         }
     }
 
-    // Sub-tabs: how the dock behaves, what the screen does, and charging.
-    Column(Modifier.fillMaxSize()) {
-        SubTabs(listOf("Setup", "Display", "Charging"), tab) { tab = it }
-        Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            when (tab) {
-                0 -> {
-                    HandCard(Modifier.fillMaxWidth()) {
-                        Text("Right now: ${now?.first?.label ?: "…"} mode", color = Hand.Text, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
-                        Text(now?.second ?: "Checking…", color = Hand.Blue, fontSize = 14.sp)
-                        Text("Docked means a TV or monitor is plugged in. Docked with a controller is Couch mode.", color = Hand.Muted, fontSize = 14.sp,
-                            modifier = Modifier.padding(top = 4.dp))
-                        SettingSwitch("Count any charger as docked", "For a dock without a TV, so a desk stand counts too.", r.chargerIsDock) {
-                            save(r.copy(chargerIsDock = it))
-                        }
-                    }
-                    HandCard(Modifier.fillMaxWidth()) {
-                        Text("Presets", color = Hand.Text, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
-                        Text("Goes over each game's own preset while docked, and the game's own comes back when you undock. A game you " +
-                            "change in the Quick Menu keeps your change. Docked, you're on power, so Performance is a good pick.",
-                            color = Hand.Muted, fontSize = 14.sp)
-                        PresetPicker("Docked", r.dockedPreset, "Each game's own", ctx) { save(r.copy(dockedPreset = it)) }
-                        PresetPicker("Couch (docked + controller)", r.couchPreset, "Same as docked", ctx) { save(r.copy(couchPreset = it)) }
-                    }
-                    HandCard(Modifier.fillMaxWidth()) {
-                        Text("Open an app when docked", color = Hand.Text, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
-                        Text("Opens when you dock, not when the Odin starts up already docked.", color = Hand.Muted, fontSize = 14.sp)
-                        val apps = remember { launchable(ctx) }
-                        FlowRow(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            FilterChip(selected = r.launchOnDock == null, onClick = { save(r.copy(launchOnDock = null)) }, label = { Text("Nothing") },
-                                modifier = Modifier.glowFocus(RoundedCornerShape(8.dp)))
-                            apps.forEach { (pkg, label) ->
-                                FilterChip(selected = r.launchOnDock == pkg, onClick = { save(r.copy(launchOnDock = pkg)) }, label = { Text(label) },
-                                    modifier = Modifier.glowFocus(RoundedCornerShape(8.dp)))
-                            }
-                        }
-                        if (apps.isEmpty()) Text("Play a game once and it shows up here.", color = Hand.Muted, fontSize = 13.sp)
-                    }
-                }
-                1 -> {
-                    ResolutionCard(ctx)   // the screens first: the Odin's own, and the TV's
-                    HandCard(Modifier.fillMaxWidth()) {
-                        Text("While docked", color = Hand.Text, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
-                        SettingSwitch("TV-size HUD", "A bigger HUD, readable from the sofa.", r.tvHud) { save(r.copy(tvHud = it)) }
-                        SettingSwitch("Dim the Odin's screen", "The TV keeps its picture. Brightness comes back when you undock.", r.dimScreen) {
-                            save(r.copy(dimScreen = it))
-                        }
-                        SettingSwitch("Keep the screen awake", "No screen timeout while docked.", r.keepAwake) { save(r.copy(keepAwake = it)) }
-                        SettingSwitch("Pause sleep underclock", "PULSE's sleep underclock stays off while docked, and comes back on when you undock.",
-                            r.sleepOff) { save(r.copy(sleepOff = it)) }
-                    }
-                }
-                else -> DockChargeCard(ctx)
-            }
+    ConsolePage {
+        RowGroup("Right now") {
+            InfoRow("${now?.first?.label ?: "…"} mode", "", hint = now?.second ?: "Checking…")
+            ToggleRow("Count any charger as docked", r.chargerIsDock, hint = "So a desk stand without a TV counts too",
+                help = "Docked normally means a TV or monitor is plugged in. Docked with a controller is Couch mode.",
+                icon = Icons.Rounded.Cable) { save(r.copy(chargerIsDock = it)) }
         }
+
+        RowGroup("Presets while docked") {
+            PresetChoiceRow(ctx, "Docked", r.dockedPreset, "Each game's own", icon = Icons.Rounded.Tv,
+                hint = "Goes over each game's own preset",
+                help = "The game's own comes back when you undock. A game you change in the Quick Menu keeps your change. " +
+                    "Docked you're on power, so Performance is a good pick.") { save(r.copy(dockedPreset = it)) }
+            PresetChoiceRow(ctx, "Couch", r.couchPreset, "Same as docked", icon = Icons.Rounded.Weekend,
+                hint = "Docked with a controller connected") { save(r.copy(couchPreset = it)) }
+            val apps = remember { launchable(ctx) }
+            val options = listOf<Pair<String?, String>>(null to "Nothing") + apps
+            ChoiceRow("Open when docked", options, options.indexOfFirst { it.first == r.launchOnDock }.coerceAtLeast(0), { it.second },
+                hint = if (apps.isEmpty()) "Play a game once and it shows up here" else "When you dock, not when it starts up docked",
+                icon = Icons.Rounded.Launch) { save(r.copy(launchOnDock = options[it].first)) }
+        }
+
+        ResolutionGroup(ctx)
+
+        RowGroup("While docked") {
+            ToggleRow("TV-size HUD", r.tvHud, hint = "A bigger HUD, readable from the sofa", icon = Icons.Rounded.Insights) { save(r.copy(tvHud = it)) }
+            ToggleRow("Dim the Odin's screen", r.dimScreen, hint = "The TV keeps its picture", icon = Icons.Rounded.BrightnessLow,
+                help = "Brightness comes back when you undock.") { save(r.copy(dimScreen = it)) }
+            ToggleRow("Keep the screen awake", r.keepAwake, hint = "No screen timeout while docked", icon = Icons.Rounded.LightMode) { save(r.copy(keepAwake = it)) }
+            ToggleRow("Pause sleep underclock", r.sleepOff, hint = "Back on when you undock", icon = Icons.Rounded.Bedtime) { save(r.copy(sleepOff = it)) }
+        }
+
+        DockChargeGroup(ctx)
+    }
+}
+
+/** Fewer pixels: less work for the graphics chip, and on a 4K TV about 300 MB less memory. */
+@Composable
+private fun ResolutionGroup(ctx: Context) {
+    var r by remember { mutableStateOf(Resolution.load(ctx)) }
+    // The Odin's own lines: its short side (1080 on the Odin 2 Portal), so each choice can say what it is.
+    val lines = remember { ctx.getSystemService(DisplayManager::class.java).getDisplay(Display.DEFAULT_DISPLAY).mode.let { minOf(it.physicalWidth, it.physicalHeight) } }
+    fun save(n: Resolution, screen: Boolean, tv: Boolean) {
+        r = n; Resolution.save(ctx, n)
+        thread { if (screen) Resolution.applyScreen(n); if (tv) Resolution.applyTv(ctx, n) }
+    }
+    val why = "Fewer pixels: less work for the graphics chip, and on a 4K TV about 300 MB less memory. A running game may " +
+        "pause once when it changes. Reset everything to stock puts both back."
+    RowGroup("Resolution") {
+        ChoiceRow("The Odin's screen", Resolution.SCALES, Resolution.SCALES.indexOf(r.screenPct),
+            { p -> "${if (p == 100) "Native · " else "$p% · "}${lines * p / 100}p" }, hint = "Lower is lighter on the chip", help = why,
+            icon = Icons.Rounded.PhoneAndroid) { i -> save(r.copy(screenPct = Resolution.SCALES[i]), screen = true, tv = false) }
+        ChoiceRow("The TV, while docked", Resolution.TV_HEIGHTS, Resolution.TV_HEIGHTS.indexOf(r.tvHeight),
+            { h -> when (h) { 0 -> "Default"; 2160 -> "4K"; else -> "${h}p" } }, hint = "Default is what the TV asks for", help = why,
+            icon = Icons.Rounded.Tv) { i -> save(r.copy(tvHeight = Resolution.TV_HEIGHTS[i]), screen = false, tv = true) }
+        ToggleRow("Keep text and buttons the same size", r.keepSize, hint = "Off: everything gets bigger at a lower resolution",
+            icon = Icons.Rounded.TextFields) { save(r.copy(keepSize = it), screen = true, tv = true) }
     }
 }
 
 /** The charge limit while docked, on top of the Battery page's. Saving turns charge control on, as the Battery page does. */
 @Composable
-private fun DockChargeCard(ctx: Context) {
+private fun DockChargeGroup(ctx: Context) {
     var s by remember { mutableStateOf(ChargeRule.load(ctx)) }
     fun set(n: ChargeRule.Settings) { s = n; ChargeRule.save(ctx, n) }
-    HandCard(Modifier.fillMaxWidth()) {
-        Text("Charging while docked", color = Hand.Text, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
-        Text("A docked Odin sits on the charger for hours, and a battery kept full wears faster.", color = Hand.Muted, fontSize = 14.sp)
-        SettingSwitch("Own limit while docked", "Off: the Battery page's limit (${if (s.limit >= 100) "no limit" else "${s.limit}%"}).",
-            s.dockedLimit != null) { set(s.copy(dockedLimit = if (it) 80 else null)) }
+    RowGroup("Charging while docked") {
+        ToggleRow("Own limit while docked", s.dockedLimit != null,
+            hint = "Off: the Battery page's (${if (s.limit >= 100) "no limit" else "${s.limit}%"})",
+            help = "A docked Odin sits on the charger for hours, and a battery kept full wears faster.",
+            icon = Icons.Rounded.BatteryChargingFull) { set(s.copy(dockedLimit = if (it) 80 else null)) }
         s.dockedLimit?.let { lim ->
-            Text(if (lim >= 100) "No limit" else "Stop at $lim%", color = Hand.Text, fontSize = 16.sp, modifier = Modifier.padding(top = 8.dp))
-            Slider(value = lim.toFloat(), onValueChange = { set(s.copy(dockedLimit = (it / 5).roundToInt() * 5)) }, valueRange = 50f..100f, steps = 9)
+            SliderRow("Docked limit", lim, 50..100, 5, { if (it >= 100) "No limit" else "$it%" }, icon = Icons.Rounded.SportsEsports) {
+                set(s.copy(dockedLimit = it))
+            }
         }
     }
 }

@@ -32,5 +32,24 @@ class Hotkey(private val fileName: String, val default: Set<Int>) {
         ))
 
         fun names(keys: Set<Int>) = keys.sorted().joinToString(" + ") { KeyEvent.keyCodeToString(it).removePrefix("KEYCODE_") }
+
+        /** The Odin 2 Portal's back paddles: they report as C (left) and Z (right), checked with getevent 2026-10-16. */
+        private val PADDLES = setOf(KeyEvent.KEYCODE_BUTTON_C, KeyEvent.KEYCODE_BUTTON_Z)
+
+        /** What the owner calls a button (paddles, L3/R3), not Android's name for it. [other] names the rest. */
+        fun buttonName(code: Int, other: (Int) -> String = KeyMapper::label) = when (code) {
+            KeyEvent.KEYCODE_BUTTON_C -> "Left paddle"
+            KeyEvent.KEYCODE_BUTTON_Z -> "Right paddle"
+            KeyEvent.KEYCODE_BUTTON_THUMBL -> "L3"
+            KeyEvent.KEYCODE_BUTTON_THUMBR -> "R3"
+            else -> other(code)
+        }
+
+        /** A combo for people: paddles first ("Both paddles" when both are in it), then the rest by code. */
+        fun pretty(keys: Set<Int>, other: (Int) -> String = KeyMapper::label): String {
+            val both = keys.containsAll(PADDLES)
+            val rest = keys.filter { !(both && it in PADDLES) }.sortedBy { if (it in PADDLES) -1 else it }.map { buttonName(it, other) }
+            return ((if (both) listOf("Both paddles") else emptyList()) + rest).joinToString(" + ")
+        }
     }
 }

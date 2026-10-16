@@ -5,26 +5,8 @@ package com.electric.handytuner
 import android.content.Context
 import android.hardware.display.DisplayManager
 import android.view.Display
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import java.io.File
 import java.util.Properties
-import kotlin.concurrent.thread
 
 /**
  * Resolution, like PULSE's render scale (`wm size` + `wm density` through PServer), with more choices: the Odin's
@@ -105,40 +87,6 @@ data class Resolution(
         fun putBack(ctx: Context) {
             set(Display.DEFAULT_DISPLAY, null)
             tv(ctx)?.let { set(it.displayId, null) }
-        }
-    }
-}
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-fun ResolutionCard(ctx: Context) {
-    var r by remember { mutableStateOf(Resolution.load(ctx)) }
-    // The Odin's own lines: its short side (1080 on the Odin 2 Portal), so each choice can say what it is.
-    val lines = remember { ctx.getSystemService(DisplayManager::class.java).getDisplay(Display.DEFAULT_DISPLAY).mode.let { minOf(it.physicalWidth, it.physicalHeight) } }
-    fun save(n: Resolution, screen: Boolean, tv: Boolean) {
-        r = n; Resolution.save(ctx, n)
-        thread { if (screen) Resolution.applyScreen(n); if (tv) Resolution.applyTv(ctx, n) }
-    }
-    HandCard(Modifier.fillMaxWidth()) {
-        Text("Resolution", color = Hand.Text, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
-        Text("Fewer pixels: less work for the graphics chip, and on a 4K TV about 300 MB less memory. A running game may " +
-            "pause once when it changes. Reset everything to stock puts both back.", color = Hand.Muted, fontSize = 14.sp)
-        Text("The Odin's screen", color = Hand.Text, fontSize = 16.sp, modifier = Modifier.padding(top = 10.dp))
-        FlowRow(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
-            Resolution.SCALES.forEach { p ->
-                FilterChip(selected = r.screenPct == p, onClick = { save(r.copy(screenPct = p), screen = true, tv = false) },
-                    label = { Text("${if (p == 100) "Native " else ""}$p% · ${lines * p / 100}p") }, modifier = Modifier.glowFocus(RoundedCornerShape(8.dp)))
-            }
-        }
-        Text("The TV, while docked", color = Hand.Text, fontSize = 16.sp, modifier = Modifier.padding(top = 10.dp))
-        FlowRow(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
-            Resolution.TV_HEIGHTS.forEach { h ->
-                FilterChip(selected = r.tvHeight == h, onClick = { save(r.copy(tvHeight = h), screen = false, tv = true) },
-                    label = { Text(when (h) { 0 -> "Default"; 2160 -> "4K"; else -> "${h}p" }) }, modifier = Modifier.glowFocus(RoundedCornerShape(8.dp)))
-            }
-        }
-        SettingSwitch("Keep text and buttons the same size", "Off: everything gets bigger at a lower resolution.", r.keepSize) {
-            save(r.copy(keepSize = it), screen = true, tv = true)
         }
     }
 }

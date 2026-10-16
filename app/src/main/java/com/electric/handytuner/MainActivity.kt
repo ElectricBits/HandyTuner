@@ -166,8 +166,8 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun loadLabels() {
-        hotkeyLabel = Hotkey.names(Hotkey.HUD.load(this))
-        menuKeyLabel = Hotkey.names(Hotkey.MENU.load(this))
+        hotkeyLabel = Hotkey.pretty(Hotkey.HUD.load(this))
+        menuKeyLabel = Hotkey.pretty(Hotkey.MENU.load(this))
     }
 
     internal val actions by lazy { Actions(this) }
@@ -238,6 +238,19 @@ class MainActivity : ComponentActivity() {
             if (sub == null) return@LaunchedEffect
             repeat(15) { delay(40); if (subFocused) return@LaunchedEffect; runCatching { subEntry.requestFocus() } }
         }
+        // Safety net: if the focused row goes away (a game removed, a layout deleted), the D-pad would have nothing
+        // to move from. Put focus back in the page, else on the section. Only once the app has had focus at all, so
+        // it never fights the start-up focus above.
+        var shellFocused by remember { mutableStateOf(false) }
+        var everFocused by remember { mutableStateOf(false) }
+        LaunchedEffect(shellFocused, everFocused) {
+            if (shellFocused || !everFocused) return@LaunchedEffect
+            delay(120)
+            if (!shellFocused) runCatching { content.requestFocus() }
+            delay(80)
+            if (!shellFocused) runCatching { items.getValue(section).requestFocus() }
+        }
+
         BackHandler(enabled = sub != null || contentFocused) {
             val s = sub
             if (s != null) { returnTo.name = s.from; sub = null } else runCatching { items.getValue(section).requestFocus() }
@@ -249,7 +262,7 @@ class MainActivity : ComponentActivity() {
             LocalCloseSub provides { sub?.let { returnTo.name = it.from }; sub = null },
             LocalGoTo provides { s: Section -> go(s); runCatching { items.getValue(s).requestFocus() } },
         ) {
-            Column(Modifier.fillMaxSize().drawBehind {
+            Column(Modifier.fillMaxSize().onFocusChanged { shellFocused = it.hasFocus; if (it.hasFocus) everFocused = true }.drawBehind {
                 // A soft glow from the bottom right; the top stays the page color, so it meets the status bar cleanly.
                 drawRect(Brush.radialGradient(listOf(grad, bg), center = Offset(size.width, size.height), radius = size.maxDimension * 0.85f))
             }) {
@@ -364,7 +377,7 @@ class MainActivity : ComponentActivity() {
         listOf(Triple("HUD hotkey", Hotkey.HUD, hotkeyLabel), Triple("Quick Menu hotkey", Hotkey.MENU, menuKeyLabel)).forEach { (name, key, label) ->
             val now = recording && recordingFor == key
             ActionRow(name, hint = if (now) "Hold your buttons, then let go…" else "Press Ⓐ, then hold the new combo",
-                value = prettyKeys(label), icon = Icons.Rounded.Keyboard) { if (!recording) recordHotkey(key) }
+                value = label, icon = Icons.Rounded.Keyboard) { if (!recording) recordHotkey(key) }
         }
     }
 
