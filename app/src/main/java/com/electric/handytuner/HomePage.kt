@@ -112,14 +112,11 @@ fun HomePage(ctx: Context, actions: Actions, hudKeys: String, menuKeys: String) 
         LastGame(ctx)
 
         RowGroup("Hotkeys") {
-            NavRow("HUD", hint = "Show or hide the stats box in any game", icon = Icons.Rounded.Insights, value = prettyKeys(hudKeys)) { goTo(Section.HUD) }
-            NavRow("Quick Menu", hint = "Open the menu over any game", icon = Icons.Rounded.Tune, value = prettyKeys(menuKeys)) { goTo(Section.HUD) }
+            NavRow("HUD", hint = "Show or hide the stats box in any game", icon = Icons.Rounded.Insights, value = hudKeys) { goTo(Section.HUD) }
+            NavRow("Quick Menu", hint = "Open the menu over any game", icon = Icons.Rounded.Tune, value = menuKeys) { goTo(Section.HUD) }
         }
     }
 }
-
-/** "BUTTON_THUMBL + BUTTON_R1" → "L3 + R1": the names on the Odin, not Android's. */
-fun prettyKeys(names: String) = names.replace("BUTTON_", "").replace("THUMBL", "L3").replace("THUMBR", "R3")
 
 @Composable
 private fun Greeting() = Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(start = 4.dp, top = 4.dp)) {

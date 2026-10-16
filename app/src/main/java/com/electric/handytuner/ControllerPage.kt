@@ -6,43 +6,35 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.provider.Settings
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.BatteryAlert
+import androidx.compose.material.icons.rounded.Gamepad
+import androidx.compose.material.icons.rounded.Keyboard
+import androidx.compose.material.icons.rounded.Layers
+import androidx.compose.material.icons.rounded.Opacity
+import androidx.compose.material.icons.rounded.SettingsApplications
+import androidx.compose.material.icons.rounded.Shortcut
+import androidx.compose.material.icons.rounded.SportsEsports
+import androidx.compose.material.icons.rounded.Timer
+import androidx.compose.material.icons.rounded.TouchApp
+import androidx.compose.material.icons.rounded.Tune
+import androidx.compose.material.icons.rounded.VisibilityOff
+import androidx.compose.material.icons.rounded.Whatshot
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-/**
- * Controller settings. Only the button layout is set here: it is one system
- * setting. Calibration, L2/R2 mode, button mapping and the key test already
- * live in AYN's own apps, which also tell the controller driver to apply them,
- * so HandyTuner opens those rather than half-copying them. Stick lights are
- * Pulse's.
- */
+/** The Odin's button layout, connected controllers and their tools, what changes with one connected, and key mapping. */
 @Composable
 fun ControllerPage(ctx: Context) {
     val scope = rememberCoroutineScope()
+    val open = openSub()
     // flip_button_layout: 1 = Xbox layout (A bottom, B right), 0 = Nintendo-style (A/B swapped), as the Odin labels it.
     var flipped by remember { mutableStateOf(Settings.System.getInt(ctx.contentResolver, "flip_button_layout", 1)) }
     fun setLayout(v: Int) {
@@ -54,115 +46,111 @@ fun ControllerPage(ctx: Context) {
             withContext(Dispatchers.Main) { flipped = now }
         }
     }
-    fun open(pkg: String, cls: String) = runCatching {
+    fun launch(pkg: String, cls: String) = runCatching {
         ctx.startActivity(Intent().setComponent(ComponentName(pkg, cls)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
     }
+    var r by remember { mutableStateOf(SetupRules.load(ctx)) }
+    fun save(n: SetupRules) { r = n; SetupRules.save(ctx, n) }
 
-    var tab by remember { mutableStateOf(0) }
+    ConsolePage {
+        RowGroup("The Odin's buttons") {
+            val layouts = listOf(1 to "Xbox (A bottom)", 0 to "Swapped (A right)")
+            ChoiceRow("Face buttons", layouts, layouts.indexOfFirst { it.first == flipped }, { it.second },
+                hint = "Which face button is A", help = "Try it in the Key Test below.", icon = Icons.Rounded.Gamepad) { setLayout(layouts[it].first) }
+            // What the Odin 2 Portal's firmware has there (2026-10-08); it has no deadzone or invert options.
+            ActionRow("Odin's controller settings", hint = "Controller style, L2/R2 mode, what the paddles and Back do",
+                icon = Icons.Rounded.SettingsApplications, value = "Open") { launch("com.odin.settings", "com.ro.settings.activity.MainSettingsActivity") }
+            ActionRow("Key Test & stick calibration", hint = "AYN's test screen: every press, and drifting sticks",
+                icon = Icons.Rounded.Tune, value = "Open") { launch("com.odin.gameassistant", "com.ro.gameassistant.activity.GamepadTestActivity") }
+        }
 
-    // Sub-tabs: the layout setting, the pads & test tools, and the key-mapping housekeeping.
-    Column(Modifier.fillMaxSize()) {
-        SubTabs(listOf("Layout", "Gamepads", "Mapping"), tab) { tab = it }
-        Column(Modifier.verticalScroll(androidx.compose.foundation.rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            when (tab) {
-                0 -> {
-                    HandCard(Modifier.fillMaxWidth()) {
-                        Text("Button layout", color = Hand.Text, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
-                        Text("Which face button is A. Try it in the Key Test.", color = Hand.Muted, fontSize = 14.sp)
-                        Row(Modifier.padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            FilterChip(selected = flipped == 1, onClick = { setLayout(1) }, label = { Text("Xbox (A bottom)") },
-                                modifier = Modifier.glowFocus(RoundedCornerShape(8.dp)))
-                            FilterChip(selected = flipped == 0, onClick = { setLayout(0) }, label = { Text("Swapped (A right)") },
-                                modifier = Modifier.glowFocus(RoundedCornerShape(8.dp)))
-                        }
-                    }
-                    HandCard(Modifier.fillMaxWidth()) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Column(Modifier.weight(1f)) {
-                                Text("Odin's controller settings", color = Hand.Text, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
-                                // What the Odin 2 Portal's firmware has there (2026-10-08); it has no deadzone or invert options.
-                                Text("Controller style, L2/R2 mode, and what M1, M2 and Back do: in Odin Settings, under Controller Settings.",
-                                    color = Hand.Muted, fontSize = 14.sp)
-                            }
-                            Button(onClick = { open("com.odin.settings", "com.ro.settings.activity.MainSettingsActivity") },
-                                Modifier.glowFocus(RoundedCornerShape(50))) { Text("Open Odin settings") }
-                        }
-                    }
-                }
-                1 -> {
-                    HandCard(Modifier.fillMaxWidth()) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Column(Modifier.weight(1f)) {
-                                Text("Key Test & stick calibration", color = Hand.Text, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
-                                Text("AYN's own test screen: see every press, and recalibrate drifting sticks.", color = Hand.Muted, fontSize = 14.sp)
-                            }
-                            Button(onClick = { open("com.odin.gameassistant", "com.ro.gameassistant.activity.GamepadTestActivity") },
-                                Modifier.glowFocus(RoundedCornerShape(50))) { Text("Open Key Test") }
-                        }
-                    }
-                    ConnectedPadsCard(ctx)
-                    ButtonTestCard(ctx)
-                    PadActionsCard(ctx)
-                    PadSetupCard(ctx)
-                }
-                else -> KeyMappingCard(ctx)
+        RowGroup("Controllers") {
+            NavRow("Connected controllers", hint = "Brand, battery, rumble test", icon = Icons.Rounded.SportsEsports,
+                value = Pads.allGamepads().size.toString()) { from -> open("Connected controllers", from) { ConnectedPadsScreen(ctx) } }
+            NavRow("Button & stick test", hint = "See what every button sends, and check for drift", icon = Icons.Rounded.TouchApp) { from ->
+                open("Button & stick test", from) { ButtonTestScreen(ctx) }
             }
+            NavRow("Button shortcuts", hint = "Give a button a HandyTuner action", icon = Icons.Rounded.Shortcut,
+                value = PadAction.load(ctx).size.takeIf { it > 0 }?.toString()) { from -> open("Button shortcuts", from) { PadShortcutsScreen(ctx) } }
+        }
+
+        RowGroup("With a controller connected") {
+            PresetChoiceRow(ctx, "Preset", r.padPreset, "Each game's own", icon = Icons.Rounded.Layers,
+                hint = "For every game while a controller is connected",
+                help = "HandyTuner notices a controller within a few seconds and switches back when it's gone. A game you change " +
+                    "in the Quick Menu keeps your change. Docked with a controller is Couch mode, set in Dock.") { save(r.copy(padPreset = it)) }
+            ToggleRow("Ignore the Odin's own buttons", r.ignoreBuiltIn, hint = "So a bump doesn't press anything",
+                help = "Buttons only: Android doesn't let HandyTuner hold back the sticks. The hotkeys still work.",
+                icon = Icons.Rounded.VisibilityOff) { save(r.copy(ignoreBuiltIn = it)) }
+            ToggleRow("Hide key-mapping markers", r.hideMarkers, hint = "The dots that show where mapped buttons tap",
+                icon = Icons.Rounded.TouchApp) { save(r.copy(hideMarkers = it)) }
+            ToggleRow("Controller alerts", r.padAlerts, hint = "When it disconnects mid-game or its battery is low",
+                icon = Icons.Rounded.BatteryAlert) { save(r.copy(padAlerts = it)) }
+        }
+
+        KeyMappingGroup(ctx)
+    }
+}
+
+/** Key mapping: buttons to screen taps for touch games. Layouts are made in the Quick Menu; here is how they behave. */
+@Composable
+private fun KeyMappingGroup(ctx: Context) {
+    var set by remember { mutableStateOf(KeyMapper.settings(ctx)) }
+    fun save(n: KeyMapper.Settings) { set = n; KeyMapper.saveSettings(ctx, n) }
+    val open = openSub()
+    RowGroup("Key mapping") {
+        NavRow("Saved layouts", hint = "Per game; export and import", icon = Icons.Rounded.Keyboard,
+            value = KeyMapper.all(ctx).size.toString()) { from -> open("Saved layouts", from) { LayoutsScreen(ctx) } }
+        ToggleRow("Show the layout in games", set.show, hint = "Markers where mapped buttons tap",
+            help = "Make a layout from the Quick Menu while the game is open: press a placed button again to switch tap → hold → " +
+                "auto-fire. A layout made with an external controller connected is saved for that controller.",
+            icon = Icons.Rounded.TouchApp) { save(set.copy(show = it)) }
+        SliderRow("See-through", set.opacity, 10..90, 5, { "$it%" }, hint = "How see-through the markers are", icon = Icons.Rounded.Opacity) {
+            save(set.copy(opacity = it))
+        }
+        SliderRow("Tap length", set.tapMs, 20..200, 10, { "$it ms" }, hint = "How long each tap holds", icon = Icons.Rounded.Timer) {
+            save(set.copy(tapMs = it))
+        }
+        SliderRow("Auto-fire speed", set.autoRate, 2..20, 1, { "$it/s" }, hint = "Taps per second on auto-fire", icon = Icons.Rounded.Whatshot) {
+            save(set.copy(autoRate = it))
         }
     }
 }
 
-/** Key mapping housekeeping: which games have layouts, export/import, and how mapped taps behave. */
+/** Each game's layout (A twice deletes it), and the layouts as one file in Downloads. */
 @Composable
-private fun KeyMappingCard(ctx: Context) {
+private fun LayoutsScreen(ctx: Context) {
     val scope = rememberCoroutineScope()
     var maps by remember { mutableStateOf(KeyMapper.all(ctx)) }
-    var set by remember { mutableStateOf(KeyMapper.settings(ctx)) }
     var note by remember { mutableStateOf<String?>(null) }
-    fun save(n: KeyMapper.Settings) { set = n; KeyMapper.saveSettings(ctx, n) }
     fun label(pkg: String) = runCatching { ctx.packageManager.getApplicationLabel(ctx.packageManager.getApplicationInfo(pkg, 0)).toString() }.getOrDefault(pkg)
-    HandCard(Modifier.fillMaxWidth()) {
-        Text("Key mapping", color = Hand.Text, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
-        Text("Buttons to screen taps for Android touch games. Make a layout from the Quick Menu while the game is open: " +
-            "press a placed button again to switch tap → hold → auto-fire. A layout made while an external controller is " +
-            "connected is saved for the controller, so it can differ from the Odin's own.", color = Hand.Muted, fontSize = 14.sp)
-        if (maps.isEmpty()) Text("No layouts yet.", color = Hand.Muted, fontSize = 14.sp, modifier = Modifier.padding(top = 8.dp))
-        maps.forEach { (pkg, spots) ->
-            Row(Modifier.padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                val pad = pkg.endsWith(KeyMapper.PAD)
-                Text("${label(pkg.removeSuffix(KeyMapper.PAD))}${if (pad) " (controller)" else ""}: ${spots.size} button${if (spots.size == 1) "" else "s"}", color = Hand.Text, fontSize = 16.sp,
-                    modifier = Modifier.weight(1f))
-                Button(onClick = { KeyMapper.set(ctx, pkg, emptyList()); maps = KeyMapper.all(ctx) },
-                    Modifier.glowFocus(RoundedCornerShape(50))) { Text("Delete") }
+    ConsolePage {
+        RowGroup {
+            ActionRow("Export", hint = note ?: "To Downloads/HandyTuner-keymaps.json", enabled = maps.isNotEmpty()) {
+                scope.launch(Dispatchers.IO) {
+                    val ok = KeyMapper.exportAll(ctx)
+                    withContext(Dispatchers.Main) { note = if (ok) "Saved to Downloads/HandyTuner-keymaps.json" else "Couldn't save the file" }
+                }
+            }
+            ActionRow("Import", hint = "From Downloads/HandyTuner-keymaps.json") {
+                scope.launch(Dispatchers.IO) {
+                    val n = KeyMapper.importAll(ctx)
+                    withContext(Dispatchers.Main) {
+                        maps = KeyMapper.all(ctx)
+                        note = if (n < 0) "No Downloads/HandyTuner-keymaps.json to import" else "Imported $n game layout${if (n == 1) "" else "s"}"
+                    }
+                }
             }
         }
-        Row(Modifier.padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            Button(onClick = { scope.launch(Dispatchers.IO) {
-                val ok = KeyMapper.exportAll(ctx)
-                withContext(Dispatchers.Main) { note = if (ok) "Saved to Downloads/HandyTuner-keymaps.json" else "Couldn't save the file" }
-            } }, Modifier.glowFocus(RoundedCornerShape(50)), enabled = maps.isNotEmpty()) { Text("Export") }
-            Button(onClick = { scope.launch(Dispatchers.IO) {
-                val n = KeyMapper.importAll(ctx)
-                withContext(Dispatchers.Main) {
-                    maps = KeyMapper.all(ctx)
-                    note = if (n < 0) "No Downloads/HandyTuner-keymaps.json to import" else "Imported $n game layout${if (n == 1) "" else "s"}"
+        RowGroup("Layouts") {
+            if (maps.isEmpty()) InfoRow("No layouts yet", "", hint = "Make one from the Quick Menu while a game is open", focusable = false)
+            maps.forEach { (pkg, spots) ->
+                val pad = pkg.endsWith(KeyMapper.PAD)
+                ActionRow(label(pkg.removeSuffix(KeyMapper.PAD)) + if (pad) " (controller)" else "",
+                    hint = "${spots.size} button${if (spots.size == 1) "" else "s"}", value = "Delete", confirm = "delete it") {
+                    KeyMapper.set(ctx, pkg, emptyList()); maps = KeyMapper.all(ctx)
                 }
-            } }, Modifier.glowFocus(RoundedCornerShape(50))) { Text("Import") }
+            }
         }
-        note?.let { Text(it, color = Hand.Blue, fontSize = 14.sp) }
-
-        Row(Modifier.padding(top = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text("Show the layout in games", color = Hand.Text, fontSize = 16.sp, modifier = Modifier.weight(1f))
-            androidx.compose.material3.Switch(checked = set.show, onCheckedChange = { save(set.copy(show = it)) },
-                modifier = Modifier.glowFocus(RoundedCornerShape(50)))
-        }
-        @Composable fun slider(label: String, value: Int, range: IntRange, unit: String, onDone: (Int) -> Unit) {
-            var v by remember(value) { mutableStateOf(value.toFloat()) }
-            Text("$label: ${v.toInt()}$unit", color = Hand.Text, fontSize = 15.sp, modifier = Modifier.padding(top = 8.dp))
-            androidx.compose.material3.Slider(value = v, onValueChange = { v = it }, onValueChangeFinished = { onDone(v.toInt()) },
-                valueRange = range.first.toFloat()..range.last.toFloat(), modifier = Modifier.fillMaxWidth(0.6f))
-        }
-        slider("How see-through the layout is", set.opacity, 10..90, "%") { save(set.copy(opacity = it)) }
-        slider("Tap length", set.tapMs, 20..200, " ms") { save(set.copy(tapMs = it)) }
-        slider("Auto-fire speed", set.autoRate, 2..20, " taps/s") { save(set.copy(autoRate = it)) }
     }
 }

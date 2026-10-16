@@ -117,23 +117,3 @@ fun Modifier.glowFocus(shape: RoundedCornerShape = RoundedCornerShape(16.dp)): M
     var focused by remember { mutableStateOf(false) }
     onFocusChanged { focused = it.hasFocus }.border(if (focused) 3.dp else 0.dp, if (focused) Hand.Blue else Color.Transparent, shape)
 }
-
-/** Navy card with a thin blue outline. */
-@Composable
-fun HandCard(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) = Column(
-    modifier.background(Hand.Card, RoundedCornerShape(16.dp)).border(1.dp, Hand.Blue.copy(alpha = 0.45f), RoundedCornerShape(16.dp))
-        .padding(16.dp),
-    content = content,
-)
-
-/** Sub-page tabs inside one rail page: one chip per group; [pick] gets the index. */
-@Composable
-fun SubTabs(labels: List<String>, selected: Int, pick: (Int) -> Unit) {
-    androidx.compose.foundation.layout.Row(Modifier.padding(bottom = 12.dp),
-        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
-        labels.forEachIndexed { i, label ->
-            androidx.compose.material3.FilterChip(selected = i == selected, onClick = { pick(i) }, label = { Text(label) },
-                modifier = Modifier.glowFocus(RoundedCornerShape(8.dp)))
-        }
-    }
-}

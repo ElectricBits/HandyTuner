@@ -85,7 +85,7 @@ import kotlinx.coroutines.delay
  */
 
 /** What the focused row does with the buttons, for the hint bar at the bottom. */
-enum class RowKind { LIST, SELECT, TOGGLE, CHOICE, SLIDER, OPEN, GAME, SCROLL }
+enum class RowKind { LIST, SELECT, TOGGLE, CHOICE, SLIDER, OPEN, GAME, SCROLL, INFO }
 
 /** The hint bar reads this; the focused row sets it. */
 class Hints { var kind by mutableStateOf(RowKind.LIST) }
@@ -282,12 +282,13 @@ fun <T> ChoiceRow(
         val tint = if (focused) Color.White else Hand.Blue
         Row(verticalAlignment = Alignment.CenterVertically) {
             Chevron(Icons.Rounded.ChevronLeft, tint, selected > 0) { if (enabled) step(-1) }
-            val value = options.getOrNull(selected)
-            if (value != null && dot != null) {
-                Box(Modifier.size(16.dp).background(dot(value), CircleShape).border(1.5.dp, if (focused) Color.White else Hand.Muted.copy(alpha = 0.5f), CircleShape))
+            // By index, not by value: an option can itself be null ("each game's own").
+            val picked = selected in options.indices
+            if (picked && dot != null) {
+                Box(Modifier.size(16.dp).background(dot(options[selected]), CircleShape).border(1.5.dp, if (focused) Color.White else Hand.Muted.copy(alpha = 0.5f), CircleShape))
                 Spacer(Modifier.width(8.dp))
             }
-            Text(value?.let(label) ?: "–", color = if (focused) Color.White else Hand.Text, fontSize = 16.sp, fontWeight = FontWeight.Bold,
+            Text(if (picked) label(options[selected]) else "–", color = if (focused) Color.White else Hand.Text, fontSize = 16.sp, fontWeight = FontWeight.Bold,
                 maxLines = 1, modifier = Modifier.widthIn(min = 40.dp))
             Chevron(Icons.Rounded.ChevronRight, tint, selected < options.lastIndex) { if (enabled) step(1) }
         }
@@ -352,12 +353,12 @@ fun SliderRow(
 @Composable
 fun ActionRow(
     name: String, hint: String? = null, help: String? = null, icon: ImageVector? = null, value: String? = null,
-    enabled: Boolean = true, danger: Boolean = false, confirm: String? = null, onClick: () -> Unit,
+    enabled: Boolean = true, danger: Boolean = false, confirm: String? = null, requester: FocusRequester? = null, onClick: () -> Unit,
 ) {
     var arming by remember { mutableStateOf(false) }
     ConsoleRow(
         name, if (arming) "Press Ⓐ again to $confirm" else hint, help, icon, enabled, RowKind.SELECT, danger,
-        hintColor = if (arming) Hand.Warn else null,
+        hintColor = if (arming) Hand.Warn else null, requester = requester,
         onFocus = { if (!it) arming = false },
         onClick = { if (confirm != null && !arming) arming = true else { arming = false; onClick() } },
     ) { focused -> value?.let { TrailingValue(it, focused) } }
@@ -392,7 +393,7 @@ fun openSub(): (String, String, @Composable () -> Unit) -> Unit {
 /** A read-only line. [focusable] ones let the D-pad scroll through a long list of them. */
 @Composable
 fun InfoRow(name: String, value: String, hint: String? = null, valueColor: Color? = null, focusable: Boolean = true) {
-    if (focusable) ConsoleRow(name, hint, kind = RowKind.LIST) { focused -> TrailingValue(value, focused, valueColor) }
+    if (focusable) ConsoleRow(name, hint, kind = RowKind.INFO) { focused -> TrailingValue(value, focused, valueColor) }
     else Row(Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.weight(1f)) {
             Text(name, color = Hand.Text, fontSize = 17.sp, fontWeight = FontWeight.Bold)
@@ -458,7 +459,7 @@ fun HintBar(kind: RowKind, inSub: Boolean) {
             RowKind.TOGGLE -> item({ ButtonGlyph("A", Hand.Good) }, "Toggle")
             RowKind.CHOICE, RowKind.GAME -> item({ ButtonGlyph("A", Hand.Good) }, "Next")
             RowKind.OPEN -> item({ ButtonGlyph("A", Hand.Good) }, "Open")
-            RowKind.SLIDER, RowKind.SCROLL -> {}
+            RowKind.SLIDER, RowKind.SCROLL, RowKind.INFO -> {}
             RowKind.SELECT -> item({ ButtonGlyph("A", Hand.Good) }, "Select")
         }
         item({ ButtonGlyph("B", Hand.Bad) }, if (kind == RowKind.LIST && !inSub) "Exit" else "Back")

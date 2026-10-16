@@ -6,34 +6,26 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.wifi.WifiManager
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.NetworkCheck
+import androidx.compose.material.icons.rounded.Speed
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
- * The Network test (D17): lag, lag while downloading, DNS, and Low Latency off vs on, with a verdict in
- * plain words. [onRunning] pauses the page's live ping graph, whose pings would skew the numbers.
+ * The Network test (D17): lag, lag while downloading, DNS, and Low Latency off vs on, with a verdict in plain
+ * words. The run rows stay put while results appear below them, so the D-pad never loses its row.
+ * (Network's live ping graph isn't running meanwhile: it's on the page underneath, which is closed.)
  */
 @Composable
-fun NetTestCard(ctx: Context, onRunning: (Boolean) -> Unit) {
+fun NetTestScreen(ctx: Context) {
     val scope = rememberCoroutineScope()
     var status by remember { mutableStateOf<String?>(null) }
     var lines by remember { mutableStateOf<List<Pair<String, String>>>(emptyList()) }
@@ -41,34 +33,28 @@ fun NetTestCard(ctx: Context, onRunning: (Boolean) -> Unit) {
     var busy by remember { mutableStateOf(false) }
 
     fun run(block: suspend (say: (String) -> Unit) -> Unit) {
-        busy = true; onRunning(true); lines = emptyList(); verdict = emptyList()
+        busy = true; lines = emptyList(); verdict = emptyList()
         scope.launch {
             try { block { s -> scope.launch(Dispatchers.Main) { status = s } } }
-            finally { busy = false; onRunning(false); status = null }
+            finally { busy = false; status = null }
         }
     }
 
-    HandCard(Modifier.fillMaxWidth()) {
-        Text("Network test", color = Hand.Text, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
-        Text("Measures lag to your router and the internet, lag while something downloads, and website lookups, then says " +
-            "what's wrong and how to fix it. Uses about 25 MB, on Wi-Fi only.", color = Hand.Muted, fontSize = 14.sp)
-        Row(Modifier.padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            Button(enabled = !busy, onClick = { run { say ->
-                val r = withContext(Dispatchers.IO) { quick(ctx, say) }
-                lines = r.first; verdict = r.second
-            } }, modifier = Modifier.glowFocus(RoundedCornerShape(50))) { Text("Test my network (~1 min)") }
-            Button(enabled = !busy, onClick = { run { say ->
-                lines = withContext(Dispatchers.IO) { lowLatencyAb(ctx, say) }
-            } }, modifier = Modifier.glowFocus(RoundedCornerShape(50))) { Text("Test Low Latency (~2 min)") }
-        }
-        status?.let { Text(it, color = Hand.Blue, fontSize = 14.sp, modifier = Modifier.padding(top = 8.dp)) }
-        lines.forEach { (k, v) ->
-            Row(Modifier.padding(top = 6.dp)) {
-                Text(k, color = Hand.Muted, fontSize = 14.sp, modifier = Modifier.weight(0.35f))
-                Text(v, color = Hand.Text, fontFamily = Hand.Mono, fontSize = 14.sp, modifier = Modifier.weight(0.65f))
+    ConsolePage {
+        RowGroup {
+            ActionRow("Test my network", hint = if (busy) status ?: "Working…" else "About a minute, on Wi-Fi only",
+                help = "Measures lag to your router and the internet, lag while something downloads, and website lookups, then " +
+                    "says what's wrong and how to fix it. Uses about 25 MB.", enabled = !busy, icon = Icons.Rounded.NetworkCheck) {
+                run { say -> val r = withContext(Dispatchers.IO) { quick(ctx, say) }; lines = r.first; verdict = r.second }
+            }
+            ActionRow("Test Low Latency", hint = if (busy) status ?: "Working…" else "About two minutes: off, then on",
+                help = "Runs the same lag test with Low Latency mode off and on, so you can see what it does on your Wi-Fi.",
+                enabled = !busy, icon = Icons.Rounded.Speed) {
+                run { say -> lines = withContext(Dispatchers.IO) { lowLatencyAb(ctx, say) } }
             }
         }
-        verdict.forEach { Text("• $it", color = Hand.Text, fontSize = 15.sp, modifier = Modifier.padding(top = 8.dp)) }
+        if (lines.isNotEmpty()) RowGroup("Results") { lines.forEach { (k, v) -> InfoRow(k, v) } }
+        if (verdict.isNotEmpty()) RowGroup("What to do") { verdict.forEach { InfoRow(it, "") } }
     }
 }
 
