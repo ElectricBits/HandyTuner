@@ -137,15 +137,3 @@ fun SubTabs(labels: List<String>, selected: Int, pick: (Int) -> Unit) {
         }
     }
 }
-
-/** A titled row of choices (presets editor, Tuning page); [pick] gets the index. */
-@Composable
-fun chips(title: String, options: List<Pair<String, Boolean>>, enabled: Boolean = true, pick: (Int) -> Unit) {
-    Text(title, color = Hand.Text, fontSize = 15.sp, modifier = Modifier.padding(top = 10.dp))
-    androidx.compose.foundation.layout.Row {
-        options.forEachIndexed { i, (label, on) ->
-            androidx.compose.material3.FilterChip(selected = on, enabled = enabled, onClick = { pick(i) }, label = { Text(label) },
-                modifier = Modifier.padding(end = 8.dp).glowFocus(RoundedCornerShape(8.dp)))
-        }
-    }
-}

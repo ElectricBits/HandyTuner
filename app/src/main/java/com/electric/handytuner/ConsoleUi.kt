@@ -85,7 +85,7 @@ import kotlinx.coroutines.delay
  */
 
 /** What the focused row does with the buttons, for the hint bar at the bottom. */
-enum class RowKind { LIST, SELECT, TOGGLE, CHOICE, SLIDER, OPEN, GAME }
+enum class RowKind { LIST, SELECT, TOGGLE, CHOICE, SLIDER, OPEN, GAME, SCROLL }
 
 /** The hint bar reads this; the focused row sets it. */
 class Hints { var kind by mutableStateOf(RowKind.LIST) }
@@ -101,6 +101,12 @@ val LocalOpenSub = staticCompositionLocalOf<(Sub) -> Unit> { {} }
  */
 class ReturnTo { var name by mutableStateOf<String?>(null) }
 val LocalReturnTo = staticCompositionLocalOf { ReturnTo() }
+
+/** Closes the open drill-in (for screens with their own Back button). */
+val LocalCloseSub = staticCompositionLocalOf<() -> Unit> { {} }
+
+/** Jumps to another section, with the D-pad on it in the section list (Home's tiles use it). */
+val LocalGoTo = staticCompositionLocalOf<(Section) -> Unit> { {} }
 
 private val RowShape = RoundedCornerShape(14.dp)
 private val GroupShape = RoundedCornerShape(20.dp)
@@ -257,11 +263,11 @@ fun PillSwitch(on: Boolean, focused: Boolean) {
 fun <T> ChoiceRow(
     name: String, options: List<T>, selected: Int, label: (T) -> String, hint: String? = null, help: String? = null,
     icon: ImageVector? = null, enabled: Boolean = true, dot: ((T) -> Color)? = null, kind: RowKind = RowKind.CHOICE,
-    onKey: ((KeyEvent) -> Boolean)? = null, onPick: (Int) -> Unit,
+    hintColor: Color? = null, onFocus: (Boolean) -> Unit = {}, onKey: ((KeyEvent) -> Boolean)? = null, onPick: (Int) -> Unit,
 ) {
     fun step(d: Int) { val n = Nav.step(selected, d, options.size); if (n != selected) onPick(n) }
     ConsoleRow(
-        name, hint, help, icon, enabled, kind,
+        name, hint, help, icon, enabled, kind, hintColor = hintColor, onFocus = onFocus,
         onKey = { e ->
             when {
                 onKey?.invoke(e) == true -> true
@@ -443,6 +449,7 @@ fun HintBar(kind: RowKind, inSub: Boolean) {
         when (kind) {
             RowKind.CHOICE -> item({ arrows() }, "Change")
             RowKind.SLIDER -> item({ arrows() }, "Adjust")
+            RowKind.SCROLL -> item({ Text("▲▼", color = Hand.Text, fontSize = 15.sp, fontWeight = FontWeight.ExtraBold) }, "Scroll")
             RowKind.GAME -> { item({ arrows() }, "Preset"); item({ ButtonGlyph("Y", Hand.Warn) }, "Remove") }
             else -> {}
         }
@@ -451,7 +458,7 @@ fun HintBar(kind: RowKind, inSub: Boolean) {
             RowKind.TOGGLE -> item({ ButtonGlyph("A", Hand.Good) }, "Toggle")
             RowKind.CHOICE, RowKind.GAME -> item({ ButtonGlyph("A", Hand.Good) }, "Next")
             RowKind.OPEN -> item({ ButtonGlyph("A", Hand.Good) }, "Open")
-            RowKind.SLIDER -> {}
+            RowKind.SLIDER, RowKind.SCROLL -> {}
             RowKind.SELECT -> item({ ButtonGlyph("A", Hand.Good) }, "Select")
         }
         item({ ButtonGlyph("B", Hand.Bad) }, if (kind == RowKind.LIST && !inSub) "Exit" else "Back")
@@ -471,3 +478,40 @@ fun SectionHeader(icon: ImageVector, title: String, about: String?) = Row(
         about?.let { Text(it, color = Hand.Muted, fontSize = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis) }
     }
 }
+
+/**
+ * A big focusable status tile (Home): an icon and title, a large value in [valueColor], and up to two lines.
+ * A opens [onOpen] (the section it summarizes).
+ */
+@Composable
+fun StatusTile(icon: ImageVector, title: String, value: String, valueColor: Color, lines: List<String>, modifier: Modifier = Modifier, onOpen: () -> Unit) {
+    var focused by remember { mutableStateOf(false) }
+    val hints = LocalHints.current
+    val shape = RoundedCornerShape(20.dp)
+    val bg by animateColorAsState(if (focused) Hand.Blue else Hand.Card, label = "tile")
+    val glow = focused && !Hand.light; val glowColor = Hand.Blue; val edge = Hand.Blue.copy(alpha = 0.18f)
+    Column(
+        modifier
+            .drawBehind {
+                if (!glow) return@drawBehind
+                listOf(10.dp to 0.07f, 6.dp to 0.12f, 3.dp to 0.2f).forEach { (grow, a) ->
+                    val g = grow.toPx()
+                    drawRoundRect(glowColor.copy(alpha = a), Offset(-g, -g), Size(size.width + 2 * g, size.height + 2 * g), CornerRadius(20.dp.toPx() + g))
+                }
+            }
+            .background(bg, shape).border(1.dp, if (focused) Color.Transparent else edge, shape)
+            .onFocusChanged { f -> focused = f.isFocused; if (f.isFocused) hints.kind = RowKind.OPEN }
+            .clip(shape).clickable(onClick = onOpen)
+            .padding(18.dp),
+    ) {
+        val fg = if (focused) Color.White else Hand.Text
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(icon, null, tint = if (focused) Color.White else Hand.Blue, modifier = Modifier.size(24.dp))
+            Text(title, color = fg, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, maxLines = 1, modifier = Modifier.padding(start = 10.dp))
+        }
+        Text(value, color = if (focused) Color.White else valueColor, fontFamily = Hand.Mono, fontSize = 30.sp, maxLines = 1,
+            modifier = Modifier.padding(top = 10.dp))
+        lines.forEach { Text(it, color = if (focused) Color.White.copy(alpha = 0.88f) else Hand.Muted, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+    }
+}
+
