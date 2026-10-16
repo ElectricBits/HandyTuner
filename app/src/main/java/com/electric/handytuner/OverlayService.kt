@@ -676,7 +676,7 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
         textSize = size * style.size.scale
         isSingleLine = true
         setTextColor(if (Hand.light) Palette.TEXT_L else Palette.TEXT_D)
-        setShadowLayer(10f, 0f, 0f, Hand.accent(style.accent))    // the glow
+        setShadowLayer(10f, 0f, 0f, if (Hand.light) 0xCCFFFFFF.toInt() else Hand.accent(style.accent))    // the glow; a white halo on light
     }
 
     /**

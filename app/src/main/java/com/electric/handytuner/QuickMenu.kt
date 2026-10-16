@@ -86,7 +86,10 @@ class QuickMenu(
             val s = State(actions.pulseInstalled(), actions.pulseInstalled() && actions.pulseRunning(), actions.perfMode(), actions.fanMode(),
                 actions.brightnessPct(), actions.volumePct(), actions.refreshHz(), cpuC, actions.fanPct(), actions.buttonLayout(),
                 host.pulse().state(), stats)
-            main.post { if (!showing) build(s) }
+            // The overlay process only learns the theme when the HUD shows, so read it here: the app's
+            // Theme switch must reach the menu even while the HUD is off.
+            val light = HudStyle.load(svc).light
+            main.post { if (!showing) { Hand.light = light; build(s) } }
         }
     }
 
@@ -173,7 +176,7 @@ class QuickMenu(
     private fun slider(iconRes: Int, label: String, value: Int, apply: (Int) -> Unit): View {
         val bar = SeekBar(svc).apply {
             max = 100; progress = value; keyProgressIncrement = 5
-            progressTintList = ColorStateList.valueOf(BLUE); thumbTintList = ColorStateList.valueOf(0xFFFFFFFF.toInt())
+            progressTintList = ColorStateList.valueOf(BLUE); thumbTintList = ColorStateList.valueOf(if (Hand.light) BLUE else 0xFFFFFFFF.toInt())
             progressBackgroundTintList = ColorStateList.valueOf(BAR)
             background = focusBg(0x00000000, rest = 0x00000000, radius = 50)
             setPadding(dp(12), dp(4), dp(12), dp(4))
@@ -195,7 +198,7 @@ class QuickMenu(
         setPadding(dp(10) + g, dp(6) + g, dp(10) + g, dp(6) + g)
         background = focusBg(if (on) withAlpha(0x55, GOOD) else withAlpha(0x1A, GOOD), rest = withAlpha(0xB3, GOOD), focused = GOOD, radius = 10)
         isFocusable = true; isClickable = true; setOnClickListener { onClick() }
-        addView(icon(iconRes, 20, GOOD)); addView(text("  $label", 14f, GOOD).apply { isSingleLine = true }.apply { setShadowLayer(10f, 0f, 0f, withAlpha(0x88, GOOD)) })
+        addView(icon(iconRes, 20, GOOD)); addView(text("  $label", 14f, GOOD).apply { isSingleLine = true }.apply { setShadowLayer(10f, 0f, 0f, withAlpha(if (Hand.light) 0 else 0x88, GOOD)) })
         layoutParams = lp().apply { topMargin = dp(2) }
         glow(GOOD, 4)
     }

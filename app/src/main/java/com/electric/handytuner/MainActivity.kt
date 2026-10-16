@@ -15,6 +15,8 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -41,6 +43,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -149,19 +152,24 @@ class MainActivity : ComponentActivity() {
                 }
                 var page by remember { mutableStateOf(Page.entries.firstOrNull { it.name == intent.getStringExtra(PAGE) } ?: Page.HOME) }
                 var tweaksOpen by remember { mutableStateOf(page in TWEAK_CHILDREN) }
+                // Closed, the six buttons share the height evenly. Open, they and the four children do not fit
+                // the screen: give each a fixed height and let the rail scroll instead of squashing the labels.
+                val railScroll = rememberScrollState()
                 Row(Modifier.fillMaxSize().background(Hand.Bg)) {
                     // The board's left icon rail. Battery, Network and Controller join it as they're built.
                     Column(
                         // Battery, Network and Dock sit under Tweaks: six buttons until that one opens.
-                        Modifier.fillMaxHeight().width(112.dp).padding(vertical = 8.dp),
+                        Modifier.fillMaxHeight().width(112.dp).then(if (tweaksOpen) Modifier.verticalScroll(railScroll) else Modifier)
+                            .padding(vertical = 8.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
+                        val slot = if (tweaksOpen) Modifier.height(52.dp) else Modifier.weight(1f)
                         Image(painterResource(R.drawable.mascot), "HandyHelper", Modifier.width(52.dp).padding(bottom = 6.dp))
                         listOf(Page.HOME, Page.GAMES, Page.HUD).forEach { p ->
-                            RailSlot(Modifier.weight(1f), p, page == p) { page = p }
+                            RailSlot(slot, p, page == p) { page = p }
                         }
                         // Tweaks is only the folder now: tapping it opens the group, it is not a page.
-                        RailSlot(Modifier.weight(1f), Page.TWEAKS, false, expand = tweaksOpen, label = "Tweaks") { tweaksOpen = !tweaksOpen }
+                        RailSlot(slot, Page.TWEAKS, false, expand = tweaksOpen, label = "Tweaks") { tweaksOpen = !tweaksOpen }
                         // The group slides open under Tweaks, with a bracket line so it reads as nested.
                         AnimatedVisibility(tweaksOpen, enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
                             Column(Modifier.fillMaxWidth()) {
@@ -173,7 +181,7 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
                         }
-                        listOf(Page.CONTROLLER, Page.DIAGNOSTICS).forEach { p -> RailSlot(Modifier.weight(1f), p, page == p) { page = p } }
+                        listOf(Page.CONTROLLER, Page.DIAGNOSTICS).forEach { p -> RailSlot(slot, p, page == p) { page = p } }
                     }
                     Column(Modifier.fillMaxSize().padding(start = 8.dp, top = 20.dp, end = 24.dp)) {
                         // Explicit white: with no Surface around it, Text's default content color is black.
@@ -201,7 +209,7 @@ class MainActivity : ComponentActivity() {
         Column(
             Modifier.width(if (child) 80.dp else 88.dp).glowFocus(shape)
                 .background(if (selected) Hand.Blue.copy(alpha = 0.22f) else Color.Transparent, shape)
-                .clickable(onClick = onClick).padding(vertical = 2.dp),
+                .clip(shape).clickable(onClick = onClick).padding(vertical = 2.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Icon(painterResource(icon), null, tint = if (selected) Hand.Blue else Hand.Muted, modifier = Modifier.size(if (child) 16.dp else 20.dp))
@@ -226,7 +234,7 @@ class MainActivity : ComponentActivity() {
                     val b = androidx.compose.ui.geometry.Offset(x, top + h)
                     drawLine(Hand.Blue.copy(alpha = 0.12f), a, b, 7.dp.toPx(), cap)
                     drawLine(Hand.Blue.copy(alpha = 0.30f), a, b, 3.dp.toPx(), cap)
-                    drawLine(Color(0xFF9FD8FF), a, b, 1.4.dp.toPx(), cap)
+                    drawLine(if (Hand.light) Hand.Blue else Color(0xFF9FD8FF), a, b, 1.4.dp.toPx(), cap)
                 }
             },
             contentAlignment = Alignment.Center,

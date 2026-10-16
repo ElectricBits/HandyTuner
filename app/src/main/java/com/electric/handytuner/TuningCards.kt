@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -26,6 +27,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -108,8 +110,8 @@ fun TuningCards(ctx: Context) {
                     SWATCHES.forEach { hex ->
                         val picked = hex.equals(color, ignoreCase = true)
                         androidx.compose.foundation.layout.Box(Modifier.size(if (picked) 40.dp else 32.dp).glowFocus(RoundedCornerShape(50))
-                            .background(Color(0xFF000000 or hex.toLong(16)), CircleShape)
-                            .clickable(enabled = on) { set("rgbColor", "$hex,${bright.roundToInt()}") })
+                            .background(Color(0xFF000000 or hex.toLong(16)), CircleShape).border(1.dp, Hand.Muted.copy(alpha = 0.5f), CircleShape)
+                            .clip(CircleShape).clickable(enabled = on) { set("rgbColor", "$hex,${bright.roundToInt()}") })
                     }
                 }
                 Text("Brightness ${bright.roundToInt()}%", color = Hand.Blue, fontSize = 15.sp, modifier = Modifier.padding(top = 8.dp))

@@ -42,6 +42,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
@@ -234,7 +235,7 @@ fun Onboarding(ctx: Context, resumes: Int, hudHeld: Boolean, menuHeld: Boolean, 
                     .background(if (i <= step) Hand.Blue else Hand.Bar, CircleShape))
             }
             Text(if (muted) "🔇" else "🔊", fontSize = 22.sp, modifier = Modifier.padding(start = 14.dp).glowFocus(RoundedCornerShape(8.dp))
-                .clickable { sound.muted = !sound.muted; muted = sound.muted }.padding(6.dp))
+                .clip(RoundedCornerShape(8.dp)).clickable { sound.muted = !sound.muted; muted = sound.muted }.padding(6.dp))
         }
         Box(Modifier.fillMaxSize()) {
         // He glides sideways (240 units) and hops while he talks, so the tail reads his *live* box
@@ -281,7 +282,7 @@ fun Onboarding(ctx: Context, resumes: Int, hudHeld: Boolean, menuHeld: Boolean, 
                         // The way round a switch that Android greys out, so no step can dead-end.
                         cur.alt?.let { alt ->
                             Text(alt, color = Hand.Blue, fontSize = 16.sp, modifier = Modifier
-                                .glowFocus(RoundedCornerShape(8.dp))
+                                .glowFocus(RoundedCornerShape(8.dp)).clip(RoundedCornerShape(8.dp))
                                 .clickable { sound.play("select"); cur.altAct() }.padding(vertical = 4.dp, horizontal = 2.dp))
                         }
                     }
@@ -329,9 +330,8 @@ private fun SetupSummary(s: SetupStatus) {
 private fun AccentPicker(style: HudStyle, onPick: (Int) -> Unit) {
     Row(horizontalArrangement = Arrangement.spacedBy(14.dp), verticalAlignment = Alignment.CenterVertically) {
         HudStyle.ACCENTS.forEach { (_, argb) ->
-            Box(Modifier.size(48.dp).glowFocus(CircleShape).background(Color(Hand.accent(argb)), CircleShape)
-                .border(4.dp, if (style.accent == argb) Hand.Text else Color.Transparent, CircleShape)
-                .clickable { onPick(argb) })
+            Box(Modifier.size(48.dp).glowFocus(CircleShape).border(4.dp, if (style.accent == argb) Hand.Text else Color.Transparent, CircleShape)
+                .clip(CircleShape).clickable { onPick(argb) }.padding(6.dp).background(Color(Hand.accent(argb)), CircleShape))
         }
     }
     val c = Color(Hand.accent(style.accent))

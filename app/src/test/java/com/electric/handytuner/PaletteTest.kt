@@ -25,6 +25,12 @@ class PaletteTest {
         assertEquals(Palette.TEXT_L, Palette.accent(0xFFF4F4F4.toInt(), true))     // near-white too
     }
 
+    @Test fun redHeavyNeonsAreNotWhite() {
+        assertEquals(Palette.MAGENTA_L, Palette.accent(Palette.MAGENTA_D, true))
+        assertEquals(Palette.ORANGE_L, Palette.accent(Palette.ORANGE_D, true))
+        assertTrue(Palette.accent(0xFFFFEE00.toInt(), true) != Palette.TEXT_L)     // yellow: two high channels, not three
+    }
+
     @Test fun neonsComeOutDarker() {
         listOf(Palette.GOOD_D, Palette.CYAN_D, Palette.MAGENTA_D, Palette.ORANGE_D, Palette.BLUE_D).forEach { c ->
             assertTrue("${Integer.toHexString(c)} stayed bright", brightness(Palette.accent(c, true)) < brightness(c))

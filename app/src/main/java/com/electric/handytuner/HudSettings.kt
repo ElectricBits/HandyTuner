@@ -29,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -89,9 +90,8 @@ fun HudSettings(ctx: Context, hotkeyRow: @Composable () -> Unit) {
                         HudStyle.ACCENTS.forEach { (name, argb) ->
                             Box(
                                 // The swatch is the colour the HUD will actually use on this theme.
-                                Modifier.size(40.dp).background(Color(Hand.accent(argb)), CircleShape)
-                                    .border(3.dp, if (style.accent == argb) Hand.Text else Color.Transparent, CircleShape)
-                                    .clickable { set(style.copy(accent = argb)) },
+                                Modifier.size(40.dp).border(3.dp, if (style.accent == argb) Hand.Text else Color.Transparent, CircleShape)
+                                    .clip(CircleShape).clickable { set(style.copy(accent = argb)) }.padding(5.dp).background(Color(Hand.accent(argb)), CircleShape),
                             )
                         }
                     }
@@ -112,7 +112,7 @@ fun HudSettings(ctx: Context, hotkeyRow: @Composable () -> Unit) {
                 }
                 else -> {
                     hotkeyRow()
-                    Text("Show or hide the HUD in any game with the hotkey. Changes here apply live.", color = Color.Gray, fontSize = 13.sp)
+                    Text("Show or hide the HUD in any game with the hotkey. Changes here apply live.", color = Hand.Muted, fontSize = 13.sp)
                 }
             }
         }

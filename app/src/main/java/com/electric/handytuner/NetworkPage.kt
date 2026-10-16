@@ -103,7 +103,7 @@ fun NetworkPage(ctx: Context) {
                     val y = size.height - (v / max * size.height).toFloat()
                     if (!started) { path.moveTo(x, y); started = true } else path.lineTo(x, y)
                 }
-                drawLine(Color(0xFF2A3654), Offset(0f, size.height - (50 / max * size.height).toFloat()),
+                drawLine(if (Hand.light) Hand.Track else Hand.Bar, Offset(0f, size.height - (50 / max * size.height).toFloat()),
                     Offset(size.width, size.height - (50 / max * size.height).toFloat()), 2f)        // the 50 ms "good" line
                 drawPath(path, Hand.Blue, style = Stroke(width = 5f))
             }

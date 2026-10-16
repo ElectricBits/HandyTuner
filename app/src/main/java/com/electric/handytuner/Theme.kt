@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: GPL-2.0-only
 package com.electric.handytuner
 
+import android.app.Activity
+import android.view.WindowInsetsController
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
@@ -14,6 +16,7 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -22,6 +25,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -81,6 +86,10 @@ fun HandyTheme(content: @Composable () -> Unit) {
             primary = Hand.Blue, onPrimary = Color.White, secondaryContainer = Hand.Blue.copy(alpha = 0.18f),
             onSecondaryContainer = Hand.Text, background = Hand.Bg, surface = Hand.Bg, onSurface = Hand.Text,
             onBackground = Hand.Text, outline = Hand.Blue.copy(alpha = 0.6f),
+            // Left unset, these are Material's lavender baseline: purple-grey dialogs, switch tracks and chip text.
+            secondary = Hand.Blue, error = Hand.Bad, surfaceVariant = Hand.Bar, onSurfaceVariant = Hand.Muted,
+            outlineVariant = Hand.Blue.copy(alpha = 0.25f), surfaceContainerLowest = Hand.Card, surfaceContainerLow = Hand.Card,
+            surfaceContainer = Hand.Card, surfaceContainerHigh = Hand.Card, surfaceContainerHighest = Hand.Track,
         ) else darkColorScheme(
             primary = Hand.Blue, onPrimary = Color.White, secondaryContainer = Hand.Blue.copy(alpha = 0.25f),
             onSecondaryContainer = Color.White, background = Hand.Bg, surface = Hand.Bg, onSurface = Hand.Text,
@@ -93,6 +102,14 @@ fun HandyTheme(content: @Composable () -> Unit) {
         ),
         content = content,
     )
+    // The window's bars come from the dark system theme: match them to the page, dark icons on light.
+    val view = LocalView.current
+    SideEffect {
+        val window = (view.context as? Activity)?.window ?: return@SideEffect
+        window.statusBarColor = Hand.Bg.toArgb(); window.navigationBarColor = Hand.Bg.toArgb()
+        val bars = WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS or WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS
+        window.insetsController?.setSystemBarsAppearance(if (light) bars else 0, bars)
+    }
 }
 
 /** The board's focus highlight: a glowing blue outline on whatever the D-pad is on. */

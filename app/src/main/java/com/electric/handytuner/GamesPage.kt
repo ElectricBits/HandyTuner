@@ -26,6 +26,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -105,7 +106,7 @@ fun GamesPage(ctx: Context) {
             }
         }
         if (picking) items(apps, key = { "add-" + it.first }) { (id, name) ->
-            HandCard(Modifier.fillMaxWidth().glowFocus().clickable { set(id, GameSettings.of(Preset.NEW_GAME)); apps = apps.filter { it.first != id } }) {
+            HandCard(Modifier.fillMaxWidth().glowFocus().clip(RoundedCornerShape(16.dp)).clickable { set(id, GameSettings.of(Preset.NEW_GAME)); apps = apps.filter { it.first != id } }) {
                 Row {
                     Text(name, color = Hand.Text, fontSize = 16.sp, modifier = Modifier.weight(1f))
                     if (GameStore.isGame(ctx, id)) Text("game", color = Hand.Blue, fontSize = 13.sp)
