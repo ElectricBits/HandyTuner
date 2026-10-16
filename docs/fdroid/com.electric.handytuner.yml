@@ -1,5 +1,5 @@
 Categories:
-  - Games
+  - Game Helper
   - System
 License: GPL-2.0-only
 AuthorName: ElectricBits
@@ -14,7 +14,8 @@ AutoName: HandyTuner
 
 RepoType: git
 Repo: https://github.com/ElectricBits/HandyTuner.git
-Binaries: https://github.com/ElectricBits/HandyTuner/releases/download/v%v/HandyTuner-%v.apk
+Binaries: 
+  https://github.com/ElectricBits/HandyTuner/releases/download/v%v/HandyTuner-%v.apk
 
 Builds:
   - versionName: 0.11.3-beta
