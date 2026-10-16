@@ -31,7 +31,7 @@ class Actions(private val ctx: Context) {
     fun pulseInstalled() = runCatching { ctx.packageManager.getPackageInfo(PULSE, 0) }.isSuccess
     fun pulseRunning() = !PServer.run("pidof $PULSE:pulse").isNullOrBlank()   // the engine's own process
     /** PULSE's settings are on HandyTuner's Tweaks page now. CLEAR_TOP re-creates the activity, so it reads the page. */
-    fun openPulse() = ctx.startActivity(Intent(ctx, MainActivity::class.java).putExtra(MainActivity.PAGE, "TWEAKS")
+    fun openPulse() = ctx.startActivity(Intent(ctx, MainActivity::class.java).putExtra(MainActivity.PAGE, "PERFORMANCE")
         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP))
 
     // --- Performance and fan (AYN's own modes; only when Pulse isn't running) ----
