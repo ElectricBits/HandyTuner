@@ -1,0 +1,1 @@
+• Fixed a crash when pressing A on Tweaks with the controller. Everything else is the same as 0.11.3-beta.
