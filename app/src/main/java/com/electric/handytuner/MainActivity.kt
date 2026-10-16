@@ -149,6 +149,16 @@ class MainActivity : ComponentActivity() {
         return true
     }
 
+    /**
+     * A button pressed here but let go in another app (B that leaves HandyTuner) never sends its "up" here, so it
+     * stayed in [appHeld] for good: every L1/R1 then counted as part of a combo and stopped switching sections.
+     * Whatever was held is gone once the window loses focus.
+     */
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (!hasFocus) appHeld.clear()
+    }
+
     private val hotkeyTimeout = Runnable { finishHotkey() }
 
     private fun recordHotkey(which: Hotkey) {
