@@ -44,6 +44,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
@@ -297,9 +298,13 @@ fun <T> ChoiceRow(
 
 /** A ◀/▶ arrow: dimmed at the end of the list, tappable, never focusable. */
 @Composable
-private fun Chevron(icon: ImageVector, tint: Color, live: Boolean, onTap: () -> Unit) =
+private fun Chevron(icon: ImageVector, tint: Color, live: Boolean, onTap: () -> Unit) {
+    // Same as the slider: the tap handler outlives recompositions, so it must call the latest onTap.
+    val tap by rememberUpdatedState(onTap)
+    val isLive by rememberUpdatedState(live)
     Icon(icon, null, tint = tint.copy(alpha = if (live) 1f else 0.25f),
-        modifier = Modifier.size(30.dp).pointerInput(live) { detectTapGestures { if (live) onTap() } })
+        modifier = Modifier.size(30.dp).pointerInput(Unit) { detectTapGestures { if (isLive) tap() } })
+}
 
 /**
  * A number: ◀▶ move it by [step], touch sets it on the bar. It's saved 250 ms after it stops moving, so
@@ -326,14 +331,17 @@ fun SliderRow(
     ) { focused ->
         var width by remember { mutableStateOf(1) }
         fun setFrom(px: Float) { if (enabled) v = snap(range.first + Math.round(px / width * (range.last - range.first))) }
+        // The touch handlers start once and outlive recompositions; without this they keep calling the first
+        // setFrom, whose `v` is the state from before the value last changed, so only the first touch moved it.
+        val touch by rememberUpdatedState<(Float) -> Unit> { px -> setFrom(px) }
         val frac = (v - range.first) / (range.last - range.first).toFloat().coerceAtLeast(1f)
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(format(v), color = if (focused) Color.White else Hand.Text, fontSize = 16.sp, fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(end = 14.dp))
             Box(
                 Modifier.width(170.dp).height(28.dp).onSizeChanged { width = it.width.coerceAtLeast(1) }
-                    .pointerInput(enabled) { detectTapGestures { setFrom(it.x) } }
-                    .pointerInput(enabled) { detectHorizontalDragGestures { c, _ -> setFrom(c.position.x) } },
+                    .pointerInput(Unit) { detectTapGestures { touch(it.x) } }
+                    .pointerInput(Unit) { detectHorizontalDragGestures { c, _ -> touch(c.position.x) } },
                 contentAlignment = Alignment.CenterStart,
             ) {
                 Box(Modifier.fillMaxWidth().height(8.dp).background(if (focused) Color.White.copy(alpha = 0.35f) else Hand.Bar, CircleShape))
