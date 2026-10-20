@@ -9,6 +9,9 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -87,8 +90,9 @@ fun HomePage(ctx: Context, actions: Actions, hudKeys: String, menuKeys: String) 
             "work. If anything goes wrong, System › Reset everything to stock puts it back.", Hand.Warn)
 
         val s = snap
-        Row(Modifier.fillMaxWidth().padding(top = 16.dp), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-            val tile = Modifier.weight(1f)
+        // Same height for all three tiles, whatever each one has to say.
+        Row(Modifier.fillMaxWidth().padding(top = 16.dp).height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+            val tile = Modifier.weight(1f).fillMaxHeight()
             if (s == null) Note("Checking…")
             else {
                 StatusTile(Icons.Rounded.BatteryChargingFull, "Battery", "${s.pct}%",

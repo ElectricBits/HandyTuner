@@ -44,22 +44,14 @@ object Palette {
     val AFK_BG_D = 0xFF000000.toInt(); val AFK_BG_L = 0xFFFFFFFF.toInt()
     val AFK_TEXT_D = 0xFF3A4A60.toInt(); val AFK_TEXT_L = 0xFF5C6C80.toInt()
 
-    /** The HUD's neon accents and their hand-picked light versions, which read better than a plain shade. */
-    private val LIGHT_ACCENT = mapOf(BLUE_D to BLUE_L, CYAN_D to CYAN_L, MAGENTA_D to MAGENTA_L, GOOD_D to GOOD_L, ORANGE_D to ORANGE_L)
-
     /**
-     * A picked HUD accent on a light panel: the near-white "White" accent becomes the text colour it
-     * stands for, everything else is darkened so its hue still reads. Pure, hence [PaletteTest].
-     * Near-white means every channel is high: comparing the whole 24-bit value let magenta and orange
-     * (red byte 0xFF) through as "white".
+     * A picked HUD accent on the light theme: the same color as on dark (the owner's call, 2026-10-19: accents
+     * must not change with the theme). Only the near-white "White" accent becomes the text color, since white on
+     * the white HUD can't be seen. Near-white means every channel is high, so magenta and orange (red byte 0xFF)
+     * stay themselves. Pure, hence [PaletteTest].
      */
     fun accent(argb: Int, light: Boolean): Int = when {
-        !light -> argb
-        listOf(16, 8, 0).all { argb shr it and 0xFF >= 0xED } -> TEXT_L
-        else -> LIGHT_ACCENT[argb] ?: shade(argb)
+        light && listOf(16, 8, 0).all { argb shr it and 0xFF >= 0xED } -> TEXT_L
+        else -> argb
     }
-
-    /** The same hue at [f] % brightness: the neon accents are unreadable on white. */
-    fun shade(argb: Int, f: Int = 42): Int = (argb and 0xFF000000.toInt()) or
-        ((argb shr 16 and 0xFF) * f / 100 shl 16) or ((argb shr 8 and 0xFF) * f / 100 shl 8) or ((argb and 0xFF) * f / 100)
 }

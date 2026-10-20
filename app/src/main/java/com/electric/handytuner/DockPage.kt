@@ -14,7 +14,6 @@ import androidx.compose.material.icons.rounded.Insights
 import androidx.compose.material.icons.rounded.Launch
 import androidx.compose.material.icons.rounded.LightMode
 import androidx.compose.material.icons.rounded.PhoneAndroid
-import androidx.compose.material.icons.rounded.SportsEsports
 import androidx.compose.material.icons.rounded.TextFields
 import androidx.compose.material.icons.rounded.Tv
 import androidx.compose.material.icons.rounded.Weekend
@@ -120,7 +119,7 @@ private fun DockChargeGroup(ctx: Context) {
             help = "A docked Odin sits on the charger for hours, and a battery kept full wears faster.",
             icon = Icons.Rounded.BatteryChargingFull) { set(s.copy(dockedLimit = if (it) 80 else null)) }
         s.dockedLimit?.let { lim ->
-            SliderRow("Docked limit", lim, 50..100, 5, { if (it >= 100) "No limit" else "$it%" }, icon = Icons.Rounded.SportsEsports) {
+            SliderRow("Docked limit", lim, 50..100, 5, { if (it >= 100) "No limit" else "$it%" }, icon = Icons.Rounded.BatteryChargingFull) {
                 set(s.copy(dockedLimit = it))
             }
         }

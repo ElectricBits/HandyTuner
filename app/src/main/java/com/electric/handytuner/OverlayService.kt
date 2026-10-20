@@ -668,7 +668,7 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
         Notifier.status(this, hud != null)
     }
 
-    /** The accent the HUD actually paints with: the picked colour, darkened on the light theme. */
+    /** The accent the HUD actually paints with: the picked color (White shows as the text color on light). */
     private val accent get() = Hand.accent(style.accent)
 
     private fun neonText(size: Float) = TextView(this).apply {

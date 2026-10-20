@@ -60,15 +60,18 @@ fun ConnectedPadsScreen(ctx: Context) {
             key(d.id) {
                 val ignored = d.name in rules.ignoredPads
                 val external = Pads.isExternal(d, rules.ignoredPads)
-                val brand = Pads.brand(d.vendorId, d.name)
+                val builtIn = !external && !ignored
+                // The Odin's own controls report as an "Xbox Wireless Controller"; that's not a brand worth showing.
+                val brand = if (builtIn) null else Pads.brand(d.vendorId, d.name)
+                val name = Pads.displayName(d, builtIn)
                 val battery = runCatching { d.batteryState.takeIf { it.isPresent }?.capacity?.takeIf { !it.isNaN() } }.getOrNull()
-                RowGroup(d.name) {
-                    InfoRow(when { ignored -> "Marked as not a controller"; external -> "External controller"; else -> "The Odin's own controls" },
+                RowGroup(name) {
+                    InfoRow(when { ignored -> "Marked as not a controller"; external -> "External controller"; else -> "Built in" },
                         listOfNotNull(brand, battery?.let { "battery ${Math.round(it * 100)}%" }).joinToString(" · "),
-                        hint = (if (external) Pads.hint(brand) else null) ?: "id %04x:%04x".format(d.vendorId, d.productId),
+                        hint = (if (external) Pads.hint(brand) else null) ?: "${d.name} · id %04x:%04x".format(d.vendorId, d.productId),
                         valueColor = if (external) Hand.Blue else null)
-                    ActionRow("Rumble test", hint = note?.takeIf { it.contains(d.name) }, icon = Icons.Rounded.Vibration) {
-                        note = if (Pads.rumble(d.id)) "Rumbling ${d.name}…" else "${d.name} has no rumble Android can use."
+                    ActionRow("Rumble test", hint = note?.takeIf { it.contains(name) }, icon = Icons.Rounded.Vibration) {
+                        note = if (Pads.rumble(ctx, d.id, builtIn)) "Rumbling $name…" else "$name has no rumble Android can use."
                     }
                     // The safety valve: if the Odin's own controls are ever taken for an external pad, this stops
                     // HandyTuner switching to controller mode because of them.

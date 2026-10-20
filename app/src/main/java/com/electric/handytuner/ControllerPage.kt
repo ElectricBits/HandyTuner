@@ -64,6 +64,8 @@ fun ControllerPage(ctx: Context) {
                 icon = Icons.Rounded.Tune, value = "Open") { launch("com.odin.gameassistant", "com.ro.gameassistant.activity.GamepadTestActivity") }
         }
 
+        StickLightsGroup(ctx)
+
         RowGroup("Controllers") {
             NavRow("Connected controllers", hint = "Brand, battery, rumble test", icon = Icons.Rounded.SportsEsports,
                 value = Pads.allGamepads().size.toString()) { from -> open("Connected controllers", from) { ConnectedPadsScreen(ctx) } }
