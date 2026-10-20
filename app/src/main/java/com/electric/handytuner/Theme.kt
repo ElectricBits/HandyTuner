@@ -62,7 +62,7 @@ object Hand {
     val AfkBg get() = pick(Palette.AFK_BG_D, Palette.AFK_BG_L)
     val AfkText get() = pick(Palette.AFK_TEXT_D, Palette.AFK_TEXT_L)
 
-    /** A picked HUD accent, darkened when the theme is light. */
+    /** A picked HUD accent: the same on both themes, except White, which shows as the text color on light. */
     fun accent(argb: Int) = Palette.accent(argb, light)
 
     private fun pick(dark: Int, lightC: Int) = Color(if (light) lightC else dark)

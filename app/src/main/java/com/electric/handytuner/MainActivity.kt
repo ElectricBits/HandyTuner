@@ -104,6 +104,8 @@ class MainActivity : ComponentActivity() {
     // Onboarding: shown until finished once; the hotkey step watches for the HUD combo here.
     private val prefs by lazy { getSharedPreferences("app", MODE_PRIVATE) }
     private var onboarded by mutableStateOf(true)
+    /** What's New is showing (once after each update). */
+    private var whatsNew by mutableStateOf(false)
     private var hotkeyHeld by mutableStateOf(false)
     private var menuHeld by mutableStateOf(false)
     private val appHeld = mutableSetOf<Int>()
@@ -188,11 +190,18 @@ class MainActivity : ComponentActivity() {
         loadLabels()
         Hand.light = HudStyle.load(this).light
         onboarded = prefs.getBoolean("onboarded", false)
+        whatsNew = WhatsNew.due(this, onboarded)
         setContent {
             HandyTheme {
                 if (!onboarded) {
                     Onboarding(this@MainActivity, resumes, hotkeyHeld, menuHeld,
                         askNotifications = { requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 7) }) { prefs.edit().putBoolean("onboarded", true).apply(); onboarded = true }
+                    return@HandyTheme
+                }
+                if (whatsNew) {
+                    fun close() { WhatsNew.markSeen(this@MainActivity); whatsNew = false }
+                    BackHandler { close() }
+                    Box(Modifier.fillMaxSize().background(Hand.Bg).padding(horizontal = 48.dp, vertical = 20.dp)) { WhatsNewPage(this@MainActivity) { close() } }
                     return@HandyTheme
                 }
                 Shell()
@@ -409,13 +418,13 @@ class MainActivity : ComponentActivity() {
 enum class Section(val label: String, val icon: ImageVector, val about: String?) {
     HOME("Home", Icons.Rounded.Home, null),
     GAMES("Games", Icons.Rounded.SportsEsports, "Each game gets its preset when it opens"),
-    PERFORMANCE("Performance", Icons.Rounded.Bolt, "How the PULSE engine runs, in every game"),
+    PERFORMANCE("Performance", Icons.Rounded.Bolt, "The PULSE engine, and what runs in the background"),
     HUD("HUD", Icons.Rounded.Insights, "The stats box over your games"),
     BATTERY("Battery", Icons.Rounded.BatteryChargingFull, "Charging and battery life"),
     NETWORK("Network", Icons.Rounded.Wifi, "Ping, Wi-Fi and DNS"),
-    DOCK("Dock", Icons.Rounded.Tv, "TV, monitor and charger setups"),
+    DOCK("Dock & Display", Icons.Rounded.Tv, "TV, monitor, charger and screen resolution"),
     CONTROLLER("Controller", Icons.Rounded.Gamepad, "Buttons, gamepads and key mapping"),
-    SYSTEM("System", Icons.Rounded.Settings, "Quick fixes, diagnostics and about");
+    SYSTEM("System", Icons.Rounded.Settings, "Theme, diagnostics and about");
 
     companion object {
         /** From [MainActivity.PAGE]; the pre-redesign page names still land somewhere sensible. */

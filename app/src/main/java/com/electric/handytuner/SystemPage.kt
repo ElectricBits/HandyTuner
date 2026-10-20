@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 package com.electric.handytuner
 
-import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.background
@@ -17,20 +16,18 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Article
-import androidx.compose.material.icons.rounded.Cloud
 import androidx.compose.material.icons.rounded.Code
 import androidx.compose.material.icons.rounded.DarkMode
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.Forum
 import androidx.compose.material.icons.rounded.HealthAndSafety
+import androidx.compose.material.icons.rounded.NewReleases
 import androidx.compose.material.icons.rounded.Replay
 import androidx.compose.material.icons.rounded.RestartAlt
-import androidx.compose.material.icons.rounded.RocketLaunch
 import androidx.compose.material.icons.rounded.SaveAlt
 import androidx.compose.material.icons.rounded.Shield
 import androidx.compose.material.icons.rounded.SwipeLeft
 import androidx.compose.material.icons.rounded.VerifiedUser
-import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -72,21 +69,7 @@ fun SystemPage(act: MainActivity) {
             }
         }
 
-        RowGroup("Quick fixes") {
-            var freed by remember { mutableStateOf<String?>(null) }
-            var busy by remember { mutableStateOf(false) }
-            ActionRow("Speed Up", hint = "Closes background apps", value = if (busy) "Working…" else freed, enabled = !busy,
-                help = "Clears their cards from Recents too. Never your last game, PULSE or HandyTuner, and never an app that's downloading.",
-                icon = Icons.Rounded.RocketLaunch) {
-                busy = true
-                scope.launch(Dispatchers.IO) {
-                    val mb = actions.speedUp()
-                    withContext(Dispatchers.Main) { freed = "Freed $mb MB"; busy = false }
-                }
-            }
-
-            PlayServicesRow(act)
-
+        RowGroup("Odin") {
             var removed by remember { mutableStateOf(!actions.odinMenuOn()) }
             var menuBusy by remember { mutableStateOf(false) }
             ToggleRow("Remove Odin's swipe-in menu", removed, enabled = !menuBusy, hint = "Takes effect after a restart",
@@ -100,12 +83,6 @@ fun SystemPage(act: MainActivity) {
                     withContext(Dispatchers.Main) { removed = now; menuBusy = false }
                 }
             }
-
-            var assistantOff by remember { mutableStateOf(Tweaks.assistantOff(act)) }
-            ToggleRow("Keep Odin Assistant's game detection off", assistantOff, hint = "It fights HandyTuner's presets",
-                help = "Odin Assistant can change performance and fan per game. This switches off only its game detection (an " +
-                    "accessibility service); the app and its gamepad test stay. Off leaves it alone; switch it back on in " +
-                    "Settings › Accessibility if you want it.", icon = Icons.Rounded.VisibilityOff) { assistantOff = it; Tweaks.setAssistantOff(act, it) }
         }
 
         RowGroup("Diagnostics") {
@@ -174,30 +151,11 @@ fun SystemPage(act: MainActivity) {
                     "Not made by or affiliated with AYN.", color = Hand.Muted, fontSize = 13.sp, lineHeight = 18.sp)
                 Text("Beta: tested on the AYN Odin 2 Portal only.", color = Hand.Warn, fontSize = 13.sp, modifier = Modifier.padding(top = 4.dp))
             }
+            NavRow("What's new", hint = "What changed in this version", icon = Icons.Rounded.NewReleases) { from -> open("What's new", from) { WhatsNewPage(act, null) } }
             NavRow("Licenses", hint = "Every license, in full", icon = Icons.Rounded.Article) { from -> open("Licenses", from) { LicensesText(act) } }
             ActionRow("Source code", hint = "github.com/ElectricBits/HandyTuner", icon = Icons.Rounded.Code) { web(About.SOURCE) }
             if (About.DISCORD.isNotEmpty()) ActionRow("Discord", hint = "Questions and ideas", icon = Icons.Rounded.Forum) { web(About.DISCORD) }
             if (About.KOFI.isNotEmpty()) ActionRow("Support on Ko-fi", hint = "If HandyTuner helps you", icon = Icons.Rounded.Favorite) { web(About.KOFI) }
-        }
-    }
-}
-
-/** Odin Assistant's Google Play services switch, with what it costs spelled out. Reset turns it back on. */
-@Composable
-internal fun PlayServicesRow(ctx: Context) {
-    val actions = remember { Actions(ctx) }
-    val scope = rememberCoroutineScope()
-    var on by remember { mutableStateOf(actions.playServicesOn()) }
-    var busy by remember { mutableStateOf(false) }
-    ToggleRow("Google Play services", on, enabled = !busy,
-        hint = if (on) "On: notifications, sign-ins and the Play Store work" else "Off: frees memory while you play",
-        help = if (on) null else "Turn it back on for notifications, Google sign-ins and the Play Store.",
-        confirmOff = "Off frees memory and background work while you play, but notifications, Google sign-ins and the Play Store stop until you turn it back on.",
-        icon = Icons.Rounded.Cloud) { want ->
-        busy = true
-        scope.launch(Dispatchers.IO) {
-            actions.setPlayServices(want); val now = actions.playServicesOn()
-            withContext(Dispatchers.Main) { on = now; busy = false }
         }
     }
 }

@@ -3,16 +3,14 @@
 package com.electric.handytuner
 
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * The one rule the light HUD needs: an accent picked for a black box must still read on a white one.
+ * Accents are the same on both themes; only White turns into the text color on the light one (white on white).
  * [Palette] keeps the table out of this; the rule itself is pure, so it needs no Android.
  */
 class PaletteTest {
 
-    private fun brightness(v: Int) = (v shr 16 and 0xFF) + (v shr 8 and 0xFF) + (v and 0xFF)
 
     @Test fun darkKeepsThePickedColour() {
         listOf(Palette.GOOD_D, Palette.CYAN_D, Palette.MAGENTA_D, 0xFFFFFFFF.toInt()).forEach {
@@ -25,22 +23,9 @@ class PaletteTest {
         assertEquals(Palette.TEXT_L, Palette.accent(0xFFF4F4F4.toInt(), true))     // near-white too
     }
 
-    @Test fun redHeavyNeonsAreNotWhite() {
-        assertEquals(Palette.MAGENTA_L, Palette.accent(Palette.MAGENTA_D, true))
-        assertEquals(Palette.ORANGE_L, Palette.accent(Palette.ORANGE_D, true))
-        assertTrue(Palette.accent(0xFFFFEE00.toInt(), true) != Palette.TEXT_L)     // yellow: two high channels, not three
-    }
-
-    @Test fun neonsComeOutDarker() {
-        listOf(Palette.GOOD_D, Palette.CYAN_D, Palette.MAGENTA_D, Palette.ORANGE_D, Palette.BLUE_D).forEach { c ->
-            assertTrue("${Integer.toHexString(c)} stayed bright", brightness(Palette.accent(c, true)) < brightness(c))
+    @Test fun neonsStayTheSameOnLight() {
+        listOf(Palette.GOOD_D, Palette.CYAN_D, Palette.MAGENTA_D, Palette.ORANGE_D, Palette.BLUE_D, 0xFFFFEE00.toInt(), 0x800389FB.toInt()).forEach {
+            assertEquals(Integer.toHexString(it), it, Palette.accent(it, true))
         }
-    }
-
-    @Test fun shadingKeepsHueAndAlpha() {
-        val dim = 0x800389FB.toInt()                                                // a dimmed accent, as the HUD uses
-        val shaded = Palette.accent(dim, true)
-        assertEquals(0x80, shaded ushr 24)                                          // its own dimming survives
-        assertEquals(0.42, brightness(shaded).toDouble() / brightness(dim), 0.05)   // still recognisably the same colour
     }
 }

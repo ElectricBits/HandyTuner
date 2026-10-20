@@ -128,12 +128,24 @@ object Pads {
     }
 
     /** Rumble for half a second, if the pad has a motor. Returns whether it could. */
-    fun rumble(id: Int): Boolean = runCatching {
-        val vm = InputDevice.getDevice(id)?.vibratorManager ?: return false
-        if (vm.vibratorIds.isEmpty()) return false
-        vm.vibrate(android.os.CombinedVibration.createParallel(android.os.VibrationEffect.createOneShot(500, 255)))
+    fun rumble(ctx: android.content.Context, id: Int, builtIn: Boolean): Boolean = runCatching {
+        val effect = android.os.VibrationEffect.createOneShot(500, 255)
+        val vm = InputDevice.getDevice(id)?.vibratorManager
+        if (vm != null && vm.vibratorIds.isNotEmpty()) {
+            vm.vibrate(android.os.CombinedVibration.createParallel(effect)); return true
+        }
+        // The Odin's own controls have no vibrator Android ties to the input device; its rumble motors are
+        // the system vibrator. Only for the built-in pad: an external pad without rumble must say so.
+        if (!builtIn) return false
+        val sys = ctx.getSystemService(android.os.VibratorManager::class.java)?.defaultVibrator ?: return false
+        if (!sys.hasVibrator()) return false
+        sys.vibrate(effect)
         true
     }.getOrDefault(false)
+
+    /** What to call a pad: the Odin's own controls by the Odin's name, not the "Xbox Wireless Controller" they report. */
+    fun displayName(d: InputDevice, builtIn: Boolean) =
+        if (!builtIn) d.name else if (android.os.Build.MODEL == About.TESTED_MODEL) "Odin 2 Portal controls" else "${android.os.Build.MODEL} built-in controls"
 }
 
 /**
