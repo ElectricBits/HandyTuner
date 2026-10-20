@@ -68,7 +68,8 @@ fun ConnectedPadsScreen(ctx: Context) {
                 RowGroup(name) {
                     InfoRow(when { ignored -> "Marked as not a controller"; external -> "External controller"; else -> "Built in" },
                         listOfNotNull(brand, battery?.let { "battery ${Math.round(it * 100)}%" }).joinToString(" · "),
-                        hint = (if (external) Pads.hint(brand) else null) ?: "${d.name} · id %04x:%04x".format(d.vendorId, d.productId),
+                        hint = (if (external) Pads.hint(brand) else null) ?: if (builtIn) "id %04x:%04x".format(d.vendorId, d.productId)
+                            else "${d.name} · id %04x:%04x".format(d.vendorId, d.productId),
                         valueColor = if (external) Hand.Blue else null)
                     ActionRow("Rumble test", hint = note?.takeIf { it.contains(name) }, icon = Icons.Rounded.Vibration) {
                         note = if (Pads.rumble(ctx, d.id, builtIn)) "Rumbling $name…" else "$name has no rumble Android can use."
