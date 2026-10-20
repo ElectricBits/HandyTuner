@@ -96,7 +96,7 @@ fun SystemPage(act: MainActivity) {
             val toFix = c?.let { (a, b) -> (a + b).count { it.status != Diagnostics.Status.OK } }
             NavRow("Permissions & apps", hint = "What HandyTuner can reach on this Odin", icon = Icons.Rounded.VerifiedUser,
                 value = when { toFix == null -> "Checking…"; toFix == 0 -> "All OK"; else -> "$toFix to look at" }, enabled = c != null) { from ->
-                open("Permissions & apps", from) { if (c != null) ChecksList(act, c.first, c.second) }
+                open("Permissions & apps", from) { ChecksList(act) }
             }
 
             var logNote by remember { mutableStateOf<String?>(null) }
@@ -162,7 +162,12 @@ fun SystemPage(act: MainActivity) {
 
 /** Each check: OK, missing, or needs access (with a Fix that opens the right settings screen). */
 @Composable
-private fun ChecksList(act: MainActivity, setup: List<Diagnostics.Check>, apps: List<Diagnostics.Check>) = ConsolePage {
+private fun ChecksList(act: MainActivity) = ConsolePage {
+    // Checked again on every return to the app, so a Fix done in Android's settings shows as OK straight away
+    // (the list used to keep what it saw when it was opened).
+    var checks by remember { mutableStateOf<Pair<List<Diagnostics.Check>, List<Diagnostics.Check>>?>(null) }
+    LaunchedEffect(act.resumes) { checks = withContext(Dispatchers.IO) { Pair(Diagnostics.setup(act), Diagnostics.apps(act)) } }
+    val (setup, apps) = checks ?: run { Note("Checking…"); return@ConsolePage }
     @Composable fun rows(list: List<Diagnostics.Check>) = list.forEach { c ->
         val fix = c.fix
         if (c.status == Diagnostics.Status.GRANT && fix != null)
