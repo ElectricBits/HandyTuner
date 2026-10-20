@@ -151,7 +151,7 @@ fun SystemPage(act: MainActivity) {
                     "Not made by or affiliated with AYN.", color = Hand.Muted, fontSize = 13.sp, lineHeight = 18.sp)
                 Text("Beta: tested on the AYN Odin 2 Portal only.", color = Hand.Warn, fontSize = 13.sp, modifier = Modifier.padding(top = 4.dp))
             }
-            NavRow("What's new", hint = "What changed in this version", icon = Icons.Rounded.NewReleases) { from -> open("What's new", from) { WhatsNewPage(act, null) } }
+            NavRow("What's new", hint = "What changed in this version", icon = Icons.Rounded.NewReleases) { from -> open("What's new", from) { WhatsNewPage(act) } }
             NavRow("Licenses", hint = "Every license, in full", icon = Icons.Rounded.Article) { from -> open("Licenses", from) { LicensesText(act) } }
             ActionRow("Source code", hint = "github.com/ElectricBits/HandyTuner", icon = Icons.Rounded.Code) { web(About.SOURCE) }
             if (About.DISCORD.isNotEmpty()) ActionRow("Discord", hint = "Questions and ideas", icon = Icons.Rounded.Forum) { web(About.DISCORD) }

@@ -46,7 +46,7 @@ import java.util.Calendar
  * preset, and the hotkeys as recorded. Everything here is read live; only the last game's preset can be set.
  */
 @Composable
-fun HomePage(ctx: Context, actions: Actions, hudKeys: String, menuKeys: String) {
+fun HomePage(ctx: Context, actions: Actions, hudKeys: String, menuKeys: String, whatsNew: Boolean = false, onWhatsNewDone: () -> Unit = {}) {
     data class Snap(
         val pct: Int, val charging: Boolean, val hoursLeft: Double?, val watts: Double?,
         val plugged: Boolean, val ping: Int?, val band: String?, val rssi: Int?, val linkMbps: Int?, val pulseRunning: Boolean,
@@ -112,6 +112,8 @@ fun HomePage(ctx: Context, actions: Actions, hudKeys: String, menuKeys: String) 
                     if (s.pulseRunning) Hand.Good else Hand.Muted, listOf("Fan and clocks"), tile) { goTo(Section.PERFORMANCE) }
             }
         }
+
+        if (whatsNew) WhatsNewCard(ctx, onWhatsNewDone)
 
         LastGame(ctx)
 
