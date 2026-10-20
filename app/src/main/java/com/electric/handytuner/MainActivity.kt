@@ -104,7 +104,7 @@ class MainActivity : ComponentActivity() {
     // Onboarding: shown until finished once; the hotkey step watches for the HUD combo here.
     private val prefs by lazy { getSharedPreferences("app", MODE_PRIVATE) }
     private var onboarded by mutableStateOf(true)
-    /** What's New is showing (once after each update). */
+    /** Home shows the What's New card (once after each update, until "Got it"). */
     private var whatsNew by mutableStateOf(false)
     private var hotkeyHeld by mutableStateOf(false)
     private var menuHeld by mutableStateOf(false)
@@ -196,12 +196,6 @@ class MainActivity : ComponentActivity() {
                 if (!onboarded) {
                     Onboarding(this@MainActivity, resumes, hotkeyHeld, menuHeld,
                         askNotifications = { requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 7) }) { prefs.edit().putBoolean("onboarded", true).apply(); onboarded = true }
-                    return@HandyTheme
-                }
-                if (whatsNew) {
-                    fun close() { WhatsNew.markSeen(this@MainActivity); whatsNew = false }
-                    BackHandler { close() }
-                    Box(Modifier.fillMaxSize().background(Hand.Bg).padding(horizontal = 48.dp, vertical = 20.dp)) { WhatsNewPage(this@MainActivity) { close() } }
                     return@HandyTheme
                 }
                 Shell()
@@ -325,7 +319,7 @@ class MainActivity : ComponentActivity() {
 
     @Composable
     private fun SectionPage(s: Section) = when (s) {
-        Section.HOME -> HomePage(this, actions, hotkeyLabel, menuKeyLabel)
+        Section.HOME -> HomePage(this, actions, hotkeyLabel, menuKeyLabel, whatsNew) { WhatsNew.markSeen(this); whatsNew = false }
         Section.GAMES -> GamesPage(this)
         Section.PERFORMANCE -> PerformancePage(this)
         Section.HUD -> HudSettings(this) { HotkeyRows() }

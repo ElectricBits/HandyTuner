@@ -5,23 +5,24 @@ package com.electric.handytuner
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.Forum
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.delay
 
 /**
  * What changed in this version, shown once after each update (not on a first install: setup comes first) and on
@@ -56,39 +57,54 @@ object WhatsNew {
     fun version(ctx: Context) = runCatching { ctx.packageManager.getPackageInfo(ctx.packageName, 0).versionName }.getOrNull() ?: ""
 }
 
-/** The notes, the Ko-fi row, and (when [onDone] is given) a "Got it" row that the D-pad starts on. */
-@OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
+/** The full notes (System › About › What's new): who and what on the left, the notes on the right. */
 @Composable
-fun WhatsNewPage(ctx: Context, onDone: (() -> Unit)?) {
-    val gotIt = remember { FocusRequester() }
-    // Start on "Got it", in D-pad mode: the app opens in touch mode, where nothing can take focus.
-    val inputMode = androidx.compose.ui.platform.LocalInputModeManager.current
-    if (onDone != null) LaunchedEffect(Unit) {
-        repeat(10) { delay(80); inputMode.requestInputMode(androidx.compose.ui.input.InputMode.Keyboard); runCatching { gotIt.requestFocus() } }
-    }
-    ConsolePage {
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(start = 4.dp, top = 4.dp)) {
-            HelperAvatar(talking = false, mood = Mood.IDLE, hops = 0, width = 110.dp, dance = 0)
-            Column(Modifier.padding(start = 18.dp)) {
-                Text("What's new", color = Hand.Text, fontWeight = FontWeight.ExtraBold, fontSize = 30.sp)
-                Text("HandyTuner ${WhatsNew.version(ctx)}", color = Hand.Muted, fontSize = 16.sp)
+fun WhatsNewPage(ctx: Context) {
+    // Two columns, so the whole screen fits without scrolling: who and what on the left, the notes on the right.
+    Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(28.dp)) {
+        Column(Modifier.weight(0.42f).fillMaxHeight().verticalScroll(rememberScrollState())) {
+            HelperAvatar(talking = false, mood = Mood.IDLE, hops = 0, width = 120.dp, dance = 0)
+            Text("What's new", color = Hand.Text, fontWeight = FontWeight.ExtraBold, fontSize = 30.sp, modifier = Modifier.padding(top = 8.dp))
+            Text("HandyTuner ${WhatsNew.version(ctx)}", color = Hand.Muted, fontSize = 16.sp)
+            RowGroup("Support HandyTuner") {
+                ActionRow("Support on Ko-fi", hint = "Free app; a coffee keeps it going", icon = Icons.Rounded.Favorite) {
+                    open(ctx, About.KOFI)
+                }
+                ActionRow("Join the Discord", hint = "Questions, ideas and news", icon = Icons.Rounded.Forum) { open(ctx, About.DISCORD) }
             }
         }
-        RowGroup("In this version") {
-            Panel {
-                WhatsNew.NOTES.first().forEach { line ->
-                    Row(Modifier.padding(vertical = 5.dp)) {
-                        Text("•", color = Hand.Blue, fontSize = 17.sp, fontWeight = FontWeight.ExtraBold, modifier = Modifier.padding(end = 12.dp))
-                        Text(line, color = Hand.Text, fontSize = 16.sp, lineHeight = 22.sp)
+        Column(Modifier.weight(0.58f).fillMaxHeight().verticalScroll(rememberScrollState())) {
+            RowGroup("In this version") {
+                Panel {
+                    WhatsNew.NOTES.first().forEach { line ->
+                        Row(Modifier.padding(vertical = 5.dp)) {
+                            Text("•", color = Hand.Blue, fontSize = 17.sp, fontWeight = FontWeight.ExtraBold, modifier = Modifier.padding(end = 12.dp))
+                            Text(line, color = Hand.Text, fontSize = 16.sp, lineHeight = 22.sp)
+                        }
                     }
                 }
             }
         }
-        RowGroup("Support HandyTuner") {
-            ActionRow("Support on Ko-fi", hint = "HandyTuner is free; a coffee keeps it going", icon = Icons.Rounded.Favorite, value = "ko-fi.com/electricbits") {
-                runCatching { ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(About.KOFI)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+    }
+}
+
+private fun open(ctx: Context, url: String) =
+    runCatching { ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+
+/** Home's What's New card: the notes across the page, Ko-fi and Discord, and "Got it" to put it away until the next update. */
+@Composable
+fun WhatsNewCard(ctx: Context, onDone: () -> Unit) {
+    RowGroup("What's new in ${WhatsNew.version(ctx)}") {
+        Panel {
+            WhatsNew.NOTES.first().forEach { line ->
+                Row(Modifier.padding(vertical = 4.dp)) {
+                    Text("•", color = Hand.Blue, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, modifier = Modifier.padding(end = 12.dp))
+                    Text(line, color = Hand.Text, fontSize = 15.sp, lineHeight = 21.sp)
+                }
             }
-            if (onDone != null) ActionRow("Got it", hint = "B works too", icon = Icons.Rounded.CheckCircle, requester = gotIt) { onDone() }
         }
+        ActionRow("Support on Ko-fi", hint = "Free app; a coffee keeps it going", icon = Icons.Rounded.Favorite) { open(ctx, About.KOFI) }
+        ActionRow("Join the Discord", hint = "Questions, ideas and news", icon = Icons.Rounded.Forum) { open(ctx, About.DISCORD) }
+        ActionRow("Got it", hint = "Hides this until the next update; System › About shows it again", icon = Icons.Rounded.CheckCircle) { onDone() }
     }
 }
