@@ -61,7 +61,7 @@ fun ControllerPage(ctx: Context) {
             ActionRow("Odin's controller settings", hint = "Controller style, L2/R2 mode, what the paddles and Back do",
                 icon = Icons.Rounded.SettingsApplications, value = "Open") { launch("com.odin.settings", "com.ro.settings.activity.MainSettingsActivity") }
             ActionRow("Key Test & stick calibration", hint = "AYN's test screen: every press, and drifting sticks",
-                icon = Icons.Rounded.Tune, value = "Open") { launch("com.odin.gameassistant", "com.ro.gameassistant.activity.GamepadTestActivity") }
+                icon = Icons.Rounded.Tune, value = "Open") { launch("com.odin.factorytest", "com.ro.factorytest.itemstest.GamepadTestActivity") }
         }
 
         StickLightsGroup(ctx)
