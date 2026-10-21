@@ -187,7 +187,13 @@ fun ConsoleRow(
                 if (f.isFocused) {
                     hints.kind = kind
                     val above = with(density) { 56.dp.toPx() }; val below = with(density) { 24.dp.toPx() }
-                    scope.launch { bring.bringIntoView(Rect(0f, -above, size.width.toFloat(), size.height + below)) }
+                    scope.launch {
+                        bring.bringIntoView(Rect(0f, -above, size.width.toFloat(), size.height + below))
+                        // Focused while the page is still sliding in (back from a drill-in): that first scroll is
+                        // dropped, so ask again once the 220 ms enter animation is done.
+                        delay(250)
+                        if (focused) bring.bringIntoView(Rect(0f, -above, size.width.toFloat(), size.height + below))
+                    }
                 }
             }
             .onPreviewKeyEvent { e -> enabled && onKey?.invoke(e) == true }
