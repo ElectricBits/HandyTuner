@@ -66,7 +66,6 @@ Open it in any game with **both sticks + R1**. Changes apply to the game in fron
 | **Quick settings** | Brightness, volume, refresh rate (60 or 120 Hz), **Screenshot** and screen **Record**. Screenshots go to *Pictures › HandyTuner*, recordings to *Movies › HandyTuner*. |
 | **HUD** | Show or hide the HUD. |
 | **AFK Mode** | Stepping away mid-game? Dims the screen and locks the buttons so nothing gets pressed. |
-| **Key Mapping** | Turn your key map on or off for this game (see [Controller](#controller)). |
 | **A/B Buttons** | Swap which face button is A. |
 | **Speed Up** | Closes background apps to free memory (never your game, and never an app that's downloading). |
 | **Pulse settings** | Opens the engine settings on the Tweaks page. |
@@ -171,8 +170,6 @@ PULSE separately; installing the separate PULSE app alongside HandyTuner would m
 ## Controller
 
 - **Button layout:** **Xbox** (A at the bottom) or **Swapped** (A on the right).
-- **Key mapping:** make layouts that turn controller buttons into screen taps (or holds) for Android games without
-  controller support. Buttons only: on Android 13 the sticks can't be mapped. Show the layout over the game while you set it up, and export or import layouts as files.
 - Shortcuts to the **Odin's controller settings** (controller style, L2/R2 mode, M1/M2/Back mapping) and **Key Test &
   stick calibration**.
 
@@ -193,10 +190,8 @@ Bluetooth.
     you let go: **hold it and press Select** to go back instead (the Select never reaches the app). Some launchers,
     Cocoon among them, ignore Android's Back in their own menus; use B there.
 - **When a controller is connected:** a preset for every game, **Ignore the Odin's own buttons** (buttons only, the
-  hotkeys still work), hide the key-mapping markers, and alerts when the controller disconnects mid-game or its
+  hotkeys still work), and alerts when the controller disconnects mid-game or its
   battery drops to 20% and 10%.
-- **Key layouts per controller:** a key-mapping layout made while an external controller is connected is saved for
-  the controller, so it can differ from the Odin's own.
 - The HUD can show the **controller battery** (HUD page → What the HUD shows).
 
 ---

@@ -46,7 +46,7 @@ class QuickMenu(
     interface Host {
         fun hudShown(): Boolean; fun toggleHud(); fun startAfk(); fun afkOn(): Boolean
         fun runner(): ProfileRunner; fun currentGame(): String?
-        fun frontPkg(): String?; fun keyCount(): Int; fun openKeyEditor()
+        fun frontPkg(): String?
         fun pulse(): PulseLink
         /** Apply a game's saved settings now (on the worker thread, after anything already queued). */
         fun applyGameNow(id: String)
@@ -324,11 +324,6 @@ class QuickMenu(
 
         val afkTile = tile({ hide(); host.startAfk() },
             heading(R.drawable.ic_bedtime, "AFK Mode", "Dim • lock buttons", MUTED, switch(host.afkOn())))
-        // Key mapping: only for Android games; Windows games and emulators already speak controller.
-        val mappable = KeyMapper.canMap(host.frontPkg())
-        val keyTile = if (mappable) tile({ host.openKeyEditor() },
-            heading(R.drawable.ic_sports_esports, "Key Mapping", host.keyCount().let { if (it == 0) "Map buttons to taps" else "$it button${if (it == 1) "" else "s"} mapped" }))
-        else tile(null, heading(R.drawable.ic_sports_esports, "Key Mapping", "Android games only", MUTED)).apply { alpha = 0.6f }
 
         // Odin Assistant's "Speed up" and the A/B swap.
         val speedTile = tile({ hide(); bg.post {
@@ -393,7 +388,6 @@ class QuickMenu(
         val deviceTab = vbox(
             gap(hbox(half(screenTile), half(presetsTile).apply { layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT })),
             gap(hbox(half(speedTile), half(abTile))),
-            gap(keyTile),
         )
         val tabs = listOf(gameTab, deviceTab)
         lateinit var tabBar: LinearLayout

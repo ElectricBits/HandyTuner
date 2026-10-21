@@ -417,7 +417,7 @@ enum class Section(val label: String, val icon: ImageVector, val about: String?)
     BATTERY("Battery", Icons.Rounded.BatteryChargingFull, "Charging and battery life"),
     NETWORK("Network", Icons.Rounded.Wifi, "Ping, Wi-Fi and DNS"),
     DOCK("Dock & Display", Icons.Rounded.Tv, "TV, monitor, charger and screen resolution"),
-    CONTROLLER("Controller", Icons.Rounded.Gamepad, "Buttons, gamepads and key mapping"),
+    CONTROLLER("Controller", Icons.Rounded.Gamepad, "Buttons and gamepads"),
     SYSTEM("System", Icons.Rounded.Settings, "Theme, diagnostics and about");
 
     companion object {

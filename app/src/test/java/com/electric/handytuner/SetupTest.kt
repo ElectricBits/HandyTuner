@@ -84,7 +84,7 @@ class SetupTest {
 
     @Test fun rulesRoundTrip() {
         val r = SetupRules(dockedPreset = "PERFORMANCE", couchPreset = "custom:Couch", chargerIsDock = true, tvHud = false,
-            dimScreen = true, keepAwake = true, sleepOff = false, ignoreBuiltIn = true, hideMarkers = true, padAlerts = false,
+            dimScreen = true, keepAwake = true, sleepOff = false, ignoreBuiltIn = true, padAlerts = false,
             launchOnDock = "com.retroarch", ignoredPads = setOf("Odin Controller", "gpio-keys"))
         assertEquals(r, SetupRules.from(r.toProperties()))
         assertEquals(SetupRules(), SetupRules.from(Properties()))
@@ -107,8 +107,4 @@ class SetupTest {
         assertEquals(mapOf(100 to PadAction.SCREENSHOT, 102 to PadAction.QUICK_MENU), PadAction.parse(p))
     }
 
-    @Test fun keymapSlots() {
-        assertEquals("com.game", KeyMapper.slot("com.game", false))
-        assertEquals("com.game#pad", KeyMapper.slot("com.game", true))
-    }
 }
