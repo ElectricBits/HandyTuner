@@ -148,7 +148,7 @@ network part), and share them as a file in your Downloads folder. Importing neve
 
 ## Tweaks
 
-<img src="screenshots/tweaks.png" width="640" alt="Tweaks page">
+<img src="screenshots/performance.png" width="640" alt="Performance page">
 
 | Tweak | What it does |
 |---|---|
