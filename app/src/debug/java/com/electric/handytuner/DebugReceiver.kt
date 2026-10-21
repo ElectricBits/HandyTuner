@@ -13,7 +13,6 @@ class DebugReceiver : BroadcastReceiver() {
         when (intent.getStringExtra("cmd")) {
             "menu" -> svc.debugMenu()
             "hud" -> svc.toggleHud()
-            "keyedit" -> svc.openKeyEditor()
             else -> intent.getStringExtra("cmd").orEmpty().split(" ").let { a ->
                 // Benchmarks (docs/benchmarks.md): switch HandyTuner's own part on its own, e.g. "profile LOW_PING".
                 if (a.firstOrNull() == "profile") svc.bgRun {

@@ -71,30 +71,10 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
     override fun runner() = runner
     override fun currentGame() = session?.pkg
 
-    // --- Key mapping: the scheme for the front game, and its editor ---
-    private val keyPlayer by lazy { KeyMapPlayer(this) }
-    private val editor by lazy { KeyMapEditor(this, nunito) { loadKeymap() } }
+    // The front game's package, from the watcher. QuickMenu's "Open a game first" check uses it.
     @Volatile private var frontPkg: String? = null
-    private var keymapStamp = -1L
-    private val keyView by lazy { KeyMapView(this, nunito) }
-    private fun loadKeymap() {
-        val p = frontPkg
-        // With an external controller, the game's controller layout if it has one (KeyMapper.slot).
-        val spots = if (KeyMapper.canMap(p)) KeyMapper.forPlay(this, p!!, padOn) else emptyList()
-        val set = KeyMapper.settings(this)
-        keyPlayer.use(spots); keyPlayer.settings = set
-        val markers = set.show && !editor.open && !(padOn && rules.hideMarkers)
-        main.post { if (markers) keyView.show(spots, set.opacity) else keyView.hide() }
-    }
     override fun frontPkg() = frontPkg
     override fun pulse() = pulse
-    override fun keyCount() = frontPkg?.let { KeyMapper.forPlay(this, it, padOn).size } ?: 0
-    override fun openKeyEditor() {
-        frontPkg?.takeIf { KeyMapper.canMap(it) }?.let { p ->
-            val pad = padOn
-            main.post { menu.hide(); keyView.hide(); editor.start(KeyMapper.slot(p, pad), KeyMapper.forPlay(this, p, pad)) }
-        }
-    }
 
     // --- Setup: handheld, docked, controller or couch (Setup.kt), checked every watcher tick ---
     @Volatile private var setup: Setup? = null                  // null until the first check
@@ -128,7 +108,6 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
         setup = next
         Log.i(TAG, "setup: $was -> $next, pads ${now.map { it.name }}")
         dockExtras(next, rules)
-        loadKeymap()
         if (was?.docked != next.docked || rulesChanged) main.post { if (hud != null) { hide(); show() } }
         session?.let { o -> GameStore.get(this, o.pkg)?.let { applyGame(o.pkg, it) } }
         if (was != null && next != was) {
@@ -473,7 +452,7 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
                 val confirmed = if (!neutral && fg != front0) (fg == candidate).also { candidate = fg } else { candidate = null; false }
                 if (confirmed) {
                     front0 = fg
-                    frontPkg = pkg; loadKeymap()
+                    frontPkg = pkg
                     Log.i(TAG, "front: $fg")
                     endSession()
                     if (GameStore.isGame(this@OverlayService, fg!!)) {
@@ -486,9 +465,6 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
                         if (g != GameSettings.of(Preset.NEW_GAME)) Notifier.preset(this@OverlayService, g, label(fg))
                         Log.i(TAG, "session start $fg, ${g.label}: ${g.describe()}")
                     } else runner.clear()
-                } else if ((java.io.File(filesDir, "keymaps.json").lastModified() + java.io.File(filesDir, "keymap_settings.properties").lastModified())
-                        .let { m -> (m != keymapStamp).also { keymapStamp = m } }) {
-                    loadKeymap()
                 } else if (pendingApply != null && pendingApply == session?.pkg) {
                     GameStore.get(this@OverlayService, pendingApply!!)?.let { applyGame(pendingApply!!, it) }
                 } else if (changedProfiles) {
@@ -613,7 +589,6 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
 
     /** Never consumes a key (the game must get every press, the combos included), except in AFK. */
     override fun onKeyEvent(event: KeyEvent): Boolean {
-        if (editor.open) return editor.onKey(event)
         if (afkView != null) {
             if (event.keyCode == KeyEvent.KEYCODE_BUTTON_A && event.action == KeyEvent.ACTION_DOWN) {
                 val now = System.currentTimeMillis()
@@ -657,8 +632,7 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
         // Couch play: the Odin's own buttons are held back while an external controller is connected.
         // The combos above still saw them, so the hotkeys keep working.
         if (rules.ignoreBuiltIn && padOn && Pads.isPadKey(event.keyCode) && !Pads.isExternal(event.device, rules.ignoredPads)) return true
-        // A mapped button becomes a tap on the screen, and the game doesn't see the button.
-        return !menu.showing && keyPlayer.onKey(event)
+        return false
     }
 
     private fun toggle() {
@@ -1025,7 +999,7 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
     override fun onDestroy() {
         instance = null
         pulse.disconnect()
-        hide(); menu.hide(); keyView.hide(); if (afkView != null) endAfk()
+        hide(); menu.hide(); if (afkView != null) endAfk()
         awakeView?.let { runCatching { getSystemService(WindowManager::class.java).removeView(it) } }; awakeView = null
         bg.removeCallbacks(watch)
         // PServer and the battery are blocking binder calls — `runner.clear()` restores every saved

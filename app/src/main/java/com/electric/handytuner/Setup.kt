@@ -169,8 +169,6 @@ data class SetupRules(
     val sleepOff: Boolean = true,
     /** Hold back the Odin's own buttons while an external controller is connected. */
     val ignoreBuiltIn: Boolean = false,
-    /** Hide the key-mapping markers while an external controller is connected. */
-    val hideMarkers: Boolean = false,
     /** Notify when a controller disconnects mid-game or its battery runs low. */
     val padAlerts: Boolean = true,
     /** An app to open when the Odin is docked. */
@@ -203,7 +201,7 @@ data class SetupRules(
         fun put(k: String, v: Any?) { if (v != null) setProperty(k, v.toString()) }
         put("dockedPreset", dockedPreset); put("padPreset", padPreset); put("couchPreset", couchPreset)
         put("chargerIsDock", chargerIsDock); put("tvHud", tvHud); put("dimScreen", dimScreen); put("keepAwake", keepAwake)
-        put("sleepOff", sleepOff); put("ignoreBuiltIn", ignoreBuiltIn); put("hideMarkers", hideMarkers); put("padAlerts", padAlerts)
+        put("sleepOff", sleepOff); put("ignoreBuiltIn", ignoreBuiltIn); put("padAlerts", padAlerts)
         put("launchOnDock", launchOnDock)
         if (ignoredPads.isNotEmpty()) setProperty("ignoredPads", ignoredPads.joinToString("\n"))
     }
@@ -220,7 +218,7 @@ data class SetupRules(
                 chargerIsDock = flag("chargerIsDock", d.chargerIsDock), tvHud = flag("tvHud", d.tvHud),
                 dimScreen = flag("dimScreen", d.dimScreen), keepAwake = flag("keepAwake", d.keepAwake),
                 sleepOff = flag("sleepOff", d.sleepOff), ignoreBuiltIn = flag("ignoreBuiltIn", d.ignoreBuiltIn),
-                hideMarkers = flag("hideMarkers", d.hideMarkers), padAlerts = flag("padAlerts", d.padAlerts),
+                padAlerts = flag("padAlerts", d.padAlerts),
                 launchOnDock = str("launchOnDock")?.takeIf { it.matches(Regex("[A-Za-z0-9._]+")) },
                 ignoredPads = p.getProperty("ignoredPads")?.split("\n")?.map { it.trim() }?.filter { it.isNotEmpty() }?.toSet().orEmpty(),
             )

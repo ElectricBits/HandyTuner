@@ -30,7 +30,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-/** The Odin's button layout, connected controllers and their tools, what changes with one connected, and key mapping. */
+/** The Odin's button layout, connected controllers and their tools, what changes with one connected. */
 @Composable
 fun ControllerPage(ctx: Context) {
     val scope = rememberCoroutineScope()
@@ -84,75 +84,9 @@ fun ControllerPage(ctx: Context) {
             ToggleRow("Ignore the Odin's own buttons", r.ignoreBuiltIn, hint = "So a bump doesn't press anything",
                 help = "Buttons only: Android doesn't let HandyTuner hold back the sticks. The hotkeys still work.",
                 icon = Icons.Rounded.VisibilityOff) { save(r.copy(ignoreBuiltIn = it)) }
-            ToggleRow("Hide key-mapping markers", r.hideMarkers, hint = "The dots that show where mapped buttons tap",
-                icon = Icons.Rounded.TouchApp) { save(r.copy(hideMarkers = it)) }
             ToggleRow("Controller alerts", r.padAlerts, hint = "When it disconnects mid-game or its battery is low",
                 icon = Icons.Rounded.BatteryAlert) { save(r.copy(padAlerts = it)) }
         }
 
-        KeyMappingGroup(ctx)
-    }
-}
-
-/** Key mapping: buttons to screen taps for touch games. Layouts are made in the Quick Menu; here is how they behave. */
-@Composable
-private fun KeyMappingGroup(ctx: Context) {
-    var set by remember { mutableStateOf(KeyMapper.settings(ctx)) }
-    fun save(n: KeyMapper.Settings) { set = n; KeyMapper.saveSettings(ctx, n) }
-    val open = openSub()
-    RowGroup("Key mapping") {
-        NavRow("Saved layouts", hint = "Per game; export and import", icon = Icons.Rounded.Keyboard,
-            value = KeyMapper.all(ctx).size.toString()) { from -> open("Saved layouts", from) { LayoutsScreen(ctx) } }
-        ToggleRow("Show the layout in games", set.show, hint = "Markers where mapped buttons tap",
-            help = "Make a layout from the Quick Menu while the game is open: press a placed button again to switch tap → hold → " +
-                "auto-fire. A layout made with an external controller connected is saved for that controller.",
-            icon = Icons.Rounded.TouchApp) { save(set.copy(show = it)) }
-        SliderRow("See-through", set.opacity, 10..90, 5, { "$it%" }, hint = "How see-through the markers are", icon = Icons.Rounded.Opacity) {
-            save(set.copy(opacity = it))
-        }
-        SliderRow("Tap length", set.tapMs, 20..200, 10, { "$it ms" }, hint = "How long each tap holds", icon = Icons.Rounded.Timer) {
-            save(set.copy(tapMs = it))
-        }
-        SliderRow("Auto-fire speed", set.autoRate, 2..20, 1, { "$it/s" }, hint = "Taps per second on auto-fire", icon = Icons.Rounded.Whatshot) {
-            save(set.copy(autoRate = it))
-        }
-    }
-}
-
-/** Each game's layout (A twice deletes it), and the layouts as one file in Downloads. */
-@Composable
-private fun LayoutsScreen(ctx: Context) {
-    val scope = rememberCoroutineScope()
-    var maps by remember { mutableStateOf(KeyMapper.all(ctx)) }
-    var note by remember { mutableStateOf<String?>(null) }
-    fun label(pkg: String) = runCatching { ctx.packageManager.getApplicationLabel(ctx.packageManager.getApplicationInfo(pkg, 0)).toString() }.getOrDefault(pkg)
-    ConsolePage {
-        RowGroup {
-            ActionRow("Export", hint = note ?: "To Downloads/HandyTuner-keymaps.json", enabled = maps.isNotEmpty()) {
-                scope.launch(Dispatchers.IO) {
-                    val ok = KeyMapper.exportAll(ctx)
-                    withContext(Dispatchers.Main) { note = if (ok) "Saved to Downloads/HandyTuner-keymaps.json" else "Couldn't save the file" }
-                }
-            }
-            ActionRow("Import", hint = "From Downloads/HandyTuner-keymaps.json") {
-                scope.launch(Dispatchers.IO) {
-                    val n = KeyMapper.importAll(ctx)
-                    withContext(Dispatchers.Main) {
-                        maps = KeyMapper.all(ctx)
-                        note = if (n < 0) "No Downloads/HandyTuner-keymaps.json to import" else "Imported $n game layout${if (n == 1) "" else "s"}"
-                    }
-                }
-            }
-        }
-        RowGroup("Layouts") {
-            if (maps.isEmpty()) InfoRow("No layouts yet", "", hint = "Make one from the Quick Menu while a game is open", focusable = false)
-            maps.forEach { (pkg, spots) ->
-                val pad = pkg.endsWith(KeyMapper.PAD)
-                ActionRow(label(pkg.removeSuffix(KeyMapper.PAD)) + if (pad) " (controller)" else "",
-                    hint = "${spots.size} button${if (spots.size == 1) "" else "s"}", value = "Delete", confirm = "delete it") {
-                    KeyMapper.set(ctx, pkg, emptyList()); maps = KeyMapper.all(ctx)
-                }
-            }
-        }
     }
 }
