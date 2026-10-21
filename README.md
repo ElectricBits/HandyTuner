@@ -5,7 +5,7 @@
 **One app to tune your Android gaming handheld:** a game HUD, a Quick Menu you open from inside any game, per-game
 presets, and the PULSE performance engine built in. Meet HandyHelper, who walks you through setup.
 
-Made and tested on the **AYN Odin 2 Portal** first, with **support for more handhelds planned**: see
+A tuning app made for **Android handhelds**, tested so far on the **AYN Odin 2 Portal**, with **support for more handhelds planned**: see
 [Supported devices](#supported-devices).
 
 > [!NOTE]
