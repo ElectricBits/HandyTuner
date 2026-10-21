@@ -39,6 +39,7 @@ object WhatsNew {
             "Buttons use the Odin's names, like Left and Right paddle; HUD colors stay the same in Light.",
             "The rumble test works on the Odin's own controls.",
             "Key mapping is gone, so the app stays simple. Your saved layouts stay on the Odin.",
+            "Going back from a screen like Connected controllers scrolls to the row you came from.",
         ),
     )
 
