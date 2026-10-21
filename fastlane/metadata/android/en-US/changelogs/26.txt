@@ -1,0 +1,5 @@
+• A new look built for the controller: one list of sections, L1/R1 to switch, B to go back.
+• Every setting is one row: ◀▶ changes it, and the row you're on explains itself.
+• Home shows battery, network and PULSE at a glance, your last game, and your hotkeys.
+• Buttons use the Odin's names, like Left and Right paddle. The rumble test works on the Odin's own controls.
+• Key mapping is removed. Your saved layouts stay on the Odin.

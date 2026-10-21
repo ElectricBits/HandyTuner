@@ -3,9 +3,10 @@
 Everything HandyTuner does, page by page, in plain words. HandyTuner is a beta tested on the **AYN Odin 2 Portal
 (Android 13)** only.
 
-**Contents:** [Setup](#setup) · [Hotkeys](#hotkeys) · [Home](#home) · [Quick Menu](#quick-menu) · [HUD](#hud) ·
-[Games and presets](#games-and-presets) · [Battery](#battery) · [Network](#network) · [Tweaks](#tweaks) ·
-[Controller](#controller) · [Dock & Screen](#dock--screen) · [Diagnostics](#diagnostics) · [Safety](#safety-safe-mode-and-reset) · [FAQ](#faq-and-troubleshooting)
+**Contents:** [Setup](#setup) · [Getting around](#getting-around) · [Hotkeys](#hotkeys) · [Home](#home) ·
+[Quick Menu](#quick-menu) · [HUD](#hud) · [Games and presets](#games-and-presets) · [Performance](#performance) ·
+[Battery](#battery) · [Network](#network) · [Dock & Display](#dock--display) · [Controller](#controller) ·
+[System](#system) · [Safety](#safety-safe-mode-and-reset) · [FAQ](#faq-and-troubleshooting)
 
 ---
 
@@ -27,7 +28,24 @@ He asks for three permissions. Each step has a button that opens the right page 
 
 Then he checks that the Odin's built-in system service answers (that's how HandyTuner works without root), offers
 **Cocoon** (a launcher that tells HandyTuner exactly which game you start, even Windows games), lets you pick the HUD's
-color, and has you try both hotkeys. You can run setup again any time from **Diagnostics → Run setup again**.
+color, and has you try both hotkeys. You can run setup again any time from **System → Run setup again**.
+
+---
+
+## Getting around
+
+HandyTuner is made for the controller. The sections are listed on the left, and every setting is one row.
+
+| Button | What it does |
+|---|---|
+| **L1 / R1** | Previous / next section |
+| **D-pad ▲▼** | Move between rows |
+| **D-pad ◀▶** | Change the value on the row you're on |
+| **A** | Open, switch on/off, or press the row |
+| **B** | Go back; on a section's main page, leave HandyTuner |
+
+The row you're on shows a longer explanation, and the bar at the bottom shows which buttons do what right now.
+Touch works everywhere too.
 
 ---
 
@@ -35,11 +53,12 @@ color, and has you try both hotkeys. You can run setup again any time from **Dia
 
 | Hotkey | What it does |
 |---|---|
-| **Both back buttons + both sticks pressed in** | Show or hide the HUD |
+| **Left paddle + Right paddle + both sticks pressed in** | Show or hide the HUD |
 | **Both sticks pressed in + R1** | Open the Quick Menu |
 
 They work in any game, on the Odin's own buttons or an external controller whose back paddles send the same
-buttons (an 8BitDo's do). Change them on the **HUD** page (**Record**, then press your new combo).
+buttons (an 8BitDo's do). Home shows your current hotkeys; change them on the **HUD** page (**Record**, then press
+your new combo).
 
 ---
 
@@ -48,10 +67,12 @@ buttons (an 8BitDo's do). Change them on the **HUD** page (**Record**, then pres
 <img src="screenshots/home.png" width="640" alt="Home page">
 
 Your Odin at a glance: battery level and how long it will last at the current rate, your Wi-Fi ping and signal, and
-whether the PULSE engine is running. Tap HandyHelper and he moonwalks.
+whether the PULSE engine is running. Each tile opens its section. Tap HandyHelper and he moonwalks.
 
-At the bottom, the **About** card shows the version, the license, and buttons for the **Source code**, **Licenses**,
-**Discord** and **Ko-fi**.
+Below the tiles: your **hotkeys**, and the game you **last played** with its preset (◀▶ changes it).
+
+After an update, a **What's new** card shows what changed, with **Ko-fi** and **Discord** buttons. **Got it** hides it
+until the next update; the notes stay under **System → What's new**.
 
 ---
 
@@ -68,7 +89,7 @@ Open it in any game with **both sticks + R1**. Changes apply to the game in fron
 | **AFK Mode** | Stepping away mid-game? Dims the screen and locks the buttons so nothing gets pressed. |
 | **A/B Buttons** | Swap which face button is A. |
 | **Speed Up** | Closes background apps to free memory (never your game, and never an app that's downloading). |
-| **Pulse settings** | Opens the engine settings on the Tweaks page. |
+| **PULSE status** | Whether the engine is running. **Engine settings** opens the Performance page. |
 
 ---
 
@@ -87,11 +108,12 @@ time, and a one-line hint about what's slowing the game down. What the hint line
 | Holding your 40 fps cap / Auto is holding 30 fps | Your cap or Auto target is working. |
 | The graphics chip is the limit right now | The GPU is fully busy; a lighter setting or Saver may help battery. |
 | One CPU core is the limit right now | The game's main thread is fully busy (common in emulators). |
-| Memory is running low *(amber)* | Close background apps (Tweaks → Speed Up). |
+| Memory is running low *(amber)* | Close background apps (Performance → Speed Up). |
 | The chip is slowing down to cool off *(amber)* | Real heat throttling, read from the system, not guessed from the temperature. | **Compact** shows just FPS, ping and Wi-Fi.
 
-On the HUD page you can also change the **hotkeys**, the HUD's **position** (any corner), **size** and **accent
-color**. Changes apply live.
+On the HUD page you choose the **layout** (Full or Compact), **position** (any corner), **size**, how solid the
+**background** is and the **accent color**, pick what the HUD shows (keep at least one), and change the **hotkeys**.
+Changes apply live.
 
 ---
 
@@ -109,10 +131,33 @@ automatically. It works for Windows games in GameNative too, where each `.exe` g
 | **Performance** | Max power level, Sport fan |
 | **Competitive** | Max power level, Sport fan, plus Low Latency Wi-Fi |
 
-Changes you make in the Quick Menu are saved to that game, and it's then shown as "(tweaked)".
+On the Games page, **◀▶** changes a game's preset, and **Y** twice removes the game from the list. **Add a game** gives
+an app a preset before you've played it, and **What the presets do** explains each one. Changes you make in the Quick
+Menu are saved to that game, and it's then shown as tweaked.
 
 **My presets, export & import:** make your own presets (power level or AutoTDP, frame cap, fan, and a battery or
 network part), and share them as a file in your Downloads folder. Importing never overwrites your own presets or games.
+
+---
+
+## Performance
+
+<img src="screenshots/performance.png" width="640" alt="Performance page">
+
+| Setting | What it does |
+|---|---|
+| **Hold temp target** | The temperature the **Hold temp** fan keeps the chip at (60–88 °C). Lower is cooler and louder. Applies to every preset that uses Hold temp. |
+| **AutoTDP style** | **Efficient**, **Balanced** or **Smooth**: how hard AutoTDP saves power while holding your FPS. |
+| **Sleep underclock** | Slows the chip while the screen is off, and puts it back when you wake the Odin. |
+| **Speed Up** | Closes background apps and clears them from Recents. Never your last game, HandyTuner, or an app that's downloading. |
+| **Google Play services** | Turn them off while you play to free memory and background work. Notifications, Google sign-ins and the Play Store stop until you turn them back on. |
+| **Keep Odin Assistant's game detection off** | Odin Assistant can change performance and fan per game, which fights HandyTuner. On by default; it switches off only that one feature, and the app stays. |
+
+### The PULSE engine
+
+HandyTuner's performance control comes from **PULSE** by keiretrogaming, built in. It runs in the background,
+watches which game is in front, and applies its power level, AutoTDP, frame cap and fan. You don't need to install
+PULSE separately; installing the separate PULSE app alongside HandyTuner would make the two fight.
 
 ---
 
@@ -124,8 +169,6 @@ network part), and share them as a file in your Downloads folder. Importing neve
   away from 100% helps it last longer. It uses AYN's own charging switch.
 - **Skip the battery while gaming:** while a game runs on the charger, power goes straight to the Odin instead of
   through the battery, so the battery stays cool.
-- **Google Play services:** turn them off while you play to free memory and background work. Notifications, Google
-  sign-ins and the Play Store stop until you turn them back on.
 - **Play sessions:** your recent gaming sessions, newest first.
 
 ---
@@ -141,62 +184,13 @@ network part), and share them as a file in your Downloads folder. Importing neve
 - **DNS benchmark:** tests your network's DNS and well-known public providers (Cloudflare, Google, Quad9, AdGuard,
   Mullvad, OpenDNS, Control D), fastest first. A faster DNS makes stores and matchmaking connect sooner; it doesn't
   change in-game ping.
+- **Low Latency mode:** Wi-Fi only: stops the Wi-Fi radio napping between packets and pauses background Wi-Fi and
+  Bluetooth scans, which cause lag spikes. It never changes performance or presets.
 - **Private DNS:** switch to an encrypted DNS provider in one tap, or back to automatic.
 
 ---
 
-## Tweaks
-
-<img src="screenshots/performance.png" width="640" alt="Performance page">
-
-| Tweak | What it does |
-|---|---|
-| **Low Latency mode** | Wi-Fi only: stops the Wi-Fi radio napping between packets and pauses background Wi-Fi and Bluetooth scans, which cause lag spikes. It never changes performance or presets. |
-| **Speed Up** | Closes background apps and clears them from Recents. Never your last game, HandyTuner, or an app that's downloading. |
-| **Keep Odin Assistant's game detection off** | Odin Assistant can change performance and fan per game, which fights HandyTuner. On by default; it switches off only that one feature, and the app stays. |
-| **Hold temp fan** | The temperature the **Hold temp** fan keeps the chip at (60–88 °C). Lower is cooler and louder. Applies to every preset that uses Hold temp. |
-| **AutoTDP style** | **Efficient**, **Balanced** or **Smooth**: how hard AutoTDP saves power while holding your FPS. |
-| **Sleep underclock** | Slows the chip while the screen is off, and puts it back when you wake the Odin. |
-| **Stick lights** | The lights around the sticks: **Off**, **Battery** (green to red as it drains), **Heat** (blue to red as it warms) or a **Color** and brightness you pick. |
-
-### The PULSE engine
-
-HandyTuner's performance control comes from **PULSE** by keiretrogaming, built in. It runs in the background,
-watches which game is in front, and applies its power level, AutoTDP, frame cap and fan. You don't need to install
-PULSE separately; installing the separate PULSE app alongside HandyTuner would make the two fight.
-
----
-
-## Controller
-
-- **Button layout:** **Xbox** (A at the bottom) or **Swapped** (A on the right).
-- Shortcuts to the **Odin's controller settings** (controller style, L2/R2 mode, M1/M2/Back mapping) and **Key Test &
-  stick calibration**.
-
-### External controllers (beta)
-
-For Bluetooth, USB or dongle controllers such as 8BitDo and Xbox pads. Tested with an 8BitDo Ultimate 2C over
-Bluetooth.
-
-- **Connected controllers:** every controller Android sees, with its brand and battery. **Rumble test** checks the
-  motor. If the Odin's own controls are ever listed as an external controller, press **This isn't a controller**.
-- **Button & stick test:** press any button (back paddles too) to see what it sends. With the sticks let go they
-  should read close to 0.00; more than 0.10 means drift. 8BitDo pads send different buttons in different modes, so
-  check here if A/B come out swapped.
-- **Button shortcuts:** give a button a HandyTuner action (Quick Menu, HUD, screenshot, recording, next preset, Speed
-  Up, AFK, **go to the home screen**, **go back**). In games that button does the action and the game doesn't see
-  it. Shortcuts are off on HandyTuner's own screens, so the button test still works there.
-  - **Go to the home screen** suits a controller's Home button. Docked to a TV, the TV goes home too. It acts when
-    you let go: **hold it and press Select** to go back instead (the Select never reaches the app). Some launchers,
-    Cocoon among them, ignore Android's Back in their own menus; use B there.
-- **When a controller is connected:** a preset for every game, **Ignore the Odin's own buttons** (buttons only, the
-  hotkeys still work), and alerts when the controller disconnects mid-game or its
-  battery drops to 20% and 10%.
-- The HUD can show the **controller battery** (HUD page → What the HUD shows).
-
----
-
-## Dock & Screen
+## Dock & Display
 
 **Resolution** comes first: the Odin's screen at **Native 100%** (1080p on the Odin 2 Portal), 90, 85, 80, 75, 67, 60
 or 50% (each shows its resolution), and the TV while docked at **Default** (its own resolution), 4K, 1440p, 1080p or
@@ -219,21 +213,56 @@ undock.
 
 ---
 
-## Diagnostics
+## Controller
 
-- **Permissions & access:** every permission HandyTuner needs, with a ✅ or a button to fix it.
-- **Apps HandyTuner works with:** the PULSE engine's status, and whether Cocoon is installed.
-- **Run setup again** and **Export log file** (saves HandyTuner's own log to Downloads for bug reports; it contains
-  nothing from your other apps).
+- **Face buttons:** **Xbox** (A at the bottom) or **Swapped** (A on the right).
+- Shortcuts to the **Odin's controller settings** (controller style, L2/R2 mode, what the paddles and Back do) and **Key Test &
+  stick calibration**.
+- **Stick lights:** the lights around the sticks: **Off**, **Battery** (green to red as it drains), **Heat** (blue to
+  red as it warms) or a **Color** and brightness you pick.
+
+### External controllers (beta)
+
+For Bluetooth, USB or dongle controllers such as 8BitDo and Xbox pads. Tested with an 8BitDo Ultimate 2C over
+Bluetooth.
+
+- **Connected controllers:** every controller Android sees, with its brand and battery. **Rumble test** checks the
+  motor. If the Odin's own controls are ever listed as an external controller, press **This isn't a controller**.
+- **Button & stick test:** press any button (back paddles too) to see what it sends. With the sticks let go they
+  should read close to 0.00; more than 0.10 means drift. 8BitDo pads send different buttons in different modes, so
+  check here if A/B come out swapped.
+- **Button shortcuts:** give a button a HandyTuner action (Quick Menu, HUD, screenshot, recording, next preset, Speed
+  Up, AFK, **go to the home screen**, **go back**). In games that button does the action and the game doesn't see
+  it. Shortcuts are off on HandyTuner's own screens, so the button test still works there.
+  - **Go to the home screen** suits a controller's Home button. Docked to a TV, the TV goes home too. It acts when
+    you let go: **hold it and press Select** to go back instead (the Select never reaches the app). Some launchers,
+    Cocoon among them, ignore Android's Back in their own menus; use B there.
+- **When a controller is connected:** a preset for every game, **Ignore the Odin's own buttons** (buttons only, the
+  hotkeys still work), and alerts when the controller disconnects mid-game or its
+  battery drops to 20% and 10%.
+- The HUD can show the **controller battery** (HUD page → What it shows).
+
+---
+
+## System
+
+- **Theme:** **Light** or **Dark**, for the app, the HUD and the Quick Menu.
+- **Remove Odin's swipe-in menu:** swiping in from the right edge opens Odin's own game panel. On turns off the app
+  behind it; the panel goes away after you restart the Odin. Off brings it back, also after a restart.
+- **Permissions & apps:** every permission HandyTuner needs, with a ✅ or a button to fix it, the PULSE engine's status,
+  and whether Cocoon is installed.
+- **Export log file** (saves HandyTuner's own log to Downloads for bug reports; it contains nothing from your other
+  apps), **Run setup again**, **Clear safe mode** and **Reset everything to stock**.
+- **About:** **What's new**, **Licenses**, **Source code**, **Discord** and **Support on Ko-fi**.
 
 ---
 
 ## Safety: safe mode and reset
 
-- **Reset everything to stock** (Diagnostics) puts back every setting HandyTuner changed: brightness, refresh rate,
-  scanning, Private DNS, button layout, charging, stick lights, sleep underclock, frame caps and the engine's defaults.
+- **Reset everything to stock** (System) puts back every setting HandyTuner changed: brightness, refresh rate,
+  scanning, Private DNS, button layout, charging, stick lights, Odin's swipe-in menu, sleep underclock, frame caps and the engine's defaults.
 - **Safe mode** turns on by itself if HandyTuner's overlay keeps crashing (3 restarts in 10 minutes). It stops HandyTuner
-  changing anything until you clear it on the Diagnostics page. It doesn't put anything back: whatever it changed stays
+  changing anything until you press **System → Clear safe mode**. It doesn't put anything back: whatever it changed stays
   until you run **Reset everything to stock**.
 - **Uninstalling:** run **Reset everything to stock first**. Uninstalling skips the clean-up, so settings like the
   charge limit would stay on.
@@ -246,19 +275,19 @@ undock.
 
 **Does it work on my device?** It's only tested on the Odin 2 Portal. On anything else HandyTuner shows a warning on
 Home. If you try it, please [open an issue](https://github.com/ElectricBits/HandyTuner/issues/new/choose) with your
-device and the log from **Diagnostics → Export log file**.
+device and the log from **System → Export log file**.
 
 **The hotkeys or HUD stopped working.** Android turns the accessibility service off after some updates. Check
-**Diagnostics → Overlay & hotkeys** and switch it back on.
+**System → Permissions & apps** and switch it back on.
 
-**Performance controls say the engine isn't answering.** Check **Diagnostics → PULSE engine**. If its watcher is asleep,
+**Performance controls say the engine isn't answering.** Check **System → Permissions & apps**. If its watcher is asleep,
 give HandyTuner **Usage access**.
 
-**My stick lights don't change color.** Pick a mode on the Tweaks page; HandyTuner switches the lights on itself. If
+**My stick lights don't change color.** Pick a mode under **Controller → Stick lights**; HandyTuner switches the lights on itself. If
 you also use AYN's own LED tile, choose a solid effect there, because animated effects override the color.
 
 **What's the difference between the Smart and Hold temp fans?** **Smart** is AYN's own automatic fan. **Hold temp** is
-PULSE's fan, which aims for the exact temperature you set on the Tweaks page.
+PULSE's fan, which aims for the exact temperature you set on the Performance page.
 
-**Something went wrong.** Use **Diagnostics → Reset everything to stock**, then tell us on
+**Something went wrong.** Use **System → Reset everything to stock**, then tell us on
 [Discord](https://discord.gg/uGQQ2n36QR) or in an [issue](https://github.com/ElectricBits/HandyTuner/issues).

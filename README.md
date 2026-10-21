@@ -16,8 +16,8 @@ Made and tested on the **AYN Odin 2 Portal** first, with **support for more hand
 > [!WARNING]
 > **Beta (0.10). So far everything has been tested on the AYN Odin 2 Portal (Android 13) only.**
 > Other devices aren't tested yet: on them it may not work, or may change settings it shouldn't. If you try it on
-> another device, please open an issue with the result and an exported log (Diagnostics → Export log file) — that's
-> exactly how support for more devices gets added. "Reset everything to stock" (Diagnostics) puts back what
+> another device, please open an issue with the result and an exported log (System → Export log file) — that's
+> exactly how support for more devices gets added. "Reset everything to stock" (System) puts back what
 > HandyTuner changed.
 
 ## Highlights
@@ -41,19 +41,20 @@ Made and tested on the **AYN Odin 2 Portal** first, with **support for more hand
 
 <p align="center"><img src="docs/screenshots/home.png" width="640" alt="HandyTuner's Home page"></p>
 
+- **Made for the controller:** L1/R1 switch sections, the D-pad changes settings, B goes back.
 - **HUD** over your games: FPS, CPU/GPU load and temperature, battery time left, ping, refresh rate.
 - **Quick Menu** (both sticks + R1): performance mode, AutoTDP and its FPS target, frame cap (30/40/60), fan,
   presets, brightness, volume, refresh rate, screenshots, screen recording, AFK mode and Speed Up.
 - **Per-game presets**: Battery, Optimal, Performance, Competitive, or your own. Applied automatically when a
   game opens, including Windows games in GameNative. Export and import them as a file.
 - **PULSE engine**: power tiers, AutoTDP, frame caps, fan control including **Hold temp** (keeps the chip at a
-  temperature you choose, never above 88 °C), **sleep underclock** while the screen is off, and **stick lights**.
+  temperature you choose, never above 88 °C), and **sleep underclock** while the screen is off.
 - **Battery**: charge limit and play-while-charging, using AYN's own charging switch.
 - **Network**: connection test, Low Latency mode, a DNS benchmark and one-tap Private DNS.
-- **Controller**: key mapping, and (beta) external controllers like 8BitDo and Xbox: battery, button and stick test,
-  button shortcuts, per-controller layouts and a controller preset.
-- **Dock & Screen** (beta): resolution for the Odin's screen and the TV, docked and couch presets, a TV-size HUD, a docked charge limit, and more.
-- **Diagnostics**: every permission at a glance, and **Export log file** for bug reports.
+- **Controller**: face button layout, stick lights, and (beta) external controllers like 8BitDo and Xbox: battery, button and stick
+  test, button shortcuts and a controller preset.
+- **Dock & Display** (beta): resolution for the Odin's screen and the TV, docked and couch presets, a TV-size HUD, a docked charge limit, and more.
+- **System**: Light or Dark theme, every permission at a glance, and **Export log file** for bug reports.
 - **Safe mode** stops HandyTuner changing anything if the overlay keeps crashing; **Reset everything to stock** puts your device back.
 
 📖 **[Read the full user guide](docs/USER_GUIDE.md)**: every page and feature explained, plus FAQ and troubleshooting.
@@ -69,7 +70,7 @@ Made and tested on the **AYN Odin 2 Portal** first, with **support for more hand
 | **Other AYN and Retroid handhelds** | 🔜 Planned. HandyTuner checks what each device supports, but each one needs testing. |
 
 Want your device supported sooner? Try it and [open an issue](https://github.com/ElectricBits/HandyTuner/issues/new/choose)
-with your device and the log from **Diagnostics → Export log file**, or say hi on [Discord](https://discord.gg/uGQQ2n36QR).
+with your device and the log from **System → Export log file**, or say hi on [Discord](https://discord.gg/uGQQ2n36QR).
 
 ## Install
 
@@ -86,7 +87,7 @@ or add `https://github.com/ElectricBits/HandyTuner` in Obtainium and turn on **I
 
 No root is needed: HandyTuner uses the system service AYN builds into the Odin.
 
-**Uninstalling?** Run **Diagnostics → Reset everything to stock** first, so settings like the charge limit are put back.
+**Uninstalling?** Run **System → Reset everything to stock** first, so settings like the charge limit are put back.
 
 ### Permissions, and why
 
@@ -99,7 +100,7 @@ No root is needed: HandyTuner uses the system service AYN builds into the Odin.
 
 HandyTuner also turns off **Odin Assistant's game detection** by default, because it changes performance per
 game and fights HandyTuner. Only that one accessibility service is switched off; the app stays. You can turn
-this off on the **Tweaks** page.
+this off on the **Performance** page.
 
 ## Privacy
 
@@ -121,7 +122,7 @@ part of this repository.
 ## Help improve HandyTuner
 
 - **Found a bug, or tried it on another device?** Open an [issue](https://github.com/ElectricBits/HandyTuner/issues/new/choose)
-  and attach the log from **Diagnostics → Export log file**.
+  and attach the log from **System → Export log file**.
 - **Want to send code?** Fork the repo and open a pull request. [`CONTRIBUTING.md`](CONTRIBUTING.md) explains how, and
   [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md) covers how we treat each other.
 - **Found a security problem?** Please report it privately: see [`SECURITY.md`](SECURITY.md).

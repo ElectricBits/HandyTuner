@@ -38,6 +38,7 @@ object WhatsNew {
             "Performance now holds Speed Up, Google Play services and Odin Assistant's game detection.",
             "Buttons use the Odin's names, like Left and Right paddle; HUD colors stay the same in Light.",
             "The rumble test works on the Odin's own controls.",
+            "Key mapping is gone, so the app stays simple. Your saved layouts stay on the Odin.",
         ),
     )
 

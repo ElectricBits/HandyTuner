@@ -3,6 +3,7 @@
 <p><b>Beta. Tested on the AYN Odin 2 Portal (Android 13) only.</b> The Odin 3, Thor and Retroid Pocket 6 are untested so far. No root needed: HandyTuner uses the system service AYN builds into the Odin.</p>
 
 <ul>
+<li><b>Made for the controller</b>: L1/R1 switch sections, the D-pad changes settings, B goes back.</li>
 <li><b>HUD</b> over your games: FPS, CPU/GPU load and temperature, battery time left, ping, refresh rate.</li>
 <li><b>Quick Menu</b> (both sticks + R1): performance mode, AutoTDP and its FPS target, frame cap, fan, presets, brightness, volume, refresh rate, screenshots, screen recording, AFK mode and Speed Up.</li>
 <li><b>Per-game presets</b>, applied automatically when a game opens, including Windows games in GameNative.</li>
@@ -11,7 +12,7 @@
 <li><b>PULSE engine</b>: power tiers, AutoTDP, frame caps, fan control with Hold temp, sleep underclock and stick lights.</li>
 <li><b>Battery</b>: charge limit and play-while-charging.</li>
 <li><b>Network</b>: connection test, Low Latency mode, DNS benchmark and one-tap Private DNS.</li>
-<li><b>Controller</b> key mapping, <b>Diagnostics</b> with log export, <b>Safe mode</b> and <b>Reset everything to stock</b>.</li>
+<li><b>Controller</b>: face button layout and (beta) external controllers, <b>System</b> with log export, <b>Safe mode</b> and <b>Reset everything to stock</b>.</li>
 </ul>
 
 <p><b>Privacy:</b> no accounts, ads, analytics or tracking. The network is only used when you ask (network test, DNS benchmark, links you tap).</p>
