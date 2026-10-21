@@ -6,7 +6,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 
-/** adb shell am broadcast -n com.electric.handytuner/.DebugReceiver --es cmd "menu|hud|keyedit|pulse <state|tier N|fan N|autotdp on|off FPS|overlay on|off>" */
+/** adb shell am broadcast -n com.electric.handytuner/.DebugReceiver --es cmd "menu|hud|pulse <state|tier N|fan N|autotdp on|off FPS|overlay on|off>" */
 class DebugReceiver : BroadcastReceiver() {
     override fun onReceive(ctx: Context, intent: Intent) {
         val svc = OverlayService.instance ?: return
