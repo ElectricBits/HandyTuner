@@ -60,6 +60,13 @@ class QuickMenu(
     private var root: View? = null
     val showing get() = root != null
 
+    /** What the open menu re-reads every [LIVE_MS]: the CPU and fan readouts, and AutoTDP's learning note. */
+    private var cpuValue: TextView? = null
+    private var fanValue: TextView? = null
+    private var learningView: TextView? = null
+    /** Bumped on every open and hide, so a refresh loop from an earlier menu stops by itself. */
+    private var liveGen = 0
+
     private data class State(
         val pulseInstalled: Boolean, val pulseRunning: Boolean, val perf: Int?, val fan: Int?,
         val brightness: Int, val volume: Int, val hz: Int?, val cpuC: Int?, val fanPct: Int?, val layout: Int,
@@ -96,7 +103,38 @@ class QuickMenu(
     fun hide() {
         root?.let { v -> runCatching { wm?.removeView(v) } }   // the TV may be gone already
         root = null; wm = null
+        liveGen++; cpuValue = null; fanValue = null; learningView = null
     }
+
+    /**
+     * Keeps the readouts current while the menu stays open: it is built from one read, so the learning % used to sit
+     * at whatever it was when the menu opened. Only these three views change; nothing is rebuilt, so focus stays put.
+     */
+    private fun startLive() {
+        val gen = ++liveGen
+        bg.postDelayed(object : Runnable {
+            override fun run() {
+                if (gen != liveGen) return
+                val stats = host.pulse().stats()
+                val cpuC = stats?.optInt("cpuC", -1)?.takeIf { it > 0 } ?: Stats().cpuTemp()
+                val fanPct = actions.fanPct()
+                val learning = LearningNote.shared.shown(stats, stats?.optString("mode") == "AutoTDP")
+                main.post {
+                    if (gen != liveGen) return@post
+                    cpuValue?.apply { text = cpuC?.let { "$it °C" } ?: "–"; setTextColor(tempColor(cpuC)) }
+                    fanValue?.text = fanPct?.let { "$it%" } ?: "–"
+                    learningView?.let { v -> learning?.let { v.text = learningText(it) }; v.visibility = if (learning != null) View.VISIBLE else View.GONE }
+                }
+                bg.postDelayed(this, LIVE_MS)
+            }
+        }, LIVE_MS)
+    }
+
+    private fun tempColor(c: Int?) = c?.let { if (it < 75) GOOD else if (it < 88) WARN else BAD } ?: MUTED
+
+    private fun learningText(p: Int) =
+        "AutoTDP is learning how your Odin uses power ($p%). It learns as it lowers clocks on battery, and keeps it for every game."
+
 
     // --- building blocks ---------------------------------------------------------
 
@@ -261,16 +299,17 @@ class QuickMenu(
 
         // Performance & Fan: a status tile. Pulse's while it runs; otherwise AYN's own modes, cycled by A.
         // Live, read-only: how hot and how hard the fan works, filling the tile without touching Pulse's job.
-        fun live(icon: Int, label: String, value: String, color: Int) = LinearLayout(svc).apply {
+        fun live(icon: Int, label: String, value: String, color: Int) = TextView(svc).apply {
+            text = value; textSize = 17f; typeface = mono; setTextColor(color)
+        }.let { v -> v to LinearLayout(svc).apply {
             orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL; setPadding(0, dp(10), 0, 0)
             addView(icon(icon, 20, MUTED)); addView(text("  $label", 13f, MUTED, bold = false).apply { layoutParams = lp(0, weight = 1f) })
-            addView(TextView(svc).apply { text = value; textSize = 17f; typeface = mono; setTextColor(color) })
-        }
-        val tempColor = s.cpuC?.let { if (it < 75) GOOD else if (it < 88) WARN else BAD } ?: MUTED
-        val liveRows = arrayOf<View>(
-            live(R.drawable.ic_speed, "CPU", s.cpuC?.let { "$it °C" } ?: "–", tempColor),
-            live(R.drawable.ic_mode_fan, "Fan", s.fanPct?.let { "$it%" } ?: "–", TEXT),
-        )
+            addView(v)
+        } }
+        val (cpuV, cpuRow) = live(R.drawable.ic_speed, "CPU", s.cpuC?.let { "$it °C" } ?: "–", tempColor(s.cpuC))
+        val (fanV, fanRow) = live(R.drawable.ic_mode_fan, "Fan", s.fanPct?.let { "$it%" } ?: "–", TEXT)
+        cpuValue = cpuV; fanValue = fanV
+        val liveRows = arrayOf<View>(cpuRow, fanRow)
         val link = host.pulse()
         val fork = s.fork
         // No state from the engine: say why (not started yet, or its watcher is asleep) instead of offering controls.
@@ -445,6 +484,7 @@ class QuickMenu(
         }.onFailure { Log.w("HandyTuner", "menu on the TV: $it") }.getOrNull() }
             ?: svc.getSystemService(WindowManager::class.java).also { it.addView(panel, lp) }
         root = panel
+        startLive()
         panel.translationX = panelWidth.toFloat()
         panel.animate().translationX(0f).setDuration(180).start()
         panel.post { tabs[tab].focusFirst() }
@@ -520,14 +560,13 @@ class QuickMenu(
         val fans = listOf(Actions.FAN_QUIET, Actions.FAN_SMART, Actions.FAN_SPORT, Actions.FAN_CUSTOM)
         val fanRow = row(*fans.map { v -> segment(Actions.FAN_NAMES.getValue(v), fan == v) { tweak({ it.setFanMode(v) }) { p -> p.copy(fan = v) } } }.toTypedArray())
         val fanName = fan?.let { Actions.FAN_NAMES[it] } ?: "PULSE's fan"
-        // AutoTDP measures a game before it settles: about the first minute, and the fps keeps climbing after
-        // this note is gone. Without a word the wait reads as Auto not working. It also remembers each game's
-        // converged caps, so the next run starts near the mark (that is why the first time feels slow).
-        val learning = stats?.let { if (auto && !it.optBoolean("learned", true)) it.optInt("learningPercent") else null }
-        val learningNote = learning?.let {
-            text("AutoTDP is still learning this game ($it%). Give it a minute — it settles on its own, and next time it remembers this game.", 12f, MUTED, bold = false)
-                .apply { setPadding(0, dp(8), 0, 0) }
+        // Only while the % is moving (LearningNote); the view exists whenever AutoTDP runs, so the refresh can
+        // show it once learning picks up with the menu open.
+        val learning = LearningNote.shared.shown(stats, auto)
+        val learningNote = if (!auto) null else text(learningText(learning ?: 0), 12f, MUTED, bold = false).apply {
+            setPadding(0, dp(8), 0, 0); visibility = if (learning != null) View.VISIBLE else View.GONE
         }
+        learningView = learningNote
         // Quiet is held back at 90 °C during AutoTDP (PULSE swaps it for Smart); say so, or the tile lies.
         val heatNote = if (stats?.optBoolean("fanCapped") == true)
             text("The chip is hot, so Quiet is running as Smart. It switches back once it cools.", 12f, WARN, bold = false)
@@ -540,6 +579,7 @@ class QuickMenu(
     }
 
     companion object {
+        private const val LIVE_MS = 2_000L
         // Navy glass and neon on the dark theme, the same hues read on white glass in the light one.
         private val BLUE get() = if (Hand.light) Palette.BLUE_L else Palette.BLUE_D
         private val BLUE_DIM get() = if (Hand.light) Palette.BLUE_DIM_L else Palette.BLUE_DIM_D

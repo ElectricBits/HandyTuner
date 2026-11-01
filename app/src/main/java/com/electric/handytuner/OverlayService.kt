@@ -974,12 +974,11 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
         lineSys.text = group("SYS  ", R.drawable.ic_memory, MAGENTA, s)                     // magenta
 
         // Calm on purpose (owner, 2026-10-07): gray for information, amber only for low memory and real heat.
-        // AutoTDP spends the first minute of a game measuring it, and the fps keeps climbing after that: say
-        // so rather than "running smoothly", which reads as "this is all it does". A warning still wins.
+        // AutoTDP's learning gets a line only while it is actually moving (LearningNote). A warning still wins.
         // shortcut: the note rides on the PULSE items, since f.pulse is only fetched when one is on — the mode
         // item is one of them, so anyone watching AutoTDP has it. Fetch stats directly if that stops being true.
-        val learning = f.pulse?.let { if (it.optString("mode") == "AutoTDP" && !it.optBoolean("learned", true)) it.optInt("learningPercent") else null }
-        line3.text = if (learning != null && !verdict.warn) "▸ AutoTDP is still learning this game ($learning%)"
+        val learning = LearningNote.shared.shown(f.pulse, f.pulse?.optString("mode") == "AutoTDP")
+        line3.text = if (learning != null && !verdict.warn) "▸ AutoTDP is learning your Odin's power use ($learning%)"
         else "▸ " + verdict.text(f.r)
         line3.setTextColor(if (verdict.warn) WARN else DIM)
         for (l in listOf(linePerf, lineNet, lineTemp, lineSys)) {

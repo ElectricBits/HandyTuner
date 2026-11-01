@@ -162,3 +162,30 @@ class PulseLink(private val ctx: Context, private val publishes: Boolean = true)
         private const val REFRESH_MS = 60_000L
     }
 }
+/**
+ * Whether to say AutoTDP is learning. PULSE's learningPercent is one power model for the chip, not per game, and it
+ * only moves when AutoTDP lowers a single clock on battery (PowerModel.observe). In a game below its fps target that
+ * never happens, so the note sat at the same % for good. It shows only while the % has risen in the last [FRESH_MS].
+ * One per :overlay process, fed by both the HUD and the Quick Menu, so the two agree.
+ */
+class LearningNote {
+    private var last = -1
+    private var rose = Long.MIN_VALUE / 2
+
+    /** [percent]: PULSE's learningPercent, or null when AutoTDP is off or done learning. The % to show, or null. */
+    @Synchronized fun shown(percent: Int?, now: Long = System.currentTimeMillis()): Int? {
+        if (percent == null) return null
+        if (last in 0 until percent) rose = now
+        last = percent
+        return percent.takeIf { now - rose < FRESH_MS }
+    }
+
+    /** [stats]' learning %, when [auto] and not yet learned. */
+    fun shown(stats: JSONObject?, auto: Boolean) =
+        shown(stats?.takeIf { auto && !it.optBoolean("learned", true) }?.optInt("learningPercent"))
+
+    companion object {
+        const val FRESH_MS = 90_000L
+        val shared = LearningNote()
+    }
+}
