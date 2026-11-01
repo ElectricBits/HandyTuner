@@ -61,7 +61,7 @@ import kotlinx.coroutines.withContext
 /** Everything setup depends on, read live each time the app comes back to the front. */
 private data class SetupStatus(
     val a11y: Boolean, val usage: Boolean, val notif: Boolean,
-    val root: Boolean, val cocoon: Boolean,
+    val root: Boolean, val frontend: String?,
 )
 
 /**
@@ -76,11 +76,10 @@ fun Onboarding(ctx: Context, resumes: Int, hudHeld: Boolean, menuHeld: Boolean, 
     var st by remember { mutableStateOf<SetupStatus?>(null) }
     LaunchedEffect(resumes) {
         st = withContext(Dispatchers.IO) {
-            fun installed(p: String) = runCatching { ctx.packageManager.getPackageInfo(p, 0) }.isSuccess
             SetupStatus(
                 Grants.granted(ctx, Grants.Kind.ACCESSIBILITY), Grants.granted(ctx, Grants.Kind.USAGE),
                 Grants.granted(ctx, Grants.Kind.NOTIFICATIONS), PServer.run("echo ok") == "ok",
-                installed(COCOON),
+                frontend(ctx),
             )
         }
     }
@@ -111,7 +110,8 @@ fun Onboarding(ctx: Context, resumes: Int, hudHeld: Boolean, menuHeld: Boolean, 
                 ?.takeIf { it.size >= 2 && (it[0].toLongOrNull() ?: 0) > openedAt }?.get(1)
         }
     }
-    val s = st ?: SetupStatus(false, false, false, true, false)
+    val s = st ?: SetupStatus(false, false, false, true, null)
+    val fe = s.frontend?.let { FRONTENDS[it] }
 
     /** [lines] said by HandyHelper, then the card; [done] null = nothing to check; [cheer] when done flips true. */
     class Step(
@@ -153,18 +153,17 @@ fun Onboarding(ctx: Context, resumes: Int, hudHeld: Boolean, menuHeld: Boolean, 
             "So FPS, brightness, refresh rate and screenshots will all work.")
             else listOf("Your Odin's built-in helper isn't answering me.",
                 "I'll still work, but FPS and screenshots won't. Nothing for you to do."), s.root),
-        Step(if (s.cocoon) listOf("And Cocoon's here too!",
-            "Start a game from Cocoon and I'll know exactly which one, even Windows games.")
-            else listOf("Cocoon is a comfy launcher for all your games.",
-                "Start games from it and I'll know exactly which one you're playing.",
-                "Grab the newest APK from its release page."),
-            s.cocoon, "Cocoon's in! Launch away.", "Get Cocoon", { web("https://github.com/inssekt/CocoonFE/releases") }),
-        Step(if (s.cocoon) listOf("Let's test it! Open Cocoon and start any game.",
-                "Play for a few seconds, then come back here. I'll tell you what I spotted.")
-            else listOf("Once Cocoon is in, start any game from it and I'll spot which one.",
-                "You can skip this for now."),
+        // Optional, so the links ride on alt: A always moves on (a "Get Cocoon" button used to hold focus, issue #2).
+        Step(if (fe != null) listOf("And $fe's here too!",
+            "Start a game from $fe and I'll know exactly which one, even in an emulator.")
+            else listOf("Start games from any launcher you like, I'll keep up.",
+                "A frontend like Cocoon, Daijisho or ES-DE helps me tell emulator games apart.",
+                "Totally optional. Grab one later if you want."),
+            alt = if (fe == null) "Get Cocoon" else null, altAct = { web("https://github.com/inssekt/CocoonFE/releases") }),
+        Step(listOf("Let's test it! Start any game${fe?.let { " from $it" } ?: ""}.",
+                "Play for a few seconds, then come back here. I'll tell you what I spotted. Or skip it."),
             spotted != null, spotted?.let { "I spotted $it! Profiles and sessions will follow that game." },
-            if (s.cocoon) "Open Cocoon" else null, { ctx.packageManager.getLaunchIntentForPackage(COCOON)?.let { open(it) } }),
+            alt = fe?.let { "Open $it" }, altAct = { s.frontend?.let { ctx.packageManager.getLaunchIntentForPackage(it) }?.let { open(it) } }),
         Step(listOf("Now the fun part: pick my HUD color!", "That's the glow you'll see in your games."),
             extra = { AccentPicker(style) { style = style.copy(accent = it); HudStyle.save(ctx, style); sound.play("select") } }),
         Step(listOf("Let's try a hotkey.", "Hold both back buttons and press both sticks in, all four at once."),
@@ -343,3 +342,16 @@ private fun AccentPicker(style: HudStyle, onPick: (Int) -> Unit) {
 }
 
 const val COCOON = "rip.moth.cocoonshell"
+
+/**
+ * Frontends HandyTuner names in setup and Diagnostics. None is needed: Windows games are told apart by their .exe,
+ * and an emulator game by the file grant any frontend gives it (GameId.rom). The first one installed is the one shown.
+ */
+val FRONTENDS = linkedMapOf(
+    COCOON to "Cocoon", "com.magneticchen.daijishou" to "Daijisho",
+    "org.es_de.frontend" to "ES-DE", "org.pegasus_frontend.android" to "Pegasus",
+)
+
+/** The first installed [FRONTENDS] package, or null. */
+fun frontend(ctx: Context): String? =
+    FRONTENDS.keys.firstOrNull { runCatching { ctx.packageManager.getPackageInfo(it, 0) }.isSuccess }

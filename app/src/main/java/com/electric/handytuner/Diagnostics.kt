@@ -44,12 +44,13 @@ object Diagnostics {
             !Grants.granted(ctx, Grants.Kind.USAGE) -> Grants.intent(ctx, Grants.Kind.USAGE)
             else -> null
         }
-        val cocoon = version(COCOON)
+        // Optional: any launcher works, so a missing frontend is still OK.
+        val fe = frontend(ctx)
         return listOf(
             Check("PULSE engine", PulseStatus.detail(link), PulseStatus.status(link), pulseFix),
-            Check("Cocoon", if (cocoon != null) "Installed (v$cocoon): games started from it are recognized"
-                else "Not installed: a launcher whose games I recognize",
-                if (cocoon != null) Status.OK else Status.GRANT, web("https://github.com/inssekt/CocoonFE/releases")),
+            Check("Game frontend", if (fe != null) "${FRONTENDS[fe]} (v${version(fe)}): emulator games started from it are recognized"
+                else "None found (optional): a frontend like Cocoon, Daijisho or ES-DE lets emulator games get their own presets",
+                Status.OK),
         )
     }
 

@@ -26,8 +26,9 @@ He asks for three permissions. Each step has a button that opens the right page 
 > **Settings → Apps → HandyTuner**, tap **⋮ → Allow restricted settings**, then go back and switch it on. Setup
 > offers a button for this.
 
-Then he checks that the Odin's built-in system service answers (that's how HandyTuner works without root), offers
-**Cocoon** (a launcher that tells HandyTuner exactly which game you start, even Windows games), lets you pick the HUD's
+Then he checks that the Odin's built-in system service answers (that's how HandyTuner works without root), mentions
+game frontends like **Cocoon**, Daijisho or ES-DE (optional: any launcher works, a frontend just lets emulator games get
+their own presets), lets you pick the HUD's
 color, and has you try both hotkeys. You can run setup again any time from **System → Run setup again**.
 
 ---
@@ -250,7 +251,7 @@ Bluetooth.
 - **Remove Odin's swipe-in menu:** swiping in from the right edge opens Odin's own game panel. On turns off the app
   behind it; the panel goes away after you restart the Odin. Off brings it back, also after a restart.
 - **Permissions & apps:** every permission HandyTuner needs, with a ✅ or a button to fix it, the PULSE engine's status,
-  and whether Cocoon is installed.
+  and which game frontend is installed, if any (optional).
 - **Export log file** (saves HandyTuner's own log to Downloads for bug reports; it contains nothing from your other
   apps), **Run setup again**, **Clear safe mode** and **Reset everything to stock**.
 - **About:** **What's new**, **Licenses**, **Source code**, **Discord** and **Support on Ko-fi**.
