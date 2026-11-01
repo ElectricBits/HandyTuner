@@ -48,4 +48,13 @@ class ChargeRuleTest {
         assertEquals(true, ChargeRule.decide(s, true, 85, false, false, docked = true))
         assertEquals(false, ChargeRule.decide(s, true, 70, false, false, docked = true))
     }
+
+    /** Charging speed: the restrict pair as the Odin boots for no limit, µA for a limit, current written first. */
+    @Test fun chargingSpeedNodes() {
+        assertEquals("0 1000000", ChargeRule.nodes(null))
+        assertEquals("1 500000", ChargeRule.nodes(500))
+        assertEquals("echo 500000 > /sys/class/qcom-battery/restrict_cur && echo 1 > /sys/class/qcom-battery/restrict_chg",
+            ChargeRule.write(ChargeRule.nodes(500)))
+        assertEquals(null, PServer.unsafeIn(ChargeRule.write(ChargeRule.nodes(500))))
+    }
 }

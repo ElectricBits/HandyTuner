@@ -170,6 +170,9 @@ PULSE separately; installing the separate PULSE app alongside HandyTuner would m
   away from 100% helps it last longer. It uses AYN's own charging switch.
 - **Skip the battery while gaming:** while a game runs on the charger, power goes straight to the Odin instead of
   through the battery, so the battery stays cool.
+- **Charging speed:** the most current the battery takes, from 0.25 A to 1 A, or No limit (the default). Slower
+  charging keeps the battery cooler, for example overnight. Higher caps aren't offered: the Odin's fast charging can't
+  be capped. After going back to No limit, unplug and replug the charger to get fast charging back.
 - **Play sessions:** your recent gaming sessions, newest first.
 
 ---

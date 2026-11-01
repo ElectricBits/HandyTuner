@@ -246,12 +246,22 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
     private fun charging() = registerReceiver(null, android.content.IntentFilter(android.content.Intent.ACTION_BATTERY_CHANGED))
         ?.getIntExtra(BatteryManager.EXTRA_STATUS, -1).let { it == BatteryManager.BATTERY_STATUS_CHARGING || it == BatteryManager.BATTERY_STATUS_FULL }
 
+    /** The restrict pair this process last asked for (ChargeRule.nodes); null = never touched it. */
+    private var nodesSet: String? = null
+
     /** Charge limit + gaming bypass (ChargeRule), once the owner has set it on the Battery page. Writes only on change. */
     private fun chargeTick() {
-        if (!ChargeRule.file(this).exists()) return
         val b = registerReceiver(null, android.content.IntentFilter(android.content.Intent.ACTION_BATTERY_CHANGED)) ?: return
         // Plugged, not "charging": once bypassed the battery reports not charging while the charger is in.
         val plugged = b.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0) != 0
+        // Charging speed: Reset deletes its file, which puts the pair back to stock here too.
+        val wantNodes = ChargeRule.nodes(ChargeRule.speed(this))
+        // Checked while plugged, where it matters: a boot or AYN's own charge switch puts the pair back to stock.
+        if ((plugged && wantNodes != ChargeRule.STOCK) || (nodesSet != null && nodesSet != wantNodes)) {
+            if (PServer.run(ChargeRule.READ) != wantNodes && PServer.ok(ChargeRule.write(wantNodes))) Log.i(TAG, "charging speed: $wantNodes")
+            nodesSet = wantNodes
+        }
+        if (!ChargeRule.file(this).exists()) return
         val level = b.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) * 100 / b.getIntExtra(BatteryManager.EXTRA_SCALE, 100).coerceAtLeast(1)
         val want = ChargeRule.decide(ChargeRule.load(this), plugged, level, session != null, bypassed == true, setup?.docked == true) ?: return
         if (want == bypassed) return
@@ -429,6 +439,7 @@ class OverlayService : AccessibilityService(), QuickMenu.Host {
                         runner.forget(); Log.i(TAG, "reset")
                         Tweaks.setLowLatency(this@OverlayService, false)   // Reset means stock: the always-on tweak too
                         ChargeRule.file(this@OverlayService).delete(); bypassed = null   // the app already restored the switch
+                        ChargeRule.setSpeed(this@OverlayService, null)          // the next tick puts the restrict pair back
                         val off = java.io.File(filesDir, PULSE_HUD_OFF)
                         if (off.exists() && pulse.call { it.setOverlayEnabled(true) } == true) off.delete()
                         pulse.call { it.clearFrameCaps() }       // caps outlive restarts; Reset means stock

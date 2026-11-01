@@ -6,6 +6,7 @@ import android.content.Context
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.BatteryChargingFull
 import androidx.compose.material.icons.rounded.History
+import androidx.compose.material.icons.rounded.Speed
 import androidx.compose.material.icons.rounded.SportsEsports
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -47,6 +48,14 @@ private fun ChargeGroup(ctx: Context) {
         ToggleRow("Skip the battery while gaming", on && s.gamingBypass, hint = "Plays straight from the charger",
             help = "While a game runs on the charger, power goes to the Odin instead of the battery, so the battery stays cool.",
             icon = Icons.Rounded.SportsEsports) { set(s.copy(gamingBypass = it)) }
+        val top = ChargeRule.CURRENT_MA.last
+        var speed by remember { mutableStateOf(ChargeRule.speed(ctx)) }
+        SliderRow("Charging speed", speed ?: top, ChargeRule.CURRENT_MA, ChargeRule.CURRENT_STEP,
+            { if (it >= top) "No limit" else "${it / 1000.0} A" },
+            hint = if (speed == null) "Charges at full speed" else "Slower, cooler charging",
+            help = "Slower charging keeps the battery cooler, for example overnight. Up to 1 A: the Odin's fast charging " +
+                "can't be capped. After going back to No limit, replug the charger to get fast charging back.",
+            icon = Icons.Rounded.Speed) { speed = it.takeIf { v -> v < top }; ChargeRule.setSpeed(ctx, speed) }
     }
 }
 

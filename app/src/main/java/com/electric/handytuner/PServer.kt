@@ -67,8 +67,8 @@ object PServer {
      * command passes through — the individual actions can't each be trusted to remember.
      *
      * Two rules. The never-touch nodes would brick, un-brick or corrupt the Odin rather than slow
-     * it (docs/device-capabilities.md); nothing HandyTuner does needs them, and it writes no sysfs
-     * nodes at all, so a refusal can't break a working feature. And PServerBinder is HandyTuner's only
+     * it (docs/device-capabilities.md); nothing HandyTuner does needs them, and the only sysfs
+     * nodes it writes are restrict_chg/restrict_cur (ChargeRule), so a refusal can't break a working feature. And PServerBinder is HandyTuner's only
      * way back in with system rights, so a command that kills it leaves the device with settings
      * changed and no way to undo them. `pkill -f` goes with it: `-f` matches full command lines, and
      * that once matched PServer's own shell.
