@@ -1,0 +1,3 @@
+• Cocoon is optional: setup works with any launcher, and names Cocoon, Daijisho, ES-DE or Pegasus if you have one.
+• New on Battery: Charging speed caps charging at 0.25 to 1 A, for slower, cooler charging.
+• After going back to No limit, replug the charger to get fast charging back.

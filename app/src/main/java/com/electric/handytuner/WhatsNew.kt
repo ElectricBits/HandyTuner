@@ -32,6 +32,11 @@ object WhatsNew {
     /** Newest first. The first entry is what the screen shows. */
     val NOTES = listOf(
         listOf(
+            "Setup no longer needs Cocoon: any launcher works, and it names Cocoon, Daijisho, ES-DE or Pegasus if you have one.",
+            "New on Battery: Charging speed caps charging at 0.25 to 1 A, for slower, cooler charging overnight.",
+            "Going back to No limit? Unplug and replug the charger to get fast charging back.",
+        ),
+        listOf(
             "A new look built for the controller: one list of sections, L1/R1 to switch, B to go back.",
             "Every setting is one row: ◀▶ changes it, and the row you're on explains itself.",
             "Home shows battery, network and PULSE at a glance, your last game, and your hotkeys.",
