@@ -281,6 +281,11 @@ Bluetooth.
 Home. If you try it, please [open an issue](https://github.com/ElectricBits/HandyTuner/issues/new/choose) with your
 device and the log from **System → Export log file**.
 
+**Odin 2 Mini: System access says "Blocked".** The Mini's firmware stops apps from using AYN's system service. Install
+[Shizuku](https://shizuku.rikka.app/), start it, then open **System → Permissions & apps** and choose **Allow** on the
+Shizuku row. Charging speed, charge limit, fan and display controls then work through Shizuku. TDP and AutoTDP's clock
+control can't: they need AYN's service. Shizuku stops when the device restarts, so start it again after a reboot.
+
 **The hotkeys or HUD stopped working.** Android turns the accessibility service off after some updates. Check
 **System → Permissions & apps** and switch it back on.
 

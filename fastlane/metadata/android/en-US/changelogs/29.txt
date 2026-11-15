@@ -1,0 +1,3 @@
+• Odin 2 Mini: where Android blocks AYN's system service, HandyTuner can now work through Shizuku. Charging, fan and display controls come back; TDP can't.
+• System › Permissions & apps says when AYN's service is blocked and walks you through Shizuku.
+• Quick Menu: CPU, fan and learning readouts stay live while it's open.

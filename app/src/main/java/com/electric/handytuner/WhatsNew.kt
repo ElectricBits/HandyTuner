@@ -32,6 +32,11 @@ object WhatsNew {
     /** Newest first. The first entry is what the screen shows. */
     val NOTES = listOf(
         listOf(
+            "Odin 2 Mini: where Android blocks AYN's system service, HandyTuner can now work through Shizuku. Charging, fan and display controls come back; TDP can't.",
+            "System › Permissions & apps now says when AYN's service is blocked, and walks you through Shizuku.",
+            "Quick Menu: the CPU, fan and learning readouts stay live while it's open.",
+        ),
+        listOf(
             "Setup no longer needs Cocoon: any launcher works, and it names Cocoon, Daijisho, ES-DE or Pegasus if you have one.",
             "New on Battery: Charging speed caps charging at 0.25 to 1 A, for slower, cooler charging overnight.",
             "Going back to No limit? Unplug and replug the charger to get fast charging back.",
