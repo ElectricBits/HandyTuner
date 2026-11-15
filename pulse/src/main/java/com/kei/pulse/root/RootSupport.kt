@@ -22,6 +22,9 @@ object RootSupport {
         }
     }
 
+    /** Runs [block] holding the same lock, for RootExec's own probe (reentrant, so it's fine inside a command). */
+    internal fun <T> locked(block: () -> T): T = pServerLock.withLock(block)
+
     // The generated script lives in app-private storage but MUST be world-readable/-executable: the stock
     // PServer service runs it as root from a DIFFERENT uid, so it has to read+exec our file. This is the core
     // of the no-root mechanism, not an oversight — hence the deliberate suppression.

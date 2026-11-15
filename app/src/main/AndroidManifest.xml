@@ -25,6 +25,7 @@
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
     <application
+        android:name=".App"
         android:label="HandyTuner"
         android:icon="@mipmap/ic_launcher"
         android:allowBackup="false"
@@ -73,5 +74,15 @@
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
         </receiver>
+
+        <!-- Shizuku hands HandyTuner its binder here, for when AYN's PServerBinder is blocked (issue #4).
+             The permission is the one Shizuku's own docs give: only the system (Shizuku's server) can call it. -->
+        <provider
+            android:name="rikka.shizuku.ShizukuProvider"
+            android:authorities="${applicationId}.shizuku"
+            android:multiprocess="false"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="android.permission.INTERACT_ACROSS_USERS_FULL" />
     </application>
 </manifest>

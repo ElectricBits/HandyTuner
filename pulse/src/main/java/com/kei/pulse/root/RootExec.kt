@@ -18,16 +18,30 @@ class RootExec {
      * Whether PServer really runs our commands, not just whether it's registered: on the Odin 2 Mini
      * the lookup succeeds but SELinux blocks the call (HandyTuner issue #4). A yes is kept for the
      * process; a no is asked again next time, since pservice can come up after we do.
+     *
+     * TDP and the other CPU/GPU paths gate on this rather than on [executeAsRoot] working, because the
+     * Shizuku fallback runs as the shell user, which can't write those nodes.
      */
     val pServerAvailable: Boolean
-        get() = binder != null &&
-            (works || (RootSupport.runRootCommand("echo ok") == "ok").also { if (it) works = true })
+        get() = binder != null && !ShizukuShell.forced() &&
+            (works || (RootSupport.locked { pServer("echo ok") }.getOrNull() == "ok").also { if (it) works = true })
 
     private companion object {
         @Volatile var works = false
     }
 
-    fun executeAsRoot(cmd: String): Result<String?> {
+    /**
+     * PServer when it works, else Shizuku when HandyTuner may use it.
+     * ponytail: where PServer is blocked every command re-asks it first (one refused binder call); cache the
+     * "no" if that ever shows up in a profile.
+     */
+    fun executeAsRoot(cmd: String): Result<String?> = when {
+        pServerAvailable -> pServer(cmd)
+        ShizukuShell.ready() -> Result.success(ShizukuShell.run(cmd)?.takeIf { it != "null" })
+        else -> Result.failure(IllegalStateException("PServer not available"))
+    }
+
+    private fun pServer(cmd: String): Result<String?> {
         if (binder == null) return Result.failure(IllegalStateException("PServer not available"))
 
         val data = Parcel.obtain()

@@ -1573,6 +1573,9 @@ class ForegroundAppMonitorService : Service() {
      */
     private fun stepAutoTdp(policies: List<CpuPolicyInfo>, telemetry: TelemetrySnapshot, fps: FpsReader.FpsSample?) {
         if (autoTdpTick++ % 2 != 0) return
+        // HandyTuner: only AYN's PServer (root) can write the clock nodes. Through Shizuku (the shell user, issue #4)
+        // every write fails, and each would start a process, so the loop sits out; the frame cap still applies.
+        if (!com.kei.pulse.root.RootExec().pServerAvailable) return
         val drawW = telemetry.batteryDrawW?.takeIf { telemetry.isDischarging }
         // Peak load among the PRIME cluster's own cores (highest-max-freq CPU policy) — the park guard, so a
         // busy perf core running the game thread can't block parking an idle prime.

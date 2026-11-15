@@ -153,7 +153,7 @@ fun Onboarding(ctx: Context, resumes: Int, hudHeld: Boolean, menuHeld: Boolean, 
             PServer.Access.OK -> Step(listOf("Good news: your Odin's built-in helper answers me.",
                 "So FPS, brightness, refresh rate and screenshots will all work."), true)
             PServer.Access.BLOCKED -> Step(listOf("Your Odin's built-in helper is here, but Android won't let me use it.",
-                "I'll still work, but FPS and screenshots won't. A firmware update may fix this."), false)
+                "Shizuku can get you charging, fan and display controls back: System › Permissions & apps."), false)
             PServer.Access.MISSING -> Step(listOf("Your Odin's built-in helper isn't answering me.",
                 "I'll still work, but FPS and screenshots won't. Nothing for you to do."), false)
         },

@@ -41,6 +41,7 @@ HandyTuner is not the official PULSE and is not endorsed by its authors.
 | Chakra Petch, IBM Plex Mono fonts (PULSE engine) | SIL Open Font License 1.1 | `pulse/licenses/` |
 | Material Symbols icons | Apache License 2.0 | `licenses/MaterialSymbols-Apache-2.0.txt` |
 | AndroidX, Jetpack Compose, Kotlin, kotlinx libraries | Apache License 2.0 | shipped inside the APK |
+| Shizuku API (RikkaApps), to work through Shizuku where AYN's service is blocked | Apache License 2.0 | same text as `licenses/MaterialSymbols-Apache-2.0.txt` |
 | HandyHelper mascot, logo and app icon | GPL-2.0, as part of HandyTuner | made with AI image tools, finished and upscaled by the author |
 | Sounds and music | GPL-2.0, as part of HandyTuner | generated in code (`SoundKit.kt`) |
 

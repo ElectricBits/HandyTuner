@@ -5,6 +5,7 @@ package com.electric.handytuner
 import android.os.IBinder
 import android.os.Parcel
 import android.util.Log
+import com.kei.pulse.root.ShizukuShell
 
 /**
  * AYN's PServerBinder system service runs a shell command with system rights.
@@ -24,11 +25,26 @@ object PServer {
             .invoke(null, "PServerBinder") as IBinder?
     }.getOrNull()
 
-    /** null means the command did not run, or ran and produced nothing — see [ok]. */
+    /**
+     * null means the command did not run, or ran and produced nothing — see [ok].
+     * Where PServer doesn't work, the command goes through Shizuku if HandyTuner may use it (issue #4);
+     * the safety rules below apply either way.
+     */
     fun run(cmd: String): String? {
-        val b = binder ?: return null
         if (cmd.length >= MAX) { Log.w(TAG, "pserver: dropped, ${cmd.length} chars"); return null }
         unsafeIn(cmd)?.let { Log.w(TAG, "pserver: refused, $it"); return null }
+        if (!works()) return if (ShizukuShell.ready()) ShizukuShell.run(cmd) else null
+        return transact(cmd)
+    }
+
+    @Volatile private var works = false
+
+    /** PServer really runs commands, not just "is registered". A yes is kept; a no is asked again (pservice can start late). */
+    private fun works(): Boolean = !ShizukuShell.forced() && binder != null &&
+        (works || (transact("echo ok") == "ok").also { if (it) works = true })
+
+    private fun transact(cmd: String): String? {
+        val b = binder ?: return null
         val data = Parcel.obtain(); val reply = Parcel.obtain()
         return try {
             data.writeStringArray(arrayOf(cmd, "1"))
@@ -49,7 +65,7 @@ object PServer {
      * succeeds but SELinux blocks the call itself (issue #4), and that needs a different message
      * from "no such service".
      */
-    fun access() = access(binder != null, run("echo ok"))
+    fun access() = access(binder != null, if (works()) "ok" else null)
 
     /** [access]'s rule on its own, so it can be tested without a binder. */
     internal fun access(found: Boolean, reply: String?) = when {

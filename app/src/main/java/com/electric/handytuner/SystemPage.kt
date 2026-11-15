@@ -171,7 +171,11 @@ private fun ChecksList(act: MainActivity) = ConsolePage {
     @Composable fun rows(list: List<Diagnostics.Check>) = list.forEach { c ->
         val fix = c.fix
         if (c.status == Diagnostics.Status.GRANT && fix != null)
-            ActionRow(c.name, hint = c.detail, value = if (fix.action == Intent.ACTION_VIEW) "Get" else "Fix", icon = Icons.Rounded.Shield) { act.startActivity(fix) }
+            ActionRow(c.name, hint = c.detail, value = when (fix.action) { Intent.ACTION_VIEW -> "Get"; Diagnostics.SHIZUKU_ALLOW -> "Allow"; else -> "Fix" },
+                icon = Icons.Rounded.Shield) {
+                // Shizuku's own dialog; coming back from it re-reads the list like any other fix.
+                if (fix.action == Diagnostics.SHIZUKU_ALLOW) com.kei.pulse.root.ShizukuShell.requestPermission() else act.startActivity(fix)
+            }
         else InfoRow(c.name, when (c.status) { Diagnostics.Status.OK -> "OK"; Diagnostics.Status.MISSING -> "Missing"; else -> "Needs access" },
             hint = c.detail, valueColor = when (c.status) { Diagnostics.Status.OK -> Hand.Good; Diagnostics.Status.MISSING -> Hand.Bad; else -> Hand.Warn })
     }

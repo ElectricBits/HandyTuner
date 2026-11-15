@@ -36,6 +36,9 @@ dependencies {
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material-icons-extended")
     implementation("com.google.android.material:material:1.12.0")
+    // Shizuku: the fallback when AYN's PServerBinder is blocked (Odin 2 Mini, issue #4). `api` so :app sees it too.
+    api("dev.rikka.shizuku:api:13.1.5")
+    api("dev.rikka.shizuku:provider:13.1.5")
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
 }
