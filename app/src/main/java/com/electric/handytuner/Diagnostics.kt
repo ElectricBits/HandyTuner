@@ -18,13 +18,16 @@ object Diagnostics {
     data class Check(val name: String, val detail: String, val status: Status, val fix: Intent? = null)
 
     fun setup(ctx: Context): List<Check> {
-        val root = PServer.run("echo ok") == "ok"
+        val access = PServer.access()
         return Grants.all.map { g ->
             val on = Grants.granted(ctx, g.kind)
             Check(g.title, if (on) "On" else "Needed so I can ${g.why}", if (on) Status.OK else Status.GRANT,
                 Grants.intent(ctx, g.kind))
-        } + Check("System access", if (root) "On: I can change the Odin's system settings" else "I can't reach the service that changes system settings",
-            if (root) Status.OK else Status.MISSING)
+        } + Check("System access", when (access) {
+            PServer.Access.OK -> "On: I can change the Odin's system settings"
+            PServer.Access.BLOCKED -> "Blocked: AYN's system service is here, but Android won't let me use it. A firmware update may fix this"
+            PServer.Access.MISSING -> "I can't find AYN's system service, the one that changes system settings"
+        }, if (access == PServer.Access.OK) Status.OK else Status.MISSING)
     }
 
     /**

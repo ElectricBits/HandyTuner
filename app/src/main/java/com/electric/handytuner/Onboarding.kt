@@ -61,7 +61,7 @@ import kotlinx.coroutines.withContext
 /** Everything setup depends on, read live each time the app comes back to the front. */
 private data class SetupStatus(
     val a11y: Boolean, val usage: Boolean, val notif: Boolean,
-    val root: Boolean, val frontend: String?,
+    val root: PServer.Access, val frontend: String?,
 )
 
 /**
@@ -78,7 +78,7 @@ fun Onboarding(ctx: Context, resumes: Int, hudHeld: Boolean, menuHeld: Boolean, 
         st = withContext(Dispatchers.IO) {
             SetupStatus(
                 Grants.granted(ctx, Grants.Kind.ACCESSIBILITY), Grants.granted(ctx, Grants.Kind.USAGE),
-                Grants.granted(ctx, Grants.Kind.NOTIFICATIONS), PServer.run("echo ok") == "ok",
+                Grants.granted(ctx, Grants.Kind.NOTIFICATIONS), PServer.access(),
                 frontend(ctx),
             )
         }
@@ -110,7 +110,7 @@ fun Onboarding(ctx: Context, resumes: Int, hudHeld: Boolean, menuHeld: Boolean, 
                 ?.takeIf { it.size >= 2 && (it[0].toLongOrNull() ?: 0) > openedAt }?.get(1)
         }
     }
-    val s = st ?: SetupStatus(false, false, false, true, null)
+    val s = st ?: SetupStatus(false, false, false, PServer.Access.OK, null)
     val fe = s.frontend?.let { FRONTENDS[it] }
 
     /** [lines] said by HandyHelper, then the card; [done] null = nothing to check; [cheer] when done flips true. */
@@ -149,10 +149,14 @@ fun Onboarding(ctx: Context, resumes: Int, hudHeld: Boolean, menuHeld: Boolean, 
         grant(Grants.Kind.ACCESSIBILITY, s.a11y),
         grant(Grants.Kind.USAGE, s.usage),
         grant(Grants.Kind.NOTIFICATIONS, s.notif, askNotifications),
-        Step(if (s.root) listOf("Good news: your Odin's built-in helper answers me.",
-            "So FPS, brightness, refresh rate and screenshots will all work.")
-            else listOf("Your Odin's built-in helper isn't answering me.",
-                "I'll still work, but FPS and screenshots won't. Nothing for you to do."), s.root),
+        when (s.root) {
+            PServer.Access.OK -> Step(listOf("Good news: your Odin's built-in helper answers me.",
+                "So FPS, brightness, refresh rate and screenshots will all work."), true)
+            PServer.Access.BLOCKED -> Step(listOf("Your Odin's built-in helper is here, but Android won't let me use it.",
+                "I'll still work, but FPS and screenshots won't. A firmware update may fix this."), false)
+            PServer.Access.MISSING -> Step(listOf("Your Odin's built-in helper isn't answering me.",
+                "I'll still work, but FPS and screenshots won't. Nothing for you to do."), false)
+        },
         // Optional, so the links ride on alt: A always moves on (a "Get Cocoon" button used to hold focus, issue #2).
         Step(if (fe != null) listOf("And $fe's here too!",
             "Start a game from $fe and I'll know exactly which one, even in an emulator.")

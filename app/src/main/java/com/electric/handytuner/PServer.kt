@@ -42,6 +42,22 @@ object PServer {
         }
     }
 
+    enum class Access { OK, BLOCKED, MISSING }
+
+    /**
+     * Whether commands really run. Finding the service isn't enough: on the Odin 2 Mini the lookup
+     * succeeds but SELinux blocks the call itself (issue #4), and that needs a different message
+     * from "no such service".
+     */
+    fun access() = access(binder != null, run("echo ok"))
+
+    /** [access]'s rule on its own, so it can be tested without a binder. */
+    internal fun access(found: Boolean, reply: String?) = when {
+        !found -> Access.MISSING
+        reply == "ok" -> Access.OK
+        else -> Access.BLOCKED
+    }
+
     /**
      * Whether [cmd] really succeeded — for the commands whose result the user is told about.
      *

@@ -8,18 +8,23 @@ import java.nio.charset.Charset
 @SuppressLint("DiscouragedPrivateApi", "PrivateApi")
 class RootExec {
 
-    private val binder: IBinder?
-    var pServerAvailable: Boolean = false
-        private set
+    private val binder: IBinder? = runCatching {
+        val serviceManager = Class.forName("android.os.ServiceManager")
+        val getService = serviceManager.getDeclaredMethod("getService", String::class.java)
+        getService.invoke(serviceManager, "PServerBinder") as IBinder
+    }.getOrDefault(null)
 
-    init {
-        binder = runCatching {
-            val serviceManager = Class.forName("android.os.ServiceManager")
-            val getService = serviceManager.getDeclaredMethod("getService", String::class.java)
-            val rawBinder = getService.invoke(serviceManager, "PServerBinder") as IBinder
-            pServerAvailable = true
-            rawBinder
-        }.getOrDefault(null)
+    /**
+     * Whether PServer really runs our commands, not just whether it's registered: on the Odin 2 Mini
+     * the lookup succeeds but SELinux blocks the call (HandyTuner issue #4). A yes is kept for the
+     * process; a no is asked again next time, since pservice can come up after we do.
+     */
+    val pServerAvailable: Boolean
+        get() = binder != null &&
+            (works || (RootSupport.runRootCommand("echo ok") == "ok").also { if (it) works = true })
+
+    private companion object {
+        @Volatile var works = false
     }
 
     fun executeAsRoot(cmd: String): Result<String?> {
